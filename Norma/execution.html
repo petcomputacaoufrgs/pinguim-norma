@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!-- saved from url=(0051)http://www.inf.ufrgs.br/~rma/simuladores/norma.html -->
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Máquina Norma</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <h1 class="simulator-title">Simulador de Máquina Norma</h1>
+
+        <!-- Theme switch -->
+        <label class="theme-switch" for="checkbox">
+            <input type="checkbox" id="checkbox" hidden/>
+            <div class="slider round"></div>
+        </label>
+
+        <div class="execution-area">
+            <div class="execution-settings">
+                <!-- Go back button -->
+                <a class='back_button' href="./norma.html">
+                    <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="299.021px" height="299.021px" viewBox="0 0 299.021 299.021" style="enable-background:new 0 0 299.021 299.021;" xml:space="preserve"><g><g><path d="M292.866,254.432c-2.288,0-4.443-1.285-5.5-3.399c-0.354-0.684-28.541-52.949-146.169-54.727v51.977c0,2.342-1.333,4.48-3.432,5.513c-2.096,1.033-4.594,0.793-6.461-0.63L2.417,154.392C0.898,153.227,0,151.425,0,149.516c0-1.919,0.898-3.72,2.417-4.888l128.893-98.77c1.87-1.426,4.365-1.667,6.461-0.639c2.099,1.026,3.432,3.173,3.432,5.509v54.776c3.111-0.198,7.164-0.37,11.947-0.37c43.861,0,145.871,13.952,145.871,143.136c0,2.858-1.964,5.344-4.75,5.993C293.802,254.384,293.34,254.432,292.866,254.432z" /></g></g></svg>
+                    Voltar para edição
+                </a>
+
+                <!-- Code input -->
+                <div class="input-code">
+                    <label for="input" class='input_label'>Entrada</label>
+                    <input type="text" id="input" name="norma_input" class='input_box'>
+                </div>
+
+                <!-- Control buttons -->
+                <div class='control_buttons'>
+                    <button class='button'>Resetar</button>
+                    <button class='button'>Passo</button>
+                    <button class='button'>Rodar</button>
+                    <button class='button'>Parar</button>
+                </div>
+            
+                <!-- Steps control -->
+                <h2>Espera entre passos (em ms): 0</h2> 
+                <input type="range" min="0" max="500" step="10">
+                <b>Passo: 0</b>
+            
+                <!-- Registers -->
+                <div class='register_section'>
+                    <h2>Registradores</h2>
+                    <div class='register_section__registers'>
+                        <div class='register'>
+                            <h3 class='register_name'> X</h3>
+                            <div class='register_value'> 0</div>
+                        </div>
+                        <div class='register'>
+                            <h3 class='register_name'> Y</h3>
+                            <div class='register_value'> 0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compiled code -->
+            <div class="compiled-program">
+                <h2>Programa compilado</h2>
+                <table>
+                    <tr class='line_selected'>
+                        <td class='pointer_column'>→</td>
+                        <td class='step_column'>1.1.1</td>
+                        <td class='program_column'>if A = 0 then goto 1.2.1 else goto 1.1.2</td>
+                    </tr>
+                    <tr>
+                        <td class='pointer_column'></td>
+                        <td class='step_column'>1.1.2</td>
+                        <td class='program_column'>do A := A - 1 goto 1.1.1</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <script src = "script.js"></script>
+    </body>
+</html>
