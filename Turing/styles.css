@@ -1,0 +1,281 @@
+/* Palette for dark and light mode */
+:root {
+    /* Backgrounds */
+    --main-background-color: #474744;
+    --header-background-color: #67B6B6;
+    --control-buttons-background: #EBEBE3;
+    --execution-button-background: #C19898;
+    --textarea-background: #666664;
+    --register-lighter-background: #DDC6C6;
+
+    /* Colors */
+    --header-font-color: #EBEBE3;
+    --main-font-color: #EBEBE3;
+    --control-button-font-color: #121212;
+    --title-font-color: #EBEBE3;
+    --details: #2B2B28;
+    --textarea-scrollbar: #4A4A48;
+    --error-font-color: #FF7676;
+    --highlight-color: #D2C656;
+}
+  
+[data-theme="dark"] {
+    /* Backgrounds */
+    --main-background-color: #F3EAE4;
+    --control-buttons-background: #67B6B6;
+    --execution-button-background: #B9A1D8;
+    --textarea-background: #F7E4D6;
+    --register-lighter-background: #DCD3E7;
+
+    /* Colors */
+    --header-font-color: #F5F5F5;
+    --main-font-color: #121212;
+    --control-button-font-color: #F5F5F5;
+    --title-font-color: #67B6B6;
+    --details: #F7E4D6;
+    --textarea-scrollbar: #EAD0B7;
+    --error-font-color: #FF5977;
+    --highlight-color: #B9A1D8;
+}
+
+html,
+body {
+	padding: 0;
+	margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--main-background-color);
+    color: var(--main-font-color);
+}
+
+.simulator-title {
+    font-size: 5rem;
+    margin: 0;
+    margin-bottom: 4vh;
+    padding: 3vmin;
+    text-align: center;
+    background-color: var(--header-background-color);
+    color: var(--header-font-color);
+}
+
+.theme-switch {
+    position: absolute;
+    top: 2vmin;
+    right: 2vmin;
+    width: 3.75rem;
+    height: 2.125rem;
+}
+  
+.slider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    cursor: pointer;
+    transition: .4s;
+    background-color: #2B2B28;
+}
+  
+.slider:before {
+    position: absolute;
+    bottom: 0.25rem;
+    left: 0.25rem;
+    width: 1.625rem;
+    height: 1.625rem;
+    content: "";
+    transition: .4s;
+    background-color: #F5F5F5;
+}
+  
+input:checked + .slider {
+    background-color: #DCD3E7;
+}
+  
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+  
+.slider.round {
+    border-radius: 2.125rem;
+}
+  
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.log-and-execution-area h2 {
+    margin: 0;
+    margin-bottom: 0.5rem;
+    color: var(--title-font-color);
+}
+
+.button-svg {
+    text-decoration: none;
+    text-align: center;
+    margin-left: 2vw;
+    border-radius: 0.5rem;
+    padding: 0.3rem;
+    font-size: 1rem;
+    background-color: var(--control-buttons-background);
+    color: var(--control-button-font-color);
+}
+
+.button-svg svg{
+    width: 0.9rem;
+    height: 0.9rem;
+    fill: var(--control-button-font-color);
+}
+
+#file-chosen{
+    margin-left: 1rem;
+    font-size: 1rem;
+}
+
+.coding-area { 
+    display: flex;
+    margin: 3vh 0;
+}
+
+.turing-machine {
+    width: 60vw;
+}
+
+.turing-machine input {
+    background-color: var(--textarea-background);
+    color: var(--main-font-color);
+    border: none;
+    box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 5px;
+    padding: 0.3rem;
+}
+
+.log-and-execution-area {
+    width: 40vw;
+    padding: 2vw;
+    padding-top: 0;
+}
+
+.log-area div {
+    padding: 0.4rem;
+    color: var(--error-font-color);
+    background-color: var(--textarea-background);
+    box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.log-area__errors {
+    background-color: var(--textarea-background);
+    padding: 0.6rem;
+    font-size: 1rem;
+    color: var(--error-font-color);
+    min-width: 30vw;
+    min-height: 10vh;
+}
+
+.button-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 3vmin;
+}
+
+.button {
+    font-size: 24px;
+    text-decoration: none;
+    text-align: center;
+    font-size: 2rem;
+    border: none;
+    width: 25vw;
+    margin: 0.5rem 0;
+    border-radius: 0.5rem;
+    padding: 1rem 1.5rem;
+    background-color: var(--execution-button-background);
+    color: var(--main-font-color);
+}
+
+.entry_word {
+    margin: 0 2vw;
+    width: 80vw;
+    height: 10vh;
+    padding: 0.4rem;
+    background-color: var(--textarea-background);
+    box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.execution-area {
+    display: flex;
+}
+
+.back_button {
+    margin-left: 2vw;
+    margin-bottom: 2.5rem;
+    text-decoration: none;
+    font-size: 1.5rem;
+    color: var(--main-font-color);
+}
+
+.back_button svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    fill: var(--execution-button-background);
+}
+
+.execution-settings {
+    width: 50vw;
+    padding: 0 2vmax;
+}
+
+.input-code {
+    margin: 1rem 0;
+}
+
+.input_label {
+    font-size: 1.8rem;
+}
+
+.input_box {
+    background: var(--textarea-background);
+    color:var(--main-font-color);
+    border: none;
+    box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 5px;
+    padding: 0.3rem;
+}
+
+.control_buttons {
+    display: flex;
+    margin-bottom: 2.5rem;
+}
+
+.control_buttons .button{
+    font-size: 1rem;
+    margin-right: 1vw;
+    width: 7vw;
+    padding: 0.3rem 0.8rem;
+}
+
+.compiled-program {
+    width: 50vw;
+}
+
+@media screen and (max-width:800px) {
+    .simulator-title {
+        font-size: 1.6rem;
+    }
+
+    .coding-area {
+        display: inline;
+    }
+
+    .code-textarea {
+        width: 86vw;
+    }
+
+    .log-and-execution-area {
+        width: 90vw;
+    }
+
+    .button {
+        font-size: 1.2rem;
+        width: 70vw;
+    }
+}
