@@ -5,54 +5,14 @@
     padding-top: 0;
 }
 
-/* TEXTAREA FOR CODE*/
+
+/* TEXTAREA FOR CODE */
 .code-textarea {
     margin: 0 2vw;
 }
 
 
-
-
-
-.execution-area {
-    display: flex;
-}
-
-
-.execution-settings {
-    width: 50vw;
-    padding: 0 2vmax;
-}
-
-.input-code {
-    margin: 1rem 0;
-}
-
-.input_label {
-    font-size: 1.8rem;
-}
-
-.input_box {
-    background: var(--textarea-background);
-    color:var(--main-font-color);
-    border: none;
-    box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
-    border-radius: 5px;
-    padding: 0.3rem;
-}
-
-.control_buttons {
-    display: flex;
-    margin-bottom: 2.5rem;
-}
-
-.control_buttons .button{
-    font-size: 1rem;
-    margin-right: 1vw;
-    width: 7vw;
-    padding: 0.3rem 0.8rem;
-}
-
+/* REGISTERS */
 .register_section {
     margin-top: 2.5rem;
 }
@@ -83,10 +43,8 @@
     margin-top: 0.5vh;
 }
 
-.compiled-program {
-    width: 50vw;
-}
 
+/* COMPILED CODE */
 table, tr, td {
     background-color: var(--textarea-background);
     color: var(--main-font-color);
@@ -107,27 +65,4 @@ table, tr, td {
 
 .program_column {
     min-width: 20rem;
-}
-
-@media screen and (max-width:800px) {
-    .simulator-title {
-        font-size: 1.6rem;
-    }
-
-    .coding-area {
-        display: inline;
-    }
-
-    .code-textarea {
-        width: 86vw;
-    }
-
-    .log-and-execution-area {
-        width: 90vw;
-    }
-
-    .button {
-        font-size: 1.2rem;
-        width: 70vw;
-    }
 }

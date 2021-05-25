@@ -8,49 +8,14 @@
 }
 
 
+/* CODING AREA */
 .coding-area {
     width: 60vw;
     margin: 0 2vw;
 }
 
-.execution-area {
-    display: flex;
-}
 
-.execution-settings {
-    width: 50vw;
-    padding: 0 2vmax;
-}
-
-.input-code {
-    margin: 1rem 0;
-}
-
-.input_label {
-    font-size: 1.8rem;
-}
-
-.input_box {
-    background: var(--textarea-background);
-    color:var(--main-font-color);
-    border: none;
-    box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
-    border-radius: 5px;
-    padding: 0.3rem;
-}
-
-.control_buttons {
-    display: flex;
-    margin-bottom: 2.5rem;
-}
-
-.control_buttons .button{
-    font-size: 1rem;
-    margin-right: 1vw;
-    width: 7vw;
-    padding: 0.3rem 0.8rem;
-}
-
+/* ACTUAL LAMBDA TERM AREA */
 .actual-term {
     margin-top: 2.5rem;
 }
@@ -64,10 +29,8 @@
     box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
-.compiled-program {
-    width: 50vw;
-}
 
+/* TREE VISUALIZATION AREA */
 .tree-visualization {
     width: 40vw;
 }
@@ -76,26 +39,15 @@
     margin: 0;
 }
 
-@media screen and (max-width:800px) {
-    .simulator-title {
-        font-size: 1.6rem;
-    }
 
+/* ======> SETTINGS FOR CELLPHONES <====== */
+@media screen and (max-width:800px) {
     .content {
         display: inline;
     }
 
-    .coding-area {
-        display: inline;
-    }
-
-    .code-textarea {
-        width: 90vw;
-    }
-
     .log-and-execution-area {
         display: inline;
-        width: 90vw;
     }
 
     .log-area {
@@ -104,11 +56,6 @@
 
     .log-area div {
         width: 90vw;
-    }
-
-    .button {
-        font-size: 1.2rem;
-        width: 70vw;
     }
 
     .tree-visualization {

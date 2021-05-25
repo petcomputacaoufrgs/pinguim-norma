@@ -116,6 +116,8 @@ input:checked + .slider:before {
 }
 
 
+
+/* ======> INDEX PAGE <====== */
 /* DOWNLOAD AND UPLOAD BUTTONS */
 .button-svg {
     text-decoration: none;
@@ -139,6 +141,7 @@ input:checked + .slider:before {
     margin-left: 1rem;
 }
 
+
 /* TEXTAREA FOR CODE*/
 .code-textarea {
     font-size: 1.06rem;
@@ -159,6 +162,7 @@ input:checked + .slider:before {
     border-radius: 1rem;
     background-color: var(--textarea-scrollbar);
 }
+
 
 /* LOG AND EXECUTION AREA */
 /* Log area */
@@ -207,6 +211,8 @@ input:checked + .slider:before {
 }
 
 
+
+/* ======> EXECUTION PAGE <====== */
 /* BACK BUTTON IN EXECUTION PAGE */
 .back_button {
     margin-bottom: 2.5rem;
@@ -219,4 +225,79 @@ input:checked + .slider:before {
     width: 1.5rem;
     height: 1.5rem;
     fill: var(--execution-button-background);
+}
+
+
+/* EXECUTION AREA */
+.execution-area {
+    display: flex;
+}
+
+.execution-settings {
+    width: 50vw;
+    padding: 0 2vmax;
+}
+
+
+/* INPUT WORD */
+.input-code {
+    margin: 1rem 0;
+}
+
+.input_label {
+    font-size: 1.8rem;
+}
+
+.input_box {
+    background: var(--textarea-background);
+    color:var(--main-font-color);
+    border: none;
+    box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 5px;
+    padding: 0.3rem;
+}
+
+
+/* CONTROL BUTTONS */
+.control_buttons {
+    display: flex;
+    margin-bottom: 2.5rem;
+}
+
+.control_buttons .button{
+    font-size: 1rem;
+    margin-right: 1vw;
+    width: 7vw;
+    padding: 0.3rem 0.8rem;
+}
+
+
+/* COMPILED PROGRAM AND TREE VISUALIZATION */
+.compiled-program {
+    width: 50vw;
+}
+
+
+/* ======> SETTINGS FOR CELLPHONES <====== */
+@media screen and (max-width:800px) {
+    .simulator-title {
+        font-size: 1.6rem;
+    }
+
+    .coding-area {
+        display: inline;
+    }
+
+    .code-textarea {
+        width: 86vw;
+    }
+
+    .log-and-execution-area {
+        width: 90vw;
+    }
+
+    .button {
+        font-size: 1.2rem;
+        width: 70vw;
+    }
 }
