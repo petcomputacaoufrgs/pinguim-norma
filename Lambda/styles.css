@@ -41,7 +41,7 @@
 
 
 /* ======> SETTINGS FOR CELLPHONES <====== */
-@media screen and (max-width: 800px) {
+@media screen and (max-device-width:800px) {
     .content {
         display: inline;
     }
@@ -55,7 +55,7 @@
     }
 
     .log-area div {
-        width: 90vw;
+        width: 84vw;
     }
 
     .tree-visualization {

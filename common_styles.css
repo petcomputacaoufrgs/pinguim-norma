@@ -122,6 +122,10 @@ input:checked + .slider:before {
 
 /* ======> INDEX PAGE <====== */
 /* DOWNLOAD AND UPLOAD BUTTONS */
+.download-and-upload-area {
+    display: flex;
+}
+
 .button-svg {
     text-decoration: none;
     text-align: center;
@@ -195,7 +199,6 @@ input:checked + .slider:before {
 .button-area {
     display: flex;
     flex-direction: column;
-    align-items: center;
     margin: 3vmin;
 }
 
@@ -290,7 +293,6 @@ input:checked + .slider:before {
     }
 
     .download-and-upload-area {
-        display: flex;
         flex-direction: column;
     }
 
