@@ -17,6 +17,9 @@
     --textarea-scrollbar: #4A4A48;
     --error-font-color: #FF7676;
     --highlight-color: #D2C656;
+
+    /* General colors */
+    --dark-color: #121212;
 }
   
 [data-theme="dark"] {
@@ -279,17 +282,35 @@ input:checked + .slider:before {
 
 
 /* ======> SETTINGS FOR CELLPHONES <====== */
-@media screen and (max-width:800px) {
+@media screen and (max-device-width:800px) {
     .simulator-title {
+        padding-right: 4rem;
         font-size: 1.6rem;
+    }
+
+    .download-and-upload-area {
+        display: flex;
+        flex-direction: column;
     }
 
     .coding-area {
         display: inline;
     }
 
+    .flex-box {
+        display: inline;
+    }
+
     .code-textarea {
         width: 86vw;
+    }
+
+    .execution-area {
+        display: inline;
+    }
+
+    .execution-settings {
+        width: 92vw;
     }
 
     .log-and-execution-area {
@@ -299,5 +320,9 @@ input:checked + .slider:before {
     .button {
         font-size: 1.2rem;
         width: 70vw;
+    }
+
+    .compiled-program {
+        width: 92vw;
     }
 }

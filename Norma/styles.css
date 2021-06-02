@@ -23,9 +23,10 @@
 
 .register {
     text-align: center;
-    width: 3.5vw;
-    height: 8vh;
+    width: 6.5vmin;
+    height: 8vmin;
     background-color: var(--register-lighter-background);
+    color: var(--dark-color);
     border-radius: 0.6rem;
     font-size: 2rem;
     margin-right: 1rem;
@@ -33,9 +34,10 @@
 
 .register_name {
     background-color: var(--execution-button-background);
+    color: var(--main-font-color);
     margin: 0;
     border-radius: 0.6rem 0.6rem 0rem 0rem;
-    height: 3vh;
+    height: 3vmin;
     font-size: 1.5rem;
 }
 
