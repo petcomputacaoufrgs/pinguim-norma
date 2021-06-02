@@ -269,7 +269,8 @@ input:checked + .slider:before {
 
 .control_buttons .button{
     font-size: 1rem;
-    margin-right: 1vw;
+    margin-right: 1rem;
+    min-width: 5rem;
     width: 7vw;
     padding: 0.3rem 0.8rem;
 }
