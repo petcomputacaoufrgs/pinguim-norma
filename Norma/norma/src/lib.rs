@@ -14,12 +14,20 @@ extern {
 #[wasm_bindgen]
 pub fn test(input: &str) {
     let mut registers = norma::RegisterBank::new(BigUint::parse_bytes(input.as_bytes(),10).unwrap());
+    registers.insert("J");
     for i in 1..=3 {
-        registers.dec("X");
-        registers.inc("Y");
-        registers.inc("J");
-        registers.inc("J");
+        registers.apply("X", |reg| {
+            reg.dec();
+        });
+        registers.apply("Y", |reg| {
+            reg.inc();
+        });
+        registers.apply("J", |reg| {
+            reg.inc();
+            reg.inc();
+        });
     }
+    
     let x_value = registers.get_value("X");
     let y_value = registers.get_value("Y");
     let j_value = registers.get_value("J");

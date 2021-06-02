@@ -109,10 +109,19 @@ impl RegisterBank {
         }
     }
 
+    // Retorna o valor de um registrador pela sua chave
     pub fn get_value(&mut self, key: &str) -> BigUint {
         match self.get_register(key) {
             Some(register) => register.get_value(),
             None => BigUint::zero()
+        }
+    }
+
+    // Aplica uma função a um registrador caso encontrado
+    pub fn apply(&mut self, key: &str, f: fn(&mut Register)) {
+        match self.get_register(key) {
+            Some(register) => f(register),
+            None => {}
         }
     }
 
@@ -129,6 +138,13 @@ impl RegisterBank {
         match self.registers.get_mut(key) {
             Some(register) => return Some(register),
             None => return None
+        }
+    }
+
+    // Printa em tela os valores atuais do banco de registradores (desordenado)
+    pub fn print(&mut self) {
+        for (register_label, register) in &self.registers {
+             println!("{}: {}", register_label, register.value);
         }
     }
 }
