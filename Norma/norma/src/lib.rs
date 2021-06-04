@@ -1,6 +1,6 @@
 pub mod register;
 pub mod instruction;
-pub mod machine;
+pub mod interpreter;
 
 use instruction::{
     Instruction,
@@ -12,7 +12,7 @@ use instruction::{
     Test,
     TestKind,
 };
-use machine::Machine;
+use interpreter::Interpreter;
 use num::BigUint;
 use register::{Register, RegisterBank};
 use wasm_bindgen::prelude::*;
@@ -25,7 +25,7 @@ extern "C" {
 #[wasm_bindgen]
 pub fn test(input: &str) {
     if let Some(input_number) = BigUint::parse_bytes(input.as_bytes(), 10) {
-        let mut reg_bank = RegisterBank::new(vec![
+        let reg_bank = RegisterBank::new(vec![
             Register::with_value("X", input_number),
             Register::zeroed("Y"),
         ]);
@@ -60,12 +60,12 @@ pub fn test(input: &str) {
             Instruction::new(instruction2, location2),
         ]);
 
-        let machine = Machine::new(reg_bank, program, 0);
-        while machine.step() {}
+        let mut interpreter = Interpreter::new(reg_bank, program, 0);
+        while interpreter.step() {}
 
-        let reg_bank = machine.registers();
+        let reg_bank = interpreter.registers();
 
-        alert(&register_bank.register(reg_y_index).to_string());
+        alert(&reg_bank.register(reg_y_index).to_string());
     }
 }
 
