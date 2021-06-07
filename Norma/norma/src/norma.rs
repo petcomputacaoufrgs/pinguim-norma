@@ -18,7 +18,7 @@ impl Register {
     // Cria um novo registrador com valor zero
     pub fn new_empty() -> Register {
         Register {
-            value: BigUint::from(0 as u8)
+            value: BigUint::zero()
         }
     }
 
