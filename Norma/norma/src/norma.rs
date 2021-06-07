@@ -24,7 +24,7 @@ impl Register {
 
     // Incrementa o valor do registrador
     pub fn inc(&mut self) {
-        self.value += 1 as u8
+        self.value += 1u8
     }
 
     // Decrementa o valor do registrador (caso seja maior que 0)
