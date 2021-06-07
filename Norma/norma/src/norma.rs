@@ -30,7 +30,7 @@ impl Register {
     // Decrementa o valor do registrador (caso seja maior que 0)
     pub fn dec(&mut self) {
         if !self.is_zero() {
-            self.value -= 1 as u8
+            self.value -= 1u8
         }
     }
 
