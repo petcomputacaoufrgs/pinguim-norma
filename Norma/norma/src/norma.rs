@@ -36,7 +36,7 @@ impl Register {
 
     // Verifica se o valor do registrador é 0
     pub fn is_zero(&mut self) -> bool {
-        self.value == BigUint::from(0 as u8)
+        self.value.is_zero()
     }
 
     // Retorna o valor do registrador
