@@ -1,6 +1,5 @@
 use wasm_bindgen::prelude::*;
 use num_bigint::BigUint;
-use num_traits::identities::{Zero, One};
 
 mod norma;
 
@@ -15,7 +14,7 @@ extern {
 pub fn test(input: &str) {
     let mut registers = norma::RegisterBank::new(BigUint::parse_bytes(input.as_bytes(),10).unwrap());
     registers.insert("J");
-    for i in 1..=3 {
+    for _i in 1..=3 {
         registers.apply("X", |reg| {
             reg.dec();
         });
@@ -27,10 +26,16 @@ pub fn test(input: &str) {
             reg.inc();
         });
     }
+
+    if registers.is_zero("X") {
+        registers.inc("Y");
+        registers.dec("J");   
+    }
     
     let x_value = registers.get_value("X");
     let y_value = registers.get_value("Y");
     let j_value = registers.get_value("J");
+    let counter = registers.get_counter();
 
     alert(&format!("X: {} \nY: {} \nJ: {}", x_value, y_value, j_value));
 }

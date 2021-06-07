@@ -48,7 +48,8 @@ impl Register {
 
 /// Declaração da estrutura do banco de Registradores
 pub struct RegisterBank {
-    registers: HashMap<String, Register>
+    registers: HashMap<String, Register>,
+    counter: BigUint
 }
 
 impl RegisterBank {
@@ -60,7 +61,8 @@ impl RegisterBank {
         register_bank.insert("X".to_string(), Register::new(input));
         register_bank.insert("Y".to_string(), Register::new_empty());
         RegisterBank {
-            registers: register_bank
+            registers: register_bank,
+            counter: BigUint::zero()
         }
     }
 
@@ -73,12 +75,13 @@ impl RegisterBank {
     // Incrementa o valor de um registrador existente, criando um caso não exista
     // key: nome do registrador
     pub fn inc(&mut self, key: &str) {
+        self.counter += 1u8;
         match self.get_register(key) {
             Some(register) => {
                 register.inc();
             },
             None => {
-                self.insert_with_value(key, BigUint::one())
+                self.insert_with_value(key, BigUint::one());
             }
         }
     }
@@ -86,12 +89,13 @@ impl RegisterBank {
     // Decrementa o valor de um registrador existente, verdadeiro caso não exista
     // key: nome do registrador
     pub fn dec(&mut self, key: &str) {
+        self.counter += 1u8;
         match self.get_register(key) {
             Some(register) => {
                 register.dec();
             },
             None => {
-                self.insert(key)
+                self.insert(key);
             }
         }
     }
@@ -99,6 +103,7 @@ impl RegisterBank {
     // Decrementa o valor de um registrador existente, criando um caso não exista
     // key: nome do registrador
     pub fn is_zero(&mut self, key: &str) -> bool {
+        self.counter += 1u8;
         match self.get_register(key) {
             Some(register) => {
                 register.is_zero()
@@ -141,7 +146,13 @@ impl RegisterBank {
         }
     }
 
+    // Retorna valor do contador
+    pub fn get_counter(&mut self) -> BigUint {
+        self.counter.clone()
+    }
+
     // Printa em tela os valores atuais do banco de registradores (desordenado)
+    #[warn(dead_code)]
     pub fn print(&mut self) {
         for (register_label, register) in &self.registers {
              println!("{}: {}", register_label, register.value);
