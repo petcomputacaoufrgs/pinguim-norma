@@ -75,7 +75,7 @@ impl RegisterBank {
     // Incrementa o valor de um registrador existente, criando um caso não exista
     // key: nome do registrador
     pub fn inc(&mut self, key: &str) {
-        self.counter += 1u8;
+        self.increase_counter(1);
         match self.get_register(key) {
             Some(register) => {
                 register.inc();
@@ -89,7 +89,7 @@ impl RegisterBank {
     // Decrementa o valor de um registrador existente, verdadeiro caso não exista
     // key: nome do registrador
     pub fn dec(&mut self, key: &str) {
-        self.counter += 1u8;
+        self.increase_counter(1);
         match self.get_register(key) {
             Some(register) => {
                 register.dec();
@@ -103,7 +103,7 @@ impl RegisterBank {
     // Decrementa o valor de um registrador existente, criando um caso não exista
     // key: nome do registrador
     pub fn is_zero(&mut self, key: &str) -> bool {
-        self.counter += 1u8;
+        self.increase_counter(1);
         match self.get_register(key) {
             Some(register) => {
                 register.is_zero()
@@ -130,6 +130,19 @@ impl RegisterBank {
         }
     }
 
+    // Retorna valor do contador
+    pub fn get_counter(&mut self) -> BigUint {
+        self.counter.clone()
+    }
+
+    // Printa em tela os valores atuais do banco de registradores (desordenado)
+    #[warn(dead_code)]
+    pub fn print(&mut self) {
+        for (register_label, register) in &self.registers {
+             println!("{}: {}", register_label, register.value);
+        }
+    }
+
     // Insere um novo registrador com valor diferente de 0
     // key: nome do registrador
     // value: valor do registrador
@@ -146,16 +159,7 @@ impl RegisterBank {
         }
     }
 
-    // Retorna valor do contador
-    pub fn get_counter(&mut self) -> BigUint {
-        self.counter.clone()
-    }
-
-    // Printa em tela os valores atuais do banco de registradores (desordenado)
-    #[warn(dead_code)]
-    pub fn print(&mut self) {
-        for (register_label, register) in &self.registers {
-             println!("{}: {}", register_label, register.value);
-        }
+    fn increase_counter(&mut self, value: u64) {
+        self.counter += value;
     }
 }
