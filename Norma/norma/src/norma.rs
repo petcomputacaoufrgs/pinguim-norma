@@ -47,20 +47,20 @@ impl Register {
 
 
 /// Declaração da estrutura do banco de Registradores
-pub struct RegisterBank {
+pub struct Machine {
     registers: HashMap<String, Register>,
     counter: BigUint
 }
 
-impl RegisterBank {
+impl Machine {
     // Inicia um novo banco de regitradores, com 2 registradores:
     // X: Registrador de entrada, receberá o valor desejado
     // Y: Registrador de saída, armazenará o valor retornado ao fim da execução
-    pub fn new(input: BigUint) -> RegisterBank {
+    pub fn new(input: BigUint) -> Machine {
         let mut register_bank: HashMap<String, Register> = HashMap::new();
         register_bank.insert("X".to_string(), Register::new(input));
         register_bank.insert("Y".to_string(), Register::new_empty());
-        RegisterBank {
+        Machine {
             registers: register_bank,
             counter: BigUint::zero()
         }
@@ -75,7 +75,7 @@ impl RegisterBank {
     // Incrementa o valor de um registrador existente, criando um caso não exista
     // key: nome do registrador
     pub fn inc(&mut self, key: &str) {
-        self.increase_counter(1);
+        self.increase_counter(1u64);
         match self.get_register(key) {
             Some(register) => {
                 register.inc();
@@ -89,7 +89,7 @@ impl RegisterBank {
     // Decrementa o valor de um registrador existente, verdadeiro caso não exista
     // key: nome do registrador
     pub fn dec(&mut self, key: &str) {
-        self.increase_counter(1);
+        self.increase_counter(1u64);
         match self.get_register(key) {
             Some(register) => {
                 register.dec();
@@ -103,7 +103,7 @@ impl RegisterBank {
     // Decrementa o valor de um registrador existente, criando um caso não exista
     // key: nome do registrador
     pub fn is_zero(&mut self, key: &str) -> bool {
-        self.increase_counter(1);
+        self.increase_counter(1u64);
         match self.get_register(key) {
             Some(register) => {
                 register.is_zero()
