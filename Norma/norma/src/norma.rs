@@ -130,6 +130,15 @@ impl Machine {
         }
     }
 
+    // Retorna HashMap de registradores
+    pub fn get_registers_exportable(&mut self) -> HashMap<String, String> {
+        let mut exportable_hashmap: HashMap<String, String> = HashMap::new();
+        for (reg_name, reg_obj) in &self.registers {
+            exportable_hashmap.insert(reg_name.to_string(), reg_obj.value.to_str_radix(10));
+        }
+        exportable_hashmap
+    }
+
     // Retorna valor do contador
     pub fn get_counter(&mut self) -> BigUint {
         self.counter.clone()
