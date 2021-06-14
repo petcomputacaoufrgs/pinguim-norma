@@ -12,12 +12,15 @@ extern {
     pub fn alert(s: &str);
 
     #[wasm_bindgen(js_namespace= console , js_name = log)]
-    fn printf(a: &str);
+    fn print_wasm(a: &str);
+
+    #[wasm_bindgen(js_namespace= console , js_name = log)]
+    fn print_number(a: usize);
 }
 
 /// A Norma machine adapted to be exported for JS
 /// registers -> k: name of register, v: value
-/// counter -> count
+/// counter -> machine counter
 #[derive(Serialize, Deserialize)]
 pub struct ExportableMachine {
     pub registers: HashMap<String, String>,
@@ -31,6 +34,45 @@ impl ExportableMachine {
             counter: machine.get_counter().to_str_radix(10).to_string()
         }
     }
+}
+
+#[wasm_bindgen]
+pub fn vetor(input: &[usize]) {
+    for &number in input.iter() {
+        print_number(number);
+    }
+}
+
+#[wasm_bindgen]
+pub fn square(input: &str) -> JsValue {
+    let mut registers = norma::Machine::new(BigUint::parse_bytes(input.as_bytes(),10).unwrap());
+    registers.insert("VAL");
+    registers.insert("TMP");
+    registers.insert("CNT");
+
+    while !registers.is_zero("X") {
+        registers.dec("X");
+        registers.inc("VAL");
+        registers.inc("CNT");
+    }
+
+    while !registers.is_zero("CNT") {
+        registers.dec("CNT");
+
+        while !registers.is_zero("VAL") {
+            registers.inc("Y");
+            registers.inc("TMP");
+            registers.dec("VAL");
+        }
+
+        while !registers.is_zero("TMP") {
+            registers.inc("VAL");
+            registers.dec("TMP");
+        }
+    }
+
+
+    JsValue::from_serde(&ExportableMachine::from_machine(registers)).unwrap()
 }
 
 #[wasm_bindgen]
@@ -54,13 +96,6 @@ pub fn test(input: &str) -> JsValue {
         registers.inc("Y");
         registers.dec("J");   
     }
-    
-    let x_value = registers.get_value("X");
-    let y_value = registers.get_value("Y");
-    let j_value = registers.get_value("J");
-    let counter = registers.get_counter();
-
-    alert(&format!("X: {} \nY: {} \nJ: {} \nCounter: {}", x_value, y_value, j_value, counter));
 
     JsValue::from_serde(&ExportableMachine::from_machine(registers)).unwrap()
 }
