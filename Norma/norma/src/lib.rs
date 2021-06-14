@@ -50,22 +50,22 @@ pub fn square(input: &str) -> JsValue {
     registers.insert("TMP");
     registers.insert("CNT");
 
-    while !registers.is_zero("X") {
+    while !registers.is_zero("X").unwrap() {
         registers.dec("X");
         registers.inc("VAL");
         registers.inc("CNT");
     }
 
-    while !registers.is_zero("CNT") {
+    while !registers.is_zero("CNT").unwrap() {
         registers.dec("CNT");
 
-        while !registers.is_zero("VAL") {
+        while !registers.is_zero("VAL").unwrap() {
             registers.inc("Y");
             registers.inc("TMP");
             registers.dec("VAL");
         }
 
-        while !registers.is_zero("TMP") {
+        while !registers.is_zero("TMP").unwrap() {
             registers.inc("VAL");
             registers.dec("TMP");
         }
@@ -92,7 +92,7 @@ pub fn test(input: &str) -> JsValue {
         });
     }
 
-    if registers.is_zero("X") {
+    if registers.is_zero("X").unwrap() {
         registers.inc("Y");
         registers.dec("J");   
     }

@@ -75,13 +75,13 @@ impl Machine {
     // Incrementa o valor de um registrador existente, criando um caso não exista
     // key: nome do registrador
     pub fn inc(&mut self, key: &str) {
-        self.increase_counter(1u64);
+        self.increase_counter(BigUint::one());
         match self.get_register(key) {
             Some(register) => {
                 register.inc();
             },
             None => {
-                self.insert_with_value(key, BigUint::one());
+                panic!("Register {} does not exists", key)
             }
         }
     }
@@ -89,27 +89,27 @@ impl Machine {
     // Decrementa o valor de um registrador existente, verdadeiro caso não exista
     // key: nome do registrador
     pub fn dec(&mut self, key: &str) {
-        self.increase_counter(1u64);
+        self.increase_counter(BigUint::one());
         match self.get_register(key) {
             Some(register) => {
                 register.dec();
             },
             None => {
-                self.insert(key);
+                panic!("Register {} does not exists", key)
             }
         }
     }
 
     // Decrementa o valor de um registrador existente, criando um caso não exista
     // key: nome do registrador
-    pub fn is_zero(&mut self, key: &str) -> bool {
-        self.increase_counter(1u64);
+    pub fn is_zero(&mut self, key: &str) -> Option<bool> {
+        self.increase_counter(BigUint::one());
         match self.get_register(key) {
             Some(register) => {
-                register.is_zero()
+                Some(register.is_zero())
             },
             None => {
-                true
+                panic!("Register {} does not exists", key)
             }
         }
     }
@@ -118,8 +118,13 @@ impl Machine {
     pub fn get_value(&mut self, key: &str) -> BigUint {
         match self.get_register(key) {
             Some(register) => register.get_value(),
-            None => BigUint::zero()
+            None => panic!("Register {} does not exists", key)
         }
+    }
+
+    // Retorna valor do contador
+    pub fn get_counter(&mut self) -> BigUint {
+        self.counter.clone()
     }
 
     // Aplica uma função a um registrador caso encontrado
@@ -139,24 +144,15 @@ impl Machine {
         exportable_hashmap
     }
 
-    // Retorna valor do contador
-    pub fn get_counter(&mut self) -> BigUint {
-        self.counter.clone()
-    }
-
-    // Printa em tela os valores atuais do banco de registradores (desordenado)
-    #[warn(dead_code)]
-    pub fn print(&mut self) {
-        for (register_label, register) in &self.registers {
-             println!("{}: {}", register_label, register.value);
-        }
-    }
-
     // Insere um novo registrador com valor diferente de 0
     // key: nome do registrador
     // value: valor do registrador
     fn insert_with_value(&mut self, key: &str, value: BigUint) {
         self.registers.insert(key.to_string(), Register::new(value));
+    }
+
+    fn increase_counter(&mut self, value: BigUint) {
+        self.counter += value;
     }
 
     // Busca registrador, retornando none caso não exista
@@ -166,9 +162,5 @@ impl Machine {
             Some(register) => return Some(register),
             None => return None
         }
-    }
-
-    fn increase_counter(&mut self, value: u64) {
-        self.counter += value;
     }
 }
