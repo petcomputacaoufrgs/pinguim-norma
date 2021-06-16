@@ -150,6 +150,29 @@ impl Machine {
         }
     }
 
+    // Compara se o valor de um registrador é igual a uma dada constante
+    // key: nome do registrador
+    // cons: constante com a qual o valor do registrador será comparado
+    pub fn cons_cmp(&mut self, key: &str, cons: u128) -> Option<bool> {
+        for _i in 1..=(4*cons) {
+            self.increase_counter(BigUint::one());
+        }
+
+        match self.get_register(key) {
+            Some(register) => {
+                let value = register.get_value();
+                if value == BigUint::from(cons) {
+                    return Some(true)
+                } else {
+                    return Some(false)
+                }
+            },
+            None => {
+                panic!("Register {} does not exists", key)
+            }
+        }
+    }
+
     // Testa se o valor de um registrador existente é zero, panicking caso o registrador não exista.
     // key: nome do registrador
     pub fn is_zero(&mut self, key: &str) -> Option<bool> {
