@@ -43,6 +43,11 @@ impl Register {
     pub fn get_value(&mut self) -> BigUint {
         self.value.clone()
     }
+
+    // Atualiza valor do registrador
+    pub fn update_value(&mut self, new_value: BigUint) {
+        self.value = new_value
+    }
 }
 
 
@@ -93,6 +98,51 @@ impl Machine {
         match self.get_register(key) {
             Some(register) => {
                 register.dec();
+            },
+            None => {
+                panic!("Register {} does not exists", key)
+            }
+        }
+    }
+
+    // Soma valor constante a um registrador, caso o registrador exista
+    // key: nome do registrador
+    // cons: constante a ser somada ao valor já existente do registrador
+    pub fn cons_sum(&mut self, key: &str, cons: u128) {
+        for _i in 1..=cons {
+            self.increase_counter(BigUint::one());
+        }
+
+        match self.get_register(key) {
+            Some(register) => {
+                let mut value = register.get_value();
+                value += cons;
+                self.update_register(key, value);
+            },
+            None => {
+                panic!("Register {} does not exists", key)
+            }
+        }
+    }
+
+    // Subtrai valor constante de um dado registrador, caso o registrador exista
+    // key: nome registrador
+    // cons: constante a ser subtraída do valor do registrador
+    pub fn cons_sub(&mut self, key: &str, cons: u128) {
+        for _i in 1..=cons {
+            self.increase_counter(BigUint::one());
+        }
+
+        match self.get_register(key) {
+            Some(register) => {
+                let mut value = register.get_value();
+                if value > BigUint::from(cons) {
+                    value -= cons;
+                } else {
+                    value = Zero::zero();
+                }
+
+                self.update_register(key, value);
             },
             None => {
                 panic!("Register {} does not exists", key)
@@ -162,5 +212,9 @@ impl Machine {
             Some(register) => return Some(register),
             None => return None
         }
+    }
+
+    fn update_register(&mut self, key: &str, new_value: BigUint) {
+        self.get_register(key).unwrap().update_value(new_value) 
     }
 }
