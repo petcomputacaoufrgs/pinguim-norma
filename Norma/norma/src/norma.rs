@@ -43,6 +43,11 @@ impl Register {
     pub fn get_value(&mut self) -> BigUint {
         self.value.clone()
     }
+
+    // Atualiza valor do registrador
+    pub fn update_value(&mut self, new_value: BigUint) {
+        self.value = new_value
+    }
 }
 
 
@@ -53,7 +58,7 @@ pub struct Machine {
 }
 
 impl Machine {
-    // Inicia um novo banco de regitradores, com 2 registradores:
+    // Inicia um novo banco de regitradores com 2 registradores básicos (X e Y) e inicia contador:
     // X: Registrador de entrada, receberá o valor desejado
     // Y: Registrador de saída, armazenará o valor retornado ao fim da execução
     pub fn new(input: BigUint) -> Machine {
@@ -72,7 +77,7 @@ impl Machine {
         self.registers.insert(key.to_string(), Register::new_empty());
     }
 
-    // Incrementa o valor de um registrador existente, criando um caso não exista
+    // Incrementa o valor de um registrador existente, panicking caso o registrador não exista.
     // key: nome do registrador
     pub fn inc(&mut self, key: &str) {
         self.increase_counter(BigUint::one());
@@ -86,7 +91,7 @@ impl Machine {
         }
     }
 
-    // Decrementa o valor de um registrador existente, verdadeiro caso não exista
+    // Decrementa o valor de um registrador existente, panicking caso o registrador não exista.
     // key: nome do registrador
     pub fn dec(&mut self, key: &str) {
         self.increase_counter(BigUint::one());
@@ -100,7 +105,75 @@ impl Machine {
         }
     }
 
-    // Decrementa o valor de um registrador existente, criando um caso não exista
+    // Soma valor constante a um registrador, caso o registrador exista
+    // key: nome do registrador
+    // cons: constante a ser somada ao valor já existente do registrador
+    pub fn cons_sum(&mut self, key: &str, cons: u128) {
+        for _i in 1..=cons {
+            self.increase_counter(BigUint::one());
+        }
+
+        match self.get_register(key) {
+            Some(register) => {
+                let mut value = register.get_value();
+                value += cons;
+                self.update_register(key, value);
+            },
+            None => {
+                panic!("Register {} does not exists", key)
+            }
+        }
+    }
+
+    // Subtrai valor constante de um dado registrador, caso o registrador exista
+    // key: nome registrador
+    // cons: constante a ser subtraída do valor do registrador
+    pub fn cons_sub(&mut self, key: &str, cons: u128) {
+        for _i in 1..=cons {
+            self.increase_counter(BigUint::one());
+        }
+
+        match self.get_register(key) {
+            Some(register) => {
+                let mut value = register.get_value();
+                if value > BigUint::from(cons) {
+                    value -= cons;
+                } else {
+                    value = Zero::zero();
+                }
+
+                self.update_register(key, value);
+            },
+            None => {
+                panic!("Register {} does not exists", key)
+            }
+        }
+    }
+
+    // Compara se o valor de um registrador é igual a uma dada constante
+    // key: nome do registrador
+    // cons: constante com a qual o valor do registrador será comparado
+    pub fn cons_cmp(&mut self, key: &str, cons: u128) -> Option<bool> {
+        for _i in 1..=(4*cons) {
+            self.increase_counter(BigUint::one());
+        }
+
+        match self.get_register(key) {
+            Some(register) => {
+                let value = register.get_value();
+                if value == BigUint::from(cons) {
+                    return Some(true)
+                } else {
+                    return Some(false)
+                }
+            },
+            None => {
+                panic!("Register {} does not exists", key)
+            }
+        }
+    }
+
+    // Testa se o valor de um registrador existente é zero, panicking caso o registrador não exista.
     // key: nome do registrador
     pub fn is_zero(&mut self, key: &str) -> Option<bool> {
         self.increase_counter(BigUint::one());
@@ -162,5 +235,9 @@ impl Machine {
             Some(register) => return Some(register),
             None => return None
         }
+    }
+
+    fn update_register(&mut self, key: &str, new_value: BigUint) {
+        self.get_register(key).unwrap().update_value(new_value) 
     }
 }
