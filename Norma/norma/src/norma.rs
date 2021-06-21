@@ -109,9 +109,8 @@ impl Machine {
     // key: nome do registrador
     // cons: constante a ser somada ao valor já existente do registrador
     pub fn cons_sum(&mut self, key: &str, cons: u128) {
-        for _i in 1..=cons {
-            self.increase_counter(BigUint::one());
-        }
+
+        self.increase_counter(BigUint::from(cons));
 
         match self.get_register(key) {
             Some(register) => {
@@ -129,9 +128,7 @@ impl Machine {
     // key: nome registrador
     // cons: constante a ser subtraída do valor do registrador
     pub fn cons_sub(&mut self, key: &str, cons: u128) {
-        for _i in 1..=cons {
-            self.increase_counter(BigUint::one());
-        }
+        self.increase_counter(BigUint::from(cons));
 
         match self.get_register(key) {
             Some(register) => {
@@ -154,16 +151,19 @@ impl Machine {
     // key: nome do registrador
     // cons: constante com a qual o valor do registrador será comparado
     pub fn cons_cmp(&mut self, key: &str, cons: u128) -> Option<bool> {
-        for _i in 1..=(4*cons) {
-            self.increase_counter(BigUint::one());
-        }
+        let ref cons = BigUint::from(cons);
 
         match self.get_register(key) {
             Some(register) => {
                 let value = register.get_value();
-                if value == BigUint::from(cons) {
+                if *cons == value {
+                    self.increase_counter(3u8 * cons + 1u8);
                     return Some(true)
+                } else if value < *cons {
+                    self.increase_counter(3u8 * cons + 1u8);
+                    return Some(false)
                 } else {
+                    self.increase_counter(3u8 * value + 1u8);
                     return Some(false)
                 }
             },
