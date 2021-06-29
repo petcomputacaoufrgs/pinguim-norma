@@ -38,19 +38,16 @@ pub fn test(input: &str) {
         let location2 = Location::new("main", "3");
 
         let instruction0 = InstructionKind::Test(Test::new(
-            TestKind::IsZero,
-            reg_x_index,
+            TestKind::IsZero(reg_x_index),
             3,
             1,
         ));
         let instruction1 = InstructionKind::Operation(Operation::new(
-            OperationKind::Dec,
-            reg_x_index,
+            OperationKind::Dec(reg_x_index),
             2,
         ));
         let instruction2 = InstructionKind::Operation(Operation::new(
-            OperationKind::Inc,
-            reg_y_index,
+            OperationKind::Inc(reg_y_index),
             0,
         ));
 

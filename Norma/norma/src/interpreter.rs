@@ -75,8 +75,8 @@ impl Interpreter {
 
     fn exec_operation(&mut self, operation: Operation) {
         match operation.kind() {
-            OperationKind::Inc => self.exec_inc(operation.register()),
-            OperationKind::Dec => self.exec_dec(operation.register()),
+            OperationKind::Inc(register) => self.exec_inc(register),
+            OperationKind::Dec(register) => self.exec_dec(register),
         }
         self.program_counter = operation.destiny();
     }
@@ -91,7 +91,7 @@ impl Interpreter {
 
     fn exec_test(&mut self, test: Test) {
         let success = match test.kind() {
-            TestKind::IsZero => self.test_is_zero(test.register()),
+            TestKind::IsZero(register) => self.test_is_zero(register),
         };
         self.program_counter = test.destiny(success);
     }

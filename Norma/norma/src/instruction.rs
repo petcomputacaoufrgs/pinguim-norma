@@ -41,38 +41,27 @@ impl fmt::Display for Location {
 #[derive(Debug, Clone, Copy)]
 pub enum OperationKind {
     /// Increments the register.
-    Inc,
+    Inc(RegisterIndex),
     /// Decrements the register.
-    Dec,
+    Dec(RegisterIndex),
 }
 
-/// Data of an operation over a register.
+/// Data of an operation over registers.
 #[derive(Debug, Clone, Copy)]
 pub struct Operation {
     kind: OperationKind,
-    register: RegisterIndex,
     destiny: Label,
 }
 
 impl Operation {
-    /// Initializes this operation from its kind, the register on which
-    /// operates, and the destiny label.
-    pub fn new(
-        kind: OperationKind,
-        register: RegisterIndex,
-        destiny: Label,
-    ) -> Self {
-        Self { kind, register, destiny }
+    /// Initializes this operation from its kind and the destiny label.
+    pub fn new(kind: OperationKind, destiny: Label) -> Self {
+        Self { kind, destiny }
     }
 
     /// The kind of this operation.
     pub fn kind(self) -> OperationKind {
         self.kind
-    }
-
-    /// The register on which this operation operates.
-    pub fn register(self) -> RegisterIndex {
-        self.register
     }
 
     /// The label to which this operation will jump after finished.
@@ -81,42 +70,31 @@ impl Operation {
     }
 }
 
-/// The kind of a test for a register.
+/// The kind of a test for registers.
 #[derive(Debug, Clone, Copy)]
 pub enum TestKind {
     /// Tests if the register is zero.
-    IsZero,
+    IsZero(RegisterIndex),
 }
 
 /// Data of a test for a register.
 #[derive(Debug, Clone, Copy)]
 pub struct Test {
     kind: TestKind,
-    register: RegisterIndex,
     true_dest: Label,
     false_dest: Label,
 }
 
 impl Test {
-    /// Initializes this test from its kind, the register tested, and the
-    /// destiny labels for both true and false cases.
-    pub fn new(
-        kind: TestKind,
-        register: RegisterIndex,
-        true_dest: Label,
-        false_dest: Label,
-    ) -> Self {
-        Self { kind, register, true_dest, false_dest }
+    /// Initializes this test from its kind, and the destiny labels for both
+    /// true and false cases.
+    pub fn new(kind: TestKind, true_dest: Label, false_dest: Label) -> Self {
+        Self { kind, true_dest, false_dest }
     }
 
     /// The kind of this test.
     pub fn kind(self) -> TestKind {
         self.kind
-    }
-
-    /// The register being tested.
-    pub fn register(self) -> RegisterIndex {
-        self.register
     }
 
     /// Destination jumped to after the test if the test is successfull.
