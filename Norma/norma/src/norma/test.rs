@@ -138,3 +138,28 @@ fn cons_cmp() {
     assert!(!machine.cons_cmp("B", 12).unwrap());
     assert!(!machine.cons_cmp("Y", 9).unwrap());
 }
+
+#[test]
+fn counter() {
+    let mut machine = make_machine();
+    assert_eq!(machine.get_counter(), BigUint::zero());
+    machine.inc("X");
+    assert_eq!(machine.get_counter(), BigUint::one());
+    machine.dec("X");
+    assert_eq!(machine.get_counter(), BigUint::from(2u8));
+    machine.inc("Y");
+    assert_eq!(machine.get_counter(), BigUint::from(3u8));
+
+    machine.inc("A");
+    machine.inc("B");
+    machine.inc("X");
+    machine.dec("A");
+    machine.inc("X");
+    assert_eq!(machine.get_counter(), BigUint::from(8u8));
+
+    machine.cons_sum("A", 9);
+    assert_eq!(machine.get_counter(), BigUint::from(17u8));
+
+    machine.cons_sub("B", 10);
+    assert_eq!(machine.get_counter(), BigUint::from(27u8));
+}
