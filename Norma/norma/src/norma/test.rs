@@ -90,6 +90,18 @@ fn is_zero() {
     assert!(!machine.is_zero("B").unwrap());
     assert!(machine.is_zero("Y").unwrap());
 
+    machine.inc("B");
+    assert!(!machine.is_zero("X").unwrap());
+    assert!(!machine.is_zero("A").unwrap());
+    assert!(!machine.is_zero("B").unwrap());
+    assert!(machine.is_zero("Y").unwrap());
+
+    machine.dec("Y");
+    assert!(!machine.is_zero("X").unwrap());
+    assert!(!machine.is_zero("A").unwrap());
+    assert!(!machine.is_zero("B").unwrap());
+    assert!(machine.is_zero("Y").unwrap());
+
     for _ in 0 .. 10 {
         machine.dec("X");
     }
@@ -107,6 +119,24 @@ fn cons_sum() {
     assert_eq!(machine.get_value("A"), BigUint::zero());
     assert_eq!(machine.get_value("B"), BigUint::from(13u8));
     assert_eq!(machine.get_value("Y"), BigUint::zero());
+
+    machine.cons_sum("Y", 2);
+    assert_eq!(machine.get_value("X"), BigUint::from(1234567894u128));
+    assert_eq!(machine.get_value("A"), BigUint::zero());
+    assert_eq!(machine.get_value("B"), BigUint::from(13u8));
+    assert_eq!(machine.get_value("Y"), BigUint::one());
+
+    machine.cons_sum("A", 0);
+    assert_eq!(machine.get_value("X"), BigUint::from(1234567894u128));
+    assert_eq!(machine.get_value("A"), BigUint::zero());
+    assert_eq!(machine.get_value("B"), BigUint::from(13u8));
+    assert_eq!(machine.get_value("Y"), BigUint::one());
+
+    machine.cons_sum("B", 0);
+    assert_eq!(machine.get_value("X"), BigUint::from(1234567894u128));
+    assert_eq!(machine.get_value("A"), BigUint::zero());
+    assert_eq!(machine.get_value("B"), BigUint::from(13u8));
+    assert_eq!(machine.get_value("Y"), BigUint::one());
 }
 
 #[test]
@@ -119,6 +149,24 @@ fn cons_sub() {
     assert_eq!(machine.get_value("Y"), BigUint::zero());
 
     machine.cons_sub("X", 1234567890);
+    assert_eq!(machine.get_value("X"), BigUint::zero());
+    assert_eq!(machine.get_value("A"), BigUint::zero());
+    assert_eq!(machine.get_value("B"), BigUint::from(13u8));
+    assert_eq!(machine.get_value("Y"), BigUint::zero());
+
+    machine.cons_sub("A", 1);
+    assert_eq!(machine.get_value("X"), BigUint::zero());
+    assert_eq!(machine.get_value("A"), BigUint::zero());
+    assert_eq!(machine.get_value("B"), BigUint::from(13u8));
+    assert_eq!(machine.get_value("Y"), BigUint::zero());
+
+    machine.cons_sub("A", 0);
+    assert_eq!(machine.get_value("X"), BigUint::zero());
+    assert_eq!(machine.get_value("A"), BigUint::zero());
+    assert_eq!(machine.get_value("B"), BigUint::from(13u8));
+    assert_eq!(machine.get_value("Y"), BigUint::zero());
+
+    machine.cons_sub("B", 0);
     assert_eq!(machine.get_value("X"), BigUint::zero());
     assert_eq!(machine.get_value("A"), BigUint::zero());
     assert_eq!(machine.get_value("B"), BigUint::from(13u8));
