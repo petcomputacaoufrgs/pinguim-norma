@@ -2,8 +2,7 @@ use wasm_bindgen::prelude::*;
 // use std::collections::HashMap;
 // use num_bigint::BigUint;
 use serde::{Serialize, Deserialize};
-
-
+use crate::norma::Machine;
 
 /*
  * Para importar funções e estruturas padrões do JS pro Rust
@@ -71,24 +70,23 @@ impl IndexedLineList {
 
 // Estrutura para exportar valores ao JS
 #[wasm_bindgen]
-#[derive(Debug, Clone)]
 pub struct DataExporter {
     lines: JsValue,
-    interpreter: *mut Temp,
+    interpreter: Machine,
 }
 
 impl DataExporter {
-    pub fn new(lines: JsValue, interpreter: &mut Temp) -> Self {
+    pub fn new(lines: JsValue, interpreter: Machine) -> Self {
         Self {
             lines,
             interpreter
         }
     }
 
-    pub fn from(lines: IndexedLineList, interpreter: Temp) -> Self {
+    pub fn from(lines: IndexedLineList, interpreter: Machine) -> Self {
         Self {
             lines: JsValue::from_serde(&lines).unwrap(),
-            interpreter: &mut interpreter.clone()
+            interpreter
         }
     }
 }
@@ -101,17 +99,13 @@ impl DataExporter {
         self.lines.clone()
     }
 
-    #[wasm_bindgen(js_name = getInterpreter)]
-    pub fn interpreter(&self) -> *mut Temp {
-        self.interpreter
+    #[wasm_bindgen]
+    pub fn get_result(&mut self) -> String {
+        self.interpreter.inc("X");
+        self.interpreter.get_value("X").to_str_radix(10)
     }
 }
 
 /*
  * Funções a serem exportadas para o JS
  */
-
-#[wasm_bindgen(js_name=getValue)]
-pub fn return_value_from_temp(t: &mut Temp) -> usize {
-    t.a
-}

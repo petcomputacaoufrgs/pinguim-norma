@@ -4,6 +4,8 @@ mod test;
 use num_bigint::BigUint;
 use num_traits::identities::{One, Zero};
 use std::collections::HashMap;
+use wasm_bindgen::prelude::*;
+
 
 /// Declaração da estrutura de um registrador
 pub struct Register {
@@ -50,6 +52,7 @@ impl Register {
 }
 
 /// Declaração da estrutura do banco de Registradores
+//#[wasm_bindgen]
 pub struct Machine {
     registers: HashMap<String, Register>,
     counter: BigUint,

@@ -2,6 +2,9 @@ use wasm_bindgen::prelude::*;
 use serde::{Serialize, Deserialize};
 
 use communication::*;
+use norma::Machine;
+use num_bigint::BigUint;
+use num_traits::identities::{One, Zero};
 
 // Core da máquina norma
 mod norma;
@@ -15,6 +18,10 @@ mod communication;
     Teoria da Computação
 */
 
+/*
+    TODO: aprender a atualizar a estrutura no front
+*/
+
 #[wasm_bindgen(js_name = compileText)]
 pub fn compile(text: String) -> DataExporter {
     //Importa texto
@@ -24,7 +31,7 @@ pub fn compile(text: String) -> DataExporter {
     //Retorna (Por enquanto retorna um Mock)
     let line = IndexedLine::from("1.a", "do inc A goto 1.b");
     let lines = IndexedLineList::new(vec!{line});
-    DataExporter::from(lines, Temp {a: 10})
+    DataExporter::from(lines, Machine::new(BigUint::one()))
 }
 
 #[wasm_bindgen]

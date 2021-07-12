@@ -1,4 +1,4 @@
-import init, {compileText, DataExporter, getValue} from './norma/pkg/norma.js';
+import init, {compileText, DataExporter} from './norma/pkg/norma.js';
 
 let machinePtr;
 
@@ -8,8 +8,7 @@ export const send_text = async text => {
                 machinePtr = compileText(text);
                 console.log(machinePtr)
                 console.log(machinePtr.getLines())
-                console.log(machinePtr.getInterpreter())
-                console.log()
+                console.log(machinePtr.get_result())
             });
 }
 
