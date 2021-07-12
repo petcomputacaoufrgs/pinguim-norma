@@ -1,12 +1,16 @@
-import init, {bar} from "./norma/pkg/norma"
+import init, {compileText, DataExporter, getValue} from './norma/pkg/norma.js';
 
-export function foo() {
-    console.log("bar")
-}
+let machinePtr;
 
-const baz = async () => {
+export const send_text = async text => {
     await init()
-        .then(() => {
-            bar();
-    });
+            .then( () => {
+                machinePtr = compileText(text);
+                console.log(machinePtr)
+                console.log(machinePtr.getLines())
+                console.log(machinePtr.getInterpreter())
+                console.log()
+            });
 }
+
+document.getElementById('verify').addEventListener('click', () => send_text("abc123"));
