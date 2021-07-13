@@ -2,6 +2,12 @@ body {
     font-size: 15px;
 }
 
+pre {
+    margin: 0px;
+    width: 56vw;
+    min-height: 40vh;
+}
+
 /* LOG AREA */
 .log-and-execution-area {
     width: 40vw;
@@ -13,8 +19,9 @@ body {
 /* TEXTAREA FOR CODE */
 .code-textarea {
     margin: 0 2vw;
+    background: transparent;
+    margin: 0px;
 }
-
 
 /* REGISTERS */
 .register_section {
