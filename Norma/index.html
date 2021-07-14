@@ -48,11 +48,31 @@
 				</div>
 				<div class="button-area execution_buttons">
 					<a class="button" id="verify" onclick=""> Verificar código </a>
-					<a class="button" href="./execution.html"> Executar o código</a>
+					<a class="button" id="execute" href="./execution.html"> Executar o código</a>
 				</div>
 			</div>
 		</div>
 		<script src = "script.js"></script>
 		<script type="module" src="./communication.js" ></script>
+		<script type="module">
+			// Código para verificar se o wasm é suportado]
+			// Retirado de https://www.syncfusion.com/faq/how-can-i-check-if-a-browser-supports-webassembly
+			 const supported = (() => {
+				try {
+				if (typeof WebAssembly === "object"
+							&& typeof WebAssembly.instantiate === "function") {
+							const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
+							if (module instanceof WebAssembly.Module)
+								return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
+						}
+					} catch (e) {
+					}
+					return false;
+				})();
+				
+				if (!supported) {
+					alert("Seu navegador não suporta WebAssembly\nmude de navegador ou use a versão antiga");
+				}
+		</script>
 	</body>
 </html>
