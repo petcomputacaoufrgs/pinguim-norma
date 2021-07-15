@@ -30,8 +30,15 @@ actualBtn.addEventListener('change', function(){
 const textAreaHTML = document.getElementById('userinput');
 const codeAreaHTML = document.getElementById('codeholder');
 
-const reservedWords = /main|if|then|else|do|goto|operation|test/g;
-const builtInFuncs = /inc|dec|zero|add|sub|cmp/g;
+/**
+ * O que estiver dentro de // é expressão regular -> /conteudo/
+ * O separador | indica 'ou' -> /a/ ou /b/ == /a|b/
+ * A flag \b indica que a expressão precisa ser identica -> /\bIGUAL\b/
+ * A flag 'g' significa global -> /tudoQueDarMatch/g
+ * A flag 'i' significa case insensitive -> /AbCaTe/i == /ABACATE/i == /abacate/i
+ */
+const reservedWords = /\bmain\b|\bif\b|\bthen\b|\belse\b|\bdo\b|\bgoto\b|\boperation\b|\btest\b/gi;
+const builtInFuncs = /\binc\b|\bdec\b|\bzero\b|\badd\b|\bsub\b|\bcmp\b/gi;
 const regexLabels = /[0-9][:]/g;
 
 const spanEnd = '</span>';

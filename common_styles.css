@@ -187,7 +187,7 @@ input:checked + .slider:before {
 }
 
 .front {
-    position: absolute;
+    position: relative;
     z-index: 1;
 }
 
