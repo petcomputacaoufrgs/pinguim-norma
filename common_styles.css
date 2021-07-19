@@ -187,6 +187,16 @@ input:checked + .slider:before {
     background-color: var(--textarea-scrollbar);
 }
 
+.highlighting {
+    width: 56vw;
+    height: 40vh;
+    max-height: 40vh;
+    margin: 0;
+    white-space: pre-wrap; 
+    word-wrap: break-word;
+    overflow: hidden;
+}
+
 .front {
     position: relative;
     z-index: 1;
@@ -349,6 +359,14 @@ input:checked + .slider:before {
 
     .code-textarea {
         width: 86vw;
+    }
+
+    .highlighting {
+        width: 86vw;
+    }
+
+    .behind {
+        transform: translate(0, -100%);
     }
 
     .execution-area {

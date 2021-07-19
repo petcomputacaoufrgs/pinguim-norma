@@ -2,23 +2,12 @@ body {
     font-size: 15px;
 }
 
-pre {
-    width: 56vw;
-    height: 40vh;
-    max-height: 40vh;
-    margin: 0;
-    white-space: pre-wrap; 
-    word-wrap: break-word;
-    overflow: hidden;
-}
-
 /* LOG AREA */
 .log-and-execution-area {
     width: 40vw;
     padding: 2vw;
     padding-top: 0;
 }
-
 
 /* TEXTAREA FOR CODE */
 .code-textarea {
