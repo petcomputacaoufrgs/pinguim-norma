@@ -3,9 +3,13 @@ body {
 }
 
 pre {
-    margin: 0px;
     width: 56vw;
-    min-height: 40vh;
+    height: 40vh;
+    max-height: 40vh;
+    margin: 0;
+    white-space: pre-wrap; 
+    word-wrap: break-word;
+    overflow: hidden;
 }
 
 /* LOG AREA */
@@ -20,7 +24,6 @@ pre {
 .code-textarea {
     margin: 0 2vw;
     background: transparent;
-    margin: 0px;
 }
 
 /* REGISTERS */

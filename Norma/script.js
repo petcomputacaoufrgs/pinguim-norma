@@ -29,6 +29,7 @@ actualBtn.addEventListener('change', function(){
 // Highlight 
 const textAreaHTML = document.getElementById('userinput');
 const codeAreaHTML = document.getElementById('codeholder');
+const preAreaHTML = document.getElementById('codeediting');
 
 /**
  * O que estiver dentro de // é expressão regular -> /conteudo/
@@ -116,3 +117,8 @@ textAreaHTML.addEventListener('keydown', (e) => {
     }
 });
 
+// Scroll
+textAreaHTML.addEventListener('scroll', (e) => {
+    preAreaHTML.scrollTop = textAreaHTML.scrollTop;
+    preAreaHTML.scrollLeft = textAreaHTML.scrollLeft;
+});

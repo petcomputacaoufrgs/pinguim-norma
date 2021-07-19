@@ -167,6 +167,7 @@ input:checked + .slider:before {
 .code-textarea {
     font-size: 1.06rem;
     resize: none;
+    border: none;
     padding: 10px;
     width: 56vw;
     min-height: 40vh;
@@ -193,6 +194,7 @@ input:checked + .slider:before {
 
 .behind {
     position: absolute;
+    margin: 0 2vw;
     padding: 10px;
     background-clip: padding-box;
     background-color: var(--code-background-color);
@@ -222,12 +224,11 @@ input:checked + .slider:before {
 .log-area div {
     padding: 0.4rem;
     color: var(--error-font-color);
-    background-color: var(--textarea-background);
     box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
 .log-area__errors {
-    background-color: var(--textarea-background);
+    background-color: var(--code-background-color);
     padding: 0.6rem;
     font-size: 1rem;
     color: var(--error-font-color);
