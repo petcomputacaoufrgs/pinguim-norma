@@ -5,7 +5,7 @@
     --header-background-color: #67B6B6;
     --control-buttons-background: #EBEBE3;
     --execution-button-background: #C19898;
-    --textarea-background: #666664;
+    --textarea-background: transparent;
     --register-lighter-background: #DDC6C6;
 
     /* Colors */
@@ -15,6 +15,11 @@
     --title-font-color: #EBEBE3;
     --details: #2B2B28;
     --textarea-scrollbar: #4A4A48;
+    --code-font-color: rgba(0, 0, 0, 0);
+    --code-reserved-words: #f84b3c;
+    --code-built-in-funcs: #f9bc41;
+    --code-label-color: #8fbf7f;
+    --code-background-color: #282828;
     --error-font-color: #FF7676;
     --highlight-color: #D2C656;
 
@@ -27,7 +32,7 @@
     --main-background-color: #F3EAE4;
     --control-buttons-background: #67B6B6;
     --execution-button-background: #B9A1D8;
-    --textarea-background: #F7E4D6;
+    --textarea-background: transparent;
     --register-lighter-background: #DCD3E7;
 
     /* Colors */
@@ -37,6 +42,11 @@
     --title-font-color: #67B6B6;
     --details: #F7E4D6;
     --textarea-scrollbar: #EAD0B7;
+    --code-font-color: rgba(0, 0, 0, 0);
+    --code-reserved-words: #9b0511;
+    --code-built-in-funcs: #b47523;
+    --code-label-color: #447a59;
+    --code-background-color: #fbf0c9;
     --error-font-color: #FF5977;
     --highlight-color: #B9A1D8;
 }
@@ -150,14 +160,20 @@ input:checked + .slider:before {
 
 
 /* TEXTAREA FOR CODE*/
+.code-highlight {
+    font-size: 1.06rem;
+}
+
 .code-textarea {
     font-size: 1.06rem;
     resize: none;
+    padding: 10px;
     width: 56vw;
     min-height: 40vh;
     box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
-    color: var(--main-font-color);
-    background-color: var(--textarea-background);
+    color: var(--code-font-color);
+    background: var(--textarea-background);
+    caret-color: var(--main-font-color);
 }
 
 .code-textarea::-webkit-scrollbar {
@@ -170,6 +186,30 @@ input:checked + .slider:before {
     background-color: var(--textarea-scrollbar);
 }
 
+.front {
+    position: relative;
+    z-index: 1;
+}
+
+.behind {
+    position: absolute;
+    padding: 10px;
+    background-clip: padding-box;
+    background-color: var(--code-background-color);
+    z-index: 0;
+}
+
+.label {
+    color: var(--code-label-color);
+}
+
+.reserved {
+    color: var(--code-reserved-words);
+}
+
+.builtin {
+    color: var(--code-built-in-funcs);
+}
 
 /* LOG AND EXECUTION AREA */
 /* Log area */
