@@ -366,7 +366,7 @@ input:checked + .slider:before {
     }
 
     .behind {
-        transform: translate(0, -100%);
+        transform: translate(0, -102%);
     }
 
     .execution-area {
