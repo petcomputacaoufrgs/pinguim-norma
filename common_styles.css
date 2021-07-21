@@ -89,7 +89,7 @@ body {
     width: 3.75rem;
     height: 2.125rem;
 }
-  
+
 .slider {
     position: absolute;
     top: 0;
@@ -101,7 +101,7 @@ body {
     background-color: #2B2B28;
 }
   
-.slider:before {
+.slider > span {
     position: absolute;
     bottom: 0.25rem;
     left: 0.25rem;
@@ -109,25 +109,19 @@ body {
     height: 1.625rem;
     content: "";
     transition: .4s;
-    background-color: #F5F5F5;
 }
   
 input:checked + .slider {
     background-color: #DCD3E7;
 }
   
-input:checked + .slider:before {
+input:checked + .slider > span {
     transform: translateX(26px);
 }
-  
+
 .slider.round {
     border-radius: 2.125rem;
 }
-  
-.slider.round:before {
-    border-radius: 50%;
-}
-
 
 
 /* ======> INDEX PAGE <====== */
