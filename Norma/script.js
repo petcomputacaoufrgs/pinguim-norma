@@ -87,6 +87,22 @@ textAreaHTML.addEventListener('keydown', (e) => {
 
         textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
     }
+
+    if(e.key == 'Backspace') {
+        const start = textAreaHTML.selectionStart;
+        const end = textAreaHTML.selectionEnd;
+
+        if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '(') && 
+            (textAreaHTML.value[textAreaHTML.selectionStart] == ')')) {
+               
+            e.preventDefault();
+
+            textAreaHTML.value = textAreaHTML.value.substring(0, start).slice(0, start - 1)
+                + textAreaHTML.value.substring(end).slice(1, end);
+
+            textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start - 1;
+        }
+    }
 });
 
 // Curly bracket key
