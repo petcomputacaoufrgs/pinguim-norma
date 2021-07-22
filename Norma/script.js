@@ -34,13 +34,6 @@ const textAreaHTML = document.getElementById('userinput');
 const codeAreaHTML = document.getElementById('codeholder');
 const preAreaHTML = document.getElementById('codeediting');
 
-/**
- * O que estiver dentro de // é expressão regular -> /conteudo/
- * O separador | indica 'ou' -> /a/ ou /b/ == /a|b/
- * A flag \b indica que a expressão precisa ser identica -> /\bIGUAL\b/
- * A flag 'g' significa global -> /tudoQueDarMatch/g
- * A flag 'i' significa case insensitive -> /AbCaTe/i == /ABACATE/i == /abacate/i
- */
 const reservedWords = /\bmain\b|\bif\b|\bthen\b|\belse\b|\bdo\b|\bgoto\b|\boperation\b|\btest\b/gi;
 const builtInFuncs = /\binc\b|\bdec\b|\bzero\b|\badd\b|\bsub\b|\bcmp\b/gi;
 const regexLabels = /[0-9][:]/g;
@@ -59,85 +52,89 @@ const highlight = () => {
     codeAreaHTML.innerHTML = finalText
 }
 
-// Tab key
-// Allows tab identation inside textarea
-textAreaHTML.addEventListener('keydown', (e) => {
-    if(e.key == 'Tab') {
-        e.preventDefault();
-        const start = textAreaHTML.selectionStart;
-        const end = textAreaHTML.selectionEnd;
-        
-        textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
-            "\t" + textAreaHTML.value.substring(end);
-
-        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 1;
-    }
-});
-
-// Bracket key
-// Auto complete the bracket
-textAreaHTML.addEventListener('keydown', (e) => {
-    if(e.key == '(') {
-        e.preventDefault();
-        const start = textAreaHTML.selectionStart;
-        const end = textAreaHTML.selectionEnd;
-
-        textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
-            "()" + textAreaHTML.value.substring(end);
-
-        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
-    }
-
-    if(e.key == 'Backspace') {
-        const start = textAreaHTML.selectionStart;
-        const end = textAreaHTML.selectionEnd;
-
-        if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '(') && 
-            (textAreaHTML.value[textAreaHTML.selectionStart] == ')')) {
-               
-            e.preventDefault();
-
-            textAreaHTML.value = textAreaHTML.value.substring(0, start).slice(0, start - 1)
-                + textAreaHTML.value.substring(end).slice(1, end);
-
-            textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start - 1;
-        }
-    }
-});
-
-// Curly bracket key
-// Auto complete the curly bracket
-textAreaHTML.addEventListener('keydown', (e) => {
-    if(e.key == '{') {
-        e.preventDefault();
-        const start = textAreaHTML.selectionStart;
-        const end = textAreaHTML.selectionEnd;
-
-        textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
-            "{}" + textAreaHTML.value.substring(end);
-
-        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
-    }
-});
+const handleKeys = {
+    'Tab': (e) => {return handleTab(e)},
+    'Enter': (e) => {return handleEnter(e)},
+    'Backspace': (e) => {return handleBackspace(e)},
+    '(': (e) => {return handleBracket(e)},
+    '{': (e) => {return handleCurly(e)}
+}
 
 textAreaHTML.addEventListener('keydown', (e) => {
-    if(e.key == 'Enter') {
-        if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') && 
-            (textAreaHTML.value[textAreaHTML.selectionStart] == '}')) {
-            e.preventDefault();
-            const start = textAreaHTML.selectionStart;
-            const end = textAreaHTML.selectionEnd;
-
-            textAreaHTML.value = textAreaHTML.value.substring(0, start) +
-                "\n\t\n" + textAreaHTML.value.substring(end);
-
-            textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 2;
-        }
-    }
+    handleKeys[e.key](e);
 });
 
-// Scroll
 textAreaHTML.addEventListener('scroll', (e) => {
+    handleScroll()
+});
+
+const handleScroll = () => {
     preAreaHTML.scrollTop = textAreaHTML.scrollTop;
     preAreaHTML.scrollLeft = textAreaHTML.scrollLeft;
-});
+}
+
+const handleTab = (e) => {
+    e.preventDefault();
+    const start = textAreaHTML.selectionStart;
+    const end = textAreaHTML.selectionEnd;
+
+    textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
+        "\t" + textAreaHTML.value.substring(end);
+
+    textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 1;
+}
+
+const handleEnter = (e) => {
+    const start = textAreaHTML.selectionStart;
+    const end = textAreaHTML.selectionEnd;
+
+    if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') && 
+        (textAreaHTML.value[textAreaHTML.selectionStart] == '}')) {
+        e.preventDefault();
+        const start = textAreaHTML.selectionStart;
+        const end = textAreaHTML.selectionEnd;
+
+        textAreaHTML.value = textAreaHTML.value.substring(0, start) +
+            "\n\t\n" + textAreaHTML.value.substring(end);
+
+        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 2;
+    }
+}
+
+const handleBackspace = (e) => {
+    const start = textAreaHTML.selectionStart;
+    const end = textAreaHTML.selectionEnd;
+
+    if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '(') && 
+        (textAreaHTML.value[textAreaHTML.selectionStart] == ')')) {
+            
+        e.preventDefault();
+
+        textAreaHTML.value = textAreaHTML.value.substring(0, start).slice(0, start - 1)
+            + textAreaHTML.value.substring(end).slice(1, end);
+
+        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start - 1;
+    }
+}
+
+const handleBracket = (e) => {
+    e.preventDefault();
+    const start = textAreaHTML.selectionStart;
+    const end = textAreaHTML.selectionEnd;
+
+    textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
+        "()" + textAreaHTML.value.substring(end);
+
+    textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
+}
+
+const handleCurly = (e) => {
+    e.preventDefault();
+    const start = textAreaHTML.selectionStart;
+    const end = textAreaHTML.selectionEnd;
+
+    textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
+        "{}" + textAreaHTML.value.substring(end);
+
+    textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
+}
