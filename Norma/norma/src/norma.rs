@@ -6,45 +6,45 @@ use num_traits::identities::{One, Zero};
 use std::collections::HashMap;
 
 /// Declaração da estrutura de um registrador
-pub struct Register {
+struct Register {
     value: BigUint,
 }
 
 impl Register {
     // Cria um novo registrador com o valor desejado
-    pub fn new(number: BigUint) -> Register {
+    fn new(number: BigUint) -> Register {
         Register { value: number }
     }
 
     // Cria um novo registrador com valor zero
-    pub fn new_empty() -> Register {
+    fn new_empty() -> Register {
         Register { value: BigUint::zero() }
     }
 
     // Incrementa o valor do registrador
-    pub fn inc(&mut self) {
+    fn inc(&mut self) {
         self.value += 1u8
     }
 
     // Decrementa o valor do registrador (caso seja maior que 0)
-    pub fn dec(&mut self) {
+    fn dec(&mut self) {
         if !self.is_zero() {
             self.value -= 1u8
         }
     }
 
     // Verifica se o valor do registrador é 0
-    pub fn is_zero(&mut self) -> bool {
+    fn is_zero(&self) -> bool {
         self.value.is_zero()
     }
 
     // Retorna o valor do registrador
-    pub fn get_value(&mut self) -> BigUint {
+    fn get_value(&self) -> BigUint {
         self.value.clone()
     }
 
     // Atualiza valor do registrador
-    pub fn update_value(&mut self, new_value: BigUint) {
+    fn update_value(&mut self, new_value: BigUint) {
         self.value = new_value
     }
 }
@@ -52,7 +52,7 @@ impl Register {
 /// Declaração da estrutura do banco de Registradores
 pub struct Machine {
     registers: HashMap<String, Register>,
-    counter: BigUint,
+    steps_counter: BigUint,
 }
 
 impl Machine {
@@ -64,7 +64,7 @@ impl Machine {
         let mut register_bank: HashMap<String, Register> = HashMap::new();
         register_bank.insert("X".to_string(), Register::new(input));
         register_bank.insert("Y".to_string(), Register::new_empty());
-        Machine { registers: register_bank, counter: BigUint::zero() }
+        Machine { registers: register_bank, steps_counter: BigUint::zero() }
     }
 
     // Insere um novo registrador no banco
@@ -73,10 +73,17 @@ impl Machine {
         self.registers.insert(key.to_string(), Register::new_empty());
     }
 
+    // Insere um novo registrador com valor diferente de 0
+    // key: nome do registrador
+    // value: valor do registrador
+    pub fn insert_with_value(&mut self, key: &str, value: BigUint) {
+        self.registers.insert(key.to_string(), Register::new(value));
+    }
+
     // Incrementa o valor de um registrador existente, panicking caso o
     // registrador não exista. key: nome do registrador
     pub fn inc(&mut self, key: &str) {
-        self.increase_counter(BigUint::one());
+        self.count_steps(BigUint::one());
         match self.get_register(key) {
             Some(register) => {
                 register.inc();
@@ -90,7 +97,7 @@ impl Machine {
     // Decrementa o valor de um registrador existente, panicking caso o
     // registrador não exista. key: nome do registrador
     pub fn dec(&mut self, key: &str) {
-        self.increase_counter(BigUint::one());
+        self.count_steps(BigUint::one());
         match self.get_register(key) {
             Some(register) => {
                 register.dec();
@@ -104,8 +111,8 @@ impl Machine {
     // Soma valor constante a um registrador, caso o registrador exista
     // key: nome do registrador
     // cons: constante a ser somada ao valor já existente do registrador
-    pub fn cons_sum(&mut self, key: &str, cons: u128) {
-        self.increase_counter(BigUint::from(cons));
+    pub fn add_const(&mut self, key: &str, cons: BigUint) {
+        self.count_steps(BigUint::from(cons));
 
         match self.get_register(key) {
             Some(register) => {
@@ -122,112 +129,84 @@ impl Machine {
     // Subtrai valor constante de um dado registrador, caso o registrador exista
     // key: nome registrador
     // cons: constante a ser subtraída do valor do registrador
-    pub fn cons_sub(&mut self, key: &str, cons: u128) {
-        self.increase_counter(BigUint::from(cons));
+    pub fn sub_const(&mut self, key: &str, cons: BigUint) {
+        self.count_steps(BigUint::from(cons));
 
-        match self.get_register(key) {
-            Some(register) => {
-                let mut value = register.get_value();
-                if value > BigUint::from(cons) {
-                    value -= cons;
-                } else {
-                    value = Zero::zero();
-                }
-
-                self.update_register(key, value);
-            },
-            None => {
-                panic!("Register {} does not exists", key)
-            },
+        let register = self.get_register_mut(key);
+        let mut value = register.get_value();
+        if value > BigUint::from(cons) {
+            value -= cons;
+        } else {
+            value = Zero::zero();
         }
+
+        self.update_register(key, value);
     }
 
     // Compara se o valor de um registrador é igual a uma dada constante
     // key: nome do registrador
     // cons: constante com a qual o valor do registrador será comparado
-    pub fn cons_cmp(&mut self, key: &str, cons: u128) -> Option<bool> {
-        let ref cons = BigUint::from(cons);
+    pub fn cmp_const(&mut self, key: &str, cons: BigUint) -> Option<bool> {
+        let cons = BigUint::from(cons);
 
-        match self.get_register(key) {
-            Some(register) => {
-                let value = register.get_value();
-                if *cons == value {
-                    self.increase_counter(3u8 * cons + 1u8);
-                    return Some(true);
-                } else if value < *cons {
-                    self.increase_counter(3u8 * cons + 1u8);
-                    return Some(false);
-                } else {
-                    self.increase_counter(3u8 * value + 1u8);
-                    return Some(false);
-                }
-            },
-            None => {
-                panic!("Register {} does not exists", key)
-            },
+        let register = self.get_register_mut(key);
+        let value = register.get_value();
+        if *cons == value {
+            self.count_steps(3u8 * cons + 1u8);
+            Some(true)
+        } else if value < *cons {
+            self.count_steps(3u8 * cons + 1u8);
+            Some(false)
+        } else {
+            self.count_steps(3u8 * value + 1u8);
+            Some(false)
         }
     }
 
     // Testa se o valor de um registrador existente é zero, panicking caso o
     // registrador não exista. key: nome do registrador
-    pub fn is_zero(&mut self, key: &str) -> Option<bool> {
-        self.increase_counter(BigUint::one());
-        match self.get_register(key) {
-            Some(register) => Some(register.is_zero()),
-            None => {
-                panic!("Register {} does not exists", key)
-            },
-        }
+    pub fn is_zero(&self, key: &str) -> bool {
+        self.count_steps(BigUint::one());
+        self.get_register_mut(key).is_zero()
     }
 
     // Retorna o valor de um registrador pela sua chave
-    pub fn get_value(&mut self, key: &str) -> BigUint {
-        match self.get_register(key) {
-            Some(register) => register.get_value(),
-            None => panic!("Register {} does not exists", key),
-        }
+    pub fn get_value(&self, key: &str) -> BigUint {
+        self.get_register(key).get_value()
     }
 
     // Retorna valor do contador
-    pub fn get_counter(&mut self) -> BigUint {
-        self.counter.clone()
-    }
-
-    // Aplica uma função a um registrador caso encontrado
-    pub fn apply(&mut self, key: &str, f: fn(&mut Register)) {
-        match self.get_register(key) {
-            Some(register) => f(register),
-            None => {},
-        }
+    pub fn get_steps_counter(&mut self) -> BigUint {
+        self.steps_counter.clone()
     }
 
     // Retorna HashMap de registradores
-    pub fn get_registers_exportable(&mut self) -> HashMap<String, String> {
-        let mut exportable_hashmap: HashMap<String, String> = HashMap::new();
+    pub fn export_registers(&mut self) -> HashMap<String, String> {
+        let mut exported: HashMap<String, String> = HashMap::new();
         for (reg_name, reg_obj) in &self.registers {
-            exportable_hashmap
+            exported
                 .insert(reg_name.to_string(), reg_obj.value.to_str_radix(10));
         }
-        exportable_hashmap
+        exported
     }
 
-    // Insere um novo registrador com valor diferente de 0
-    // key: nome do registrador
-    // value: valor do registrador
-    fn insert_with_value(&mut self, key: &str, value: BigUint) {
-        self.registers.insert(key.to_string(), Register::new(value));
+    fn count_steps(&mut self, value: BigUint) {
+        self.steps_counter += value;
     }
 
-    fn increase_counter(&mut self, value: BigUint) {
-        self.counter += value;
+    fn get_register(&self, key: &str) -> &Register {
+        match self.registers.get(key) {
+            Some(register) => register,
+            None => panic!("Register {} does not exist", key),
+        }
     }
 
     // Busca registrador, retornando none caso não exista
     // key: nome do registrador
-    fn get_register(&mut self, key: &str) -> Option<&mut Register> {
+    fn get_register_mut(&mut self, key: &str) -> &mut Register {
         match self.registers.get_mut(key) {
-            Some(register) => return Some(register),
-            None => return None,
+            Some(register) => register,
+            None => panic!("Register {} does not exist", key),
         }
     }
 
