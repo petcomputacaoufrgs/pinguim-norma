@@ -61,7 +61,8 @@ const handleKeys = {
 }
 
 textAreaHTML.addEventListener('keydown', (e) => {
-    handleKeys[e.key](e);
+     try { handleKeys[e.key](e) }
+     catch(e) {}
 });
 
 textAreaHTML.addEventListener('scroll', (e) => {
@@ -105,8 +106,11 @@ const handleBackspace = (e) => {
     const start = textAreaHTML.selectionStart;
     const end = textAreaHTML.selectionEnd;
 
-    if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '(') && 
-        (textAreaHTML.value[textAreaHTML.selectionStart] == ')')) {
+    if(((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '(') && 
+        (textAreaHTML.value[textAreaHTML.selectionStart] == ')')) 
+        || 
+        ((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') && 
+        (textAreaHTML.value[textAreaHTML.selectionStart] == '}'))) {
             
         e.preventDefault();
 
