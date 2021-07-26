@@ -29,7 +29,7 @@ fn insert() {
 #[test]
 #[should_panic]
 fn invalid_get() {
-    let mut machine = make_machine();
+    let machine = make_machine();
     machine.get_value("K");
 }
 
