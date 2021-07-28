@@ -16,9 +16,9 @@
     --details: #2B2B28;
     --textarea-scrollbar: #4A4A48;
     --code-font-color: rgba(0, 0, 0, 0);
-    --code-reserved-words: #f84b3c;
-    --code-built-in-funcs: #f9bc41;
-    --code-label-color: #8fbf7f;
+    --code-reserved-words: #F84B3C;
+    --code-built-in-funcs: #F9BC41;
+    --code-label-color: #8FBF7F;
     --code-background-color: #282828;
     --error-font-color: #FF7676;
     --highlight-color: #D2C656;
@@ -43,10 +43,10 @@
     --details: #F7E4D6;
     --textarea-scrollbar: #EAD0B7;
     --code-font-color: rgba(0, 0, 0, 0);
-    --code-reserved-words: #9b0511;
-    --code-built-in-funcs: #b47523;
-    --code-label-color: #447a59;
-    --code-background-color: #fbf0c9;
+    --code-reserved-words: #9B0511;
+    --code-built-in-funcs: #B47523;
+    --code-label-color: #447A59;
+    --code-background-color: #FBF2D1;
     --error-font-color: #FF5977;
     --highlight-color: #B9A1D8;
 }
@@ -171,7 +171,7 @@ input:checked + .slider > span {
     padding: 10px;
     width: 56vw;
     min-height: 40vh;
-    box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
+    box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.25);
     color: var(--code-font-color);
     background: var(--textarea-background);
     caret-color: var(--main-font-color);
@@ -234,7 +234,7 @@ input:checked + .slider > span {
 .log-area div {
     padding: 0.4rem;
     color: var(--error-font-color);
-    box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
+    box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.25);
 }
 
 .log-area__errors {
@@ -309,7 +309,7 @@ input:checked + .slider > span {
     background: var(--textarea-background);
     color:var(--main-font-color);
     border: none;
-    box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
+    box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.25);
     border-radius: 5px;
     padding: 0.3rem;
 }
