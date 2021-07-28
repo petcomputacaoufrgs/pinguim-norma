@@ -36,7 +36,7 @@ const preAreaHTML = document.getElementById('codeediting');
 
 const reservedWords = /\bmain\b|\bif\b|\bthen\b|\belse\b|\bdo\b|\bgoto\b|\boperation\b|\btest\b/gi;
 const builtInFuncs = /\binc\b|\bdec\b|\bzero\b|\badd\b|\bsub\b|\bcmp\b/gi;
-const regexLabels = /[0-9][:]/g;
+const regexLabels = /\d+[:]/g;
 
 const spanEnd = '</span>';
 const spanLabels = '<span class="label">';
