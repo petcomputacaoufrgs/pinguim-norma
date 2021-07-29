@@ -150,7 +150,7 @@ impl Machine {
     ///
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
-    pub fn cmp_const(&mut self, key: &str, constant: &BigUint) -> Ordering {
+    pub fn eq_const(&mut self, key: &str, constant: &BigUint) -> bool {
         let register = self.get_register(key);
         let cmp_result = register.cmp_const(constant);
 
@@ -161,7 +161,7 @@ impl Machine {
         };
         self.count_steps(steps);
 
-        cmp_result
+        cmp_result == Ordering::Equal
     }
 
     /// Testa se o valor do registrador existente de nome `key` é zero.

@@ -175,20 +175,17 @@ fn sub_const() {
 }
 
 #[test]
-fn cmp_const() {
+fn eq_const() {
     let mut machine = make_machine();
-    assert_eq!(machine.cmp_const("X", &BigUint::from(4u64)), Ordering::Equal);
-    assert_eq!(machine.cmp_const("A", &BigUint::from(0u64)), Ordering::Equal);
-    assert_eq!(machine.cmp_const("B", &BigUint::from(13u64)), Ordering::Equal);
-    assert_eq!(machine.cmp_const("Y", &BigUint::from(0u64)), Ordering::Equal);
+    assert!(machine.eq_const("X", &BigUint::from(4u64)));
+    assert!(machine.eq_const("A", &BigUint::from(0u64)));
+    assert!(machine.eq_const("B", &BigUint::from(13u64)));
+    assert!(machine.eq_const("Y", &BigUint::from(0u64)));
 
-    assert_eq!(machine.cmp_const("X", &BigUint::from(0u64)), Ordering::Greater);
-    assert_eq!(machine.cmp_const("A", &BigUint::from(1u64)), Ordering::Less);
-    assert_eq!(
-        machine.cmp_const("B", &BigUint::from(12u64)),
-        Ordering::Greater
-    );
-    assert_eq!(machine.cmp_const("Y", &BigUint::from(9u64)), Ordering::Less);
+    assert!(!machine.eq_const("X", &BigUint::from(0u64)));
+    assert!(!machine.eq_const("A", &BigUint::from(1u64)));
+    assert!(!machine.eq_const("B", &BigUint::from(12u64)));
+    assert!(!machine.eq_const("Y", &BigUint::from(9u64)));
 }
 
 #[test]
