@@ -23,11 +23,30 @@ if (currentTheme) {
 }
 
 // Upload and download buttons
+const downloadBtn = document.getElementById('download_button');
 const actualBtn = document.getElementById('upload_button');
 const fileChosen = document.getElementById('file-chosen');
-actualBtn.addEventListener('change', function(){
+
+const download = (text, filename) => {
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename); 
+
+    element.style.display = 'none';
+
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
+
+downloadBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    download(textAreaHTML.value, "maqnorma.mn");
+});
+
+actualBtn.addEventListener('change', () => {
   fileChosen.textContent = this.files[0].name
-})
+});
 
 // Highlight 
 const textAreaHTML = document.getElementById('userinput');
