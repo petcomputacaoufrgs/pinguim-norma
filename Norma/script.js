@@ -39,14 +39,20 @@ const download = (text, filename) => {
     document.body.removeChild(element);
 }
 
-downloadBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    download(textAreaHTML.value, "maqnorma.mn");
-});
+const upload = (file) => {
+    const reader = new FileReader();
+    
+    fileChosen.textContent = file.name;
+    reader.readAsText(file, "UTF-8");
 
-actualBtn.addEventListener('change', () => {
-  fileChosen.textContent = this.files[0].name
-});
+    reader.onload = (e) => {
+        textAreaHTML.value = e.target.result;
+        highlight();
+    } 
+}
+
+downloadBtn.addEventListener('click', () => download(textAreaHTML.value, "maqnorma.mn"));
+actualBtn.addEventListener('change', () => upload(actualBtn.files[0]));
 
 // Highlight 
 const textAreaHTML = document.getElementById('userinput');
@@ -64,19 +70,19 @@ const spanBuiltIn = '<span class="builtin">';
 
 const highlight = () => {
     let baseText = textAreaHTML.value;
-    let finalText = baseText.replace(regexLabels, (match) => {return spanLabels + match + spanEnd});
-    finalText = finalText.replace(reservedWords, (match) => {return spanReserved + match + spanEnd});
-    finalText = finalText.replace(builtInFuncs, (match) => {return spanBuiltIn + match + spanEnd});
+    let finalText = baseText.replace(regexLabels, (match) => spanLabels + match + spanEnd);
+    finalText = finalText.replace(reservedWords, (match) => spanReserved + match + spanEnd);
+    finalText = finalText.replace(builtInFuncs, (match) => spanBuiltIn + match + spanEnd);
 
-    codeAreaHTML.innerHTML = finalText
+    codeAreaHTML.innerHTML = finalText;
 }
 
 const handleKeys = {
-    'Tab': (e) => {return handleTab(e)},
-    'Enter': (e) => {return handleEnter(e)},
-    'Backspace': (e) => {return handleBackspace(e)},
-    '(': (e) => {return handleBracket(e)},
-    '{': (e) => {return handleCurly(e)}
+    'Tab': (e) => handleTab(e),
+    'Enter': (e) => handleEnter(e),
+    'Backspace': (e) => handleBackspace(e),
+    '(': (e) => handleBracket(e),
+    '{': (e) => handleCurly(e)
 }
 
 textAreaHTML.addEventListener('keydown', (e) => {
@@ -84,9 +90,7 @@ textAreaHTML.addEventListener('keydown', (e) => {
      catch(e) {}
 });
 
-textAreaHTML.addEventListener('scroll', (e) => {
-    handleScroll()
-});
+textAreaHTML.addEventListener('scroll', (e) => handleScroll());
 
 const handleScroll = () => {
     preAreaHTML.scrollTop = textAreaHTML.scrollTop;
