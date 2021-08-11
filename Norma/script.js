@@ -54,7 +54,7 @@ const upload = (file) => {
 actualBtn.addEventListener('change', () => upload(actualBtn.files[actualBtn.files.length - 1]));
 downloadBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    download(textAreaHTML.value, "maqnorma.mn")
+    download(textAreaHTML.value, "maqnorma.mn");
 });
 
 // Highlight 
