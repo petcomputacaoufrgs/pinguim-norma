@@ -141,6 +141,7 @@ input:checked + .slider > span {
     text-align: center;
     margin-left: 2vw;
     border-radius: 0.5rem;
+    border: none;
     padding: 0.3rem;
     background-color: var(--control-buttons-background);
     color: var(--control-button-font-color);
