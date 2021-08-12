@@ -1,3 +1,4 @@
+#[derive(Clone, Debug)]
 pub enum OperationType {
     Inc,
     Dec,
@@ -6,38 +7,27 @@ pub enum OperationType {
     CmpConst,
     AddRegs,
     SubRegs,
-    CmpRegs,
-    Macro,
+    CmpRegs
 }
 
-pub enum TestType{
-    Zero,
-    Macro
+#[derive(Clone, Debug)]
+pub enum TestType {
+    Zero
 }
 
+#[derive(Clone, Debug)]
 pub enum InstructionType {
     Operation(OperationType),
     Test(TestType)
 }
 
-pub struct Label {
-    label: String
-}
-
-impl Label {
-    pub fn new(label: String) -> Label{
-        Label {
-            label
-        }
-    }
-}
-
+#[derive(Clone, Debug)]
 pub struct Instruction {
     instruction_type: InstructionType,
     registers: Vec<String>,
-    next_instruction_true: Label,
-    next_instruction_false: Option<Label>,
-    macro_name: Option<String>,
+    constant: Option<usize>,
+    next_label_true: String,
+    next_label_false: Option<String>,
 }
 
 impl Instruction {
@@ -47,9 +37,9 @@ impl Instruction {
         Instruction {
             instruction_type: InstructionType::Operation(OperationType::Inc),
             registers: Vec::<String>::new(),
-            next_instruction_true: Label::new(String::new()),
-            next_instruction_false: None,
-            macro_name: None,
+            constant: None,
+            next_label_true: String::new(),
+            next_label_false: None,
         }
     }
 
@@ -57,16 +47,20 @@ impl Instruction {
         self.instruction_type = instruction_type;
     }
 
-    pub fn add_registers(&mut self, register_name: String) {
+    pub fn add_register(&mut self, register_name: String) {
         self.registers.push(register_name);
     }
 
-    pub fn set_next_instructions(&mut self, next_true: Label, next_false: Option<Label>) {
-        self.next_instruction_true = next_true;
-        self.next_instruction_false = next_false;
+    pub fn set_registers(&mut self, registers: Vec<String>) {
+        self.registers = registers.clone();
     }
 
-    pub fn set_macro(&mut self, macro_name: Option<String>) {
-        self.macro_name = macro_name;
+    pub fn set_constant(&mut self, constant: usize) {
+        self.constant = Some(constant);
+    }
+
+    pub fn set_next_instructions(&mut self, next_true: String, next_false: Option<String>) {
+        self.next_label_true = next_true;
+        self.next_label_false = next_false;
     }
 }
