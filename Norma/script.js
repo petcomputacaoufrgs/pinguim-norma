@@ -57,6 +57,24 @@ downloadBtn.addEventListener('click', (e) => {
     download(textAreaHTML.value, "maqnorma.mn");
 });
 
+// Local Storage
+const setStorage = (baseText) => {
+    localStorage.setItem("userCode", baseText);
+}
+
+const getStorage = () => {
+    return localStorage.getItem("userCode");
+}
+
+const getLastCode = () => {
+    textAreaHTML.innerHTML = getStorage();
+    highlight();
+}
+
+window.onload = () => {
+    getLastCode();
+}
+
 // Highlight 
 const textAreaHTML = document.getElementById('userinput');
 const codeAreaHTML = document.getElementById('codeholder');
@@ -78,6 +96,7 @@ const highlight = () => {
     finalText = finalText.replace(builtInFuncs, (match) => spanBuiltIn + match + spanEnd);
 
     codeAreaHTML.innerHTML = finalText;
+    setStorage(baseText);
 }
 
 const handleKeys = {
@@ -106,9 +125,9 @@ const handleTab = (e) => {
     const end = textAreaHTML.selectionEnd;
 
     textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
-        "\t" + textAreaHTML.value.substring(end);
+        `    ` + textAreaHTML.value.substring(end);
 
-    textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 1;
+    textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 4;
 }
 
 const handleEnter = (e) => {
@@ -122,9 +141,9 @@ const handleEnter = (e) => {
         const end = textAreaHTML.selectionEnd;
 
         textAreaHTML.value = textAreaHTML.value.substring(0, start) +
-            "\n\t\n" + textAreaHTML.value.substring(end);
+            "\n" + `    ` + "\n" + textAreaHTML.value.substring(end);
 
-        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 2;
+        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 5;
     }
 }
 
