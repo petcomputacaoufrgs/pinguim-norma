@@ -4,7 +4,8 @@ use num_bigint::BigUint;
 use serde::{Serialize, Deserialize};
 
 mod norma;
-
+mod lexer;
+mod token;
 
 // Import javascript functions
 #[wasm_bindgen]

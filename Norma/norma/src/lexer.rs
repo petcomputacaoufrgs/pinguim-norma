@@ -1,128 +1,131 @@
+#[cfg(test)]
+mod test;
+
 use crate::token::*;
 use regex::Regex;
 
-pub fn generate_tokens(text: String) -> Vec<Token>{
-
+pub fn generate_tokens(text: String) -> Vec<Token> {
     // vetor final de tokens
-    let mut tokens = Vec::<Token>::new(); 
-   
+    let mut tokens = Vec::<Token>::new();
+
     // localização inicial
     let mut curr_location = Position { line: 0, column: 0 };
 
     // conteúdo do token, se for maior que um caracter
     let mut token_content = Vec::<char>::new();
     let mut token_type = TokenType::None;
-    
+
     for character in text.chars() {
+        if check_newline(character) {
+            curr_location.update_for_newline();
 
-       if check_newline(character) {
+            // newline marca o fim de um comentário
+            if token_type == TokenType::Comment {
+                token_type = TokenType::None;
+            }
+        } else {
+            curr_location.update_column();
 
-           curr_location.update_for_newline();
-
-           // newline marca o fim de um comentário
-           if token_type == TokenType::Comment {
-               token_type = TokenType::None;
-           }
-
-       } else {
-
-           curr_location.update_column();
-
-           // ignorar tudo que for lido se for um comentário
-           if token_type == TokenType::Comment {
-               continue;
-
-           } else if check_comment(character) {
-
+            // ignorar tudo que for lido se for um comentário
+            if token_type == TokenType::Comment {
+                continue;
+            } else if check_comment(character) {
                 if token_type == TokenType::None {
                     token_type = TokenType::SingleSlash;
-
                 } else if token_type == TokenType::SingleSlash {
                     token_type = TokenType::Comment;
                 }
-
             } else if check_punctuation(character) {
-
                 // acho que da pra fazer melhor esse bloco
                 if token_type == TokenType::String {
-
                     if check_keyword(token_content.iter().collect()) {
-                        token_type = match_keyword(token_content.iter().collect()).unwrap();
-
-                    } else if check_builtin_func(token_content.iter().collect()) {
-                        token_type = match_builtin_func(token_content.iter().collect()).unwrap();
+                        token_type =
+                            match_keyword(token_content.iter().collect())
+                                .unwrap();
+                    } else if check_builtin_func(token_content.iter().collect())
+                    {
+                        token_type =
+                            match_builtin_func(token_content.iter().collect())
+                                .unwrap();
                     }
                 }
-               
+
                 // termina o token de antes (string/número)
                 if token_type != TokenType::None {
-                    tokens.push(Token{
-                        token_type: token_type,
+                    tokens.push(Token {
+                        token_type,
                         content: token_content.iter().collect(),
                         position: Position {
-                           line: curr_location.line,
-                           column: curr_location.column - 1
-                        }
+                            line: curr_location.line,
+                            column: curr_location.column - 1,
+                        },
                     });
                 }
-              
+
                 token_type = TokenType::None;
                 token_content = Vec::<char>::new();
 
                 match match_punctuation(character) {
-                   Some(t) => {  
-                    tokens.push(Token{
-                       token_type: t,
-                       content: String::from(character),
-                       position: curr_location,
-                   })},
-                   None => { 
-                       continue;
-                   }
+                    Some(t) => tokens.push(Token {
+                        token_type: t,
+                        content: String::from(character),
+                        position: curr_location,
+                    }),
+                    None => {
+                        continue;
+                    },
                 }
-
-             } else {
-
+            } else {
                 token_content.push(character);
 
                 if character.is_ascii_digit() {
-
                     if token_type == TokenType::None {
                         token_type = TokenType::Number;
                     }
-    
                 } else if character.is_uppercase() {
-                    
                     if token_type == TokenType::None {
                         token_type = TokenType::Register;
                     }
-    
                 } else if character.is_alphabetic() {
                     match token_type {
-                        TokenType::None => {token_type = TokenType::String},
-                        TokenType::Number => {token_type = TokenType::String},
-                        TokenType::SingleSlash => { panic!("Comment: Sintax error at {:?}", curr_location) },
-                        TokenType::Register => { panic!("Register: Sintax error at {:?}", curr_location) },
-                        _ => { continue; }
+                        TokenType::None => token_type = TokenType::String,
+                        TokenType::Number => token_type = TokenType::String,
+                        TokenType::SingleSlash => {
+                            panic!(
+                                "Comment: Sintax error at {:?}",
+                                curr_location
+                            )
+                        },
+                        TokenType::Register => {
+                            panic!(
+                                "Register: Sintax error at {:?}",
+                                curr_location
+                            )
+                        },
+                        _ => {
+                            continue;
+                        },
                     }
-                
                 } else {
-                    panic!("Invalid Character: Sintax error at {:?}", curr_location);
+                    panic!(
+                        "Invalid Character: Sintax error at {:?}",
+                        curr_location
+                    );
                 }
-           }
-       }
+            }
+        }
     }
 
     return tokens;
 }
-
 
 fn check_newline(c: char) -> bool {
     return c == '\n';
 }
 
 fn check_keyword(word: String) -> bool {
-    let mut keywords = vec!["do", "if", "then", "else", "goto", "main", "operation", "test"];
+    let mut keywords =
+        vec!["do", "if", "then", "else", "goto", "main", "operation", "test"];
     keywords.sort();
 
     for kw in keywords {
@@ -134,18 +137,17 @@ fn check_keyword(word: String) -> bool {
     return false;
 }
 
-fn match_keyword(word: String) -> Option<TokenType>{
-
+fn match_keyword(word: String) -> Option<TokenType> {
     match word.as_str() {
-        "do" => {return Some(TokenType::Do)},
-        "else" => {return Some(TokenType::Else)},
-        "goto" => {return Some(TokenType::Goto)},
-        "if" => {return Some(TokenType::If)},
-        "main" => {return Some(TokenType::Main)},
-        "operation" => {return Some(TokenType::Operation)},
-        "test" => {return Some(TokenType::Test)},
-        "then" => {return Some(TokenType::Then)},
-        _ => {return None}
+        "do" => return Some(TokenType::Do),
+        "else" => return Some(TokenType::Else),
+        "goto" => return Some(TokenType::Goto),
+        "if" => return Some(TokenType::If),
+        "main" => return Some(TokenType::Main),
+        "operation" => return Some(TokenType::Operation),
+        "test" => return Some(TokenType::Test),
+        "then" => return Some(TokenType::Then),
+        _ => return None,
     }
 }
 
@@ -163,13 +165,12 @@ fn check_builtin_func(func: String) -> bool {
 }
 
 fn match_builtin_func(func: String) -> Option<TokenType> {
-    
     match func.as_str() {
-        "add" => {return Some(TokenType::Add)},
-        "sub" => {return Some(TokenType::Sub)},
-        "cmp" => {return Some(TokenType::Cmp)},
-        "zero" => {return Some(TokenType::Zero)},
-        _ => {return None}
+        "add" => return Some(TokenType::Add),
+        "sub" => return Some(TokenType::Sub),
+        "cmp" => return Some(TokenType::Cmp),
+        "zero" => return Some(TokenType::Zero),
+        _ => return None,
     }
 }
 
@@ -179,20 +180,26 @@ fn check_punctuation(c: char) -> bool {
 }
 
 fn match_punctuation(c: char) -> Option<TokenType> {
-
     match c {
-        ' ' => {return None},
-        ':' => {return Some(TokenType::Colon);},
-        ';' => {return Some(TokenType::Semicolon)},
-        ',' => {return Some(TokenType::Comma)},
-        '{' => {return Some(TokenType::OpenCurly)},
-        '}' => {return Some(TokenType::CloseCurly)},
-        '(' => {return Some(TokenType::OpenParen)},
-        ')' => {return Some(TokenType::CloseParen)},
-        _ => {return None}
+        ' ' => return None,
+        ':' => {
+            return Some(TokenType::Colon);
+        },
+        ';' => return Some(TokenType::Semicolon),
+        ',' => return Some(TokenType::Comma),
+        '{' => return Some(TokenType::OpenCurly),
+        '}' => return Some(TokenType::CloseCurly),
+        '(' => return Some(TokenType::OpenParen),
+        ')' => return Some(TokenType::CloseParen),
+        _ => return None,
     }
 }
 
 fn check_comment(c: char) -> bool {
-    if c == '/' { return true; } else { return false; }
+    if c == '/' {
+        return true;
+    } else {
+        return false;
+    }
 }
+

@@ -120,7 +120,7 @@ fn cons_sum() {
     assert_eq!(machine.get_value("B"), BigUint::from(13u8));
     assert_eq!(machine.get_value("Y"), BigUint::zero());
 
-    machine.cons_sum("Y", 2);
+    machine.cons_sum("Y", 1);
     assert_eq!(machine.get_value("X"), BigUint::from(1234567894u128));
     assert_eq!(machine.get_value("A"), BigUint::zero());
     assert_eq!(machine.get_value("B"), BigUint::from(13u8));
