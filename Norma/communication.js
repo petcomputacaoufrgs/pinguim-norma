@@ -11,8 +11,3 @@ export const send_text = async text => {
 }
 
 document.getElementById('verify').addEventListener('click', () => send_text("abc123"));
-document.getElementById('checkbox').addEventListener('click', () => {
-    console.log(machinePtr);
-    console.log(machinePtr.getLines());
-    console.log(machinePtr.get_result());
-});

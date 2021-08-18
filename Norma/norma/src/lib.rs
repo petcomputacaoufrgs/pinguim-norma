@@ -1,25 +1,19 @@
+use crate::compiler::instruction::*;
 use wasm_bindgen::prelude::*;
-use serde::{Serialize, Deserialize};
-
 use communication::*;
-use norma::Machine;
-use num_bigint::BigUint;
-use num_traits::identities::{One, Zero};
 
 // Core da máquina norma
 mod norma;
 // Módulo de comunicação com o frontend
 mod communication;
+// Módulo do compilador
+mod compiler;
 
 /*
     Simulador de máquina Norma
     Criado pelo grupo PET Computação, baseado no modelo do
     professor Rodrigo Machado, para a matéria de
     Teoria da Computação
-*/
-
-/*
-    TODO: aprender a atualizar a estrutura no front
 */
 
 #[wasm_bindgen(js_name = compileText)]
@@ -29,9 +23,7 @@ pub fn compile(text: String) -> DataExporter {
     //Parseia
     //[...]
     //Retorna (Por enquanto retorna um Mock)
-    let line = IndexedLine::from("1.a", "do inc A goto 1.b");
-    let lines = IndexedLineList::new(vec!{line});
-    DataExporter::from(lines, Machine::new(BigUint::one()))
+    DataExporter::new(lines_mock(), Temp{a: 0})
 }
 
 #[wasm_bindgen]
@@ -42,4 +34,20 @@ pub fn run_all() {
 #[wasm_bindgen]
 pub fn run_step() {
 
+}
+
+fn lines_mock() -> Vec<IndexedLine> {
+    let mut i = Instruction::new();
+    i.set_type(InstructionType::Test(TestType::CmpConst));
+    i.set_registers(vec![String::from("A")]);
+    i.set_constant(5);
+
+    let mut j = Instruction::new();
+    j.set_type(InstructionType::Operation(OperationType::AddRegs));
+    j.set_registers(vec![String::from("Y"), String::from("B")]);
+
+    let line1 = IndexedLine::from_instruction(String::from("1.add.1."), i);
+    let line2 = IndexedLine::from_instruction(String::from("1.add.2."), j);
+
+    vec!{line1, line2}
 }

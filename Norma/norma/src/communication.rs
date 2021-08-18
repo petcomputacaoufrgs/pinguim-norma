@@ -1,8 +1,6 @@
 use wasm_bindgen::prelude::*;
-// use std::collections::HashMap;
-// use num_bigint::BigUint;
 use serde::{Serialize, Deserialize};
-use crate::norma::Machine;
+use crate::compiler::instruction::*;
 
 /*
  * Para importar funções e estruturas padrões do JS pro Rust
@@ -47,23 +45,8 @@ impl IndexedLine {
         Self {label, line}
     }
 
-    pub fn from(label: &str, line: &str) -> Self {
-        Self {label: String::from(label), line: String::from(line)}
-    }
-}
-
-
-
-// Estrutura para exportar vetor de linhas indexadas
-#[wasm_bindgen]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct  IndexedLineList {
-    lines: Vec<IndexedLine>,
-}
-
-impl IndexedLineList {
-    pub fn new(lines: Vec<IndexedLine>) -> Self {
-        Self { lines }
+    pub fn from_instruction(label: String, instruction: Instruction) -> Self {
+        Self { label, line: instruction.to_string() }
     }
 }
 
@@ -71,21 +54,14 @@ impl IndexedLineList {
 // Estrutura para exportar valores ao JS
 #[wasm_bindgen]
 pub struct DataExporter {
-    lines: JsValue,
-    interpreter: Machine,
+    lines: Vec<IndexedLine>,
+    interpreter: Temp,
 }
 
 impl DataExporter {
-    pub fn new(lines: JsValue, interpreter: Machine) -> Self {
+    pub fn new(lines: Vec<IndexedLine>, interpreter: Temp) -> Self {
         Self {
             lines,
-            interpreter
-        }
-    }
-
-    pub fn from(lines: IndexedLineList, interpreter: Machine) -> Self {
-        Self {
-            lines: JsValue::from_serde(&lines).unwrap(),
             interpreter
         }
     }
@@ -94,18 +70,15 @@ impl DataExporter {
 #[wasm_bindgen]
 impl DataExporter {
 
+    // Exporta Linhas de código como 
     #[wasm_bindgen(js_name = getLines)]
-    pub fn lines(&self) -> JsValue {
-        self.lines.clone()
+    pub fn lines_as_json(&self) -> JsValue {
+        JsValue::from_serde(&self.lines).unwrap()
     }
 
+    // Implementação futura: retornar o valor do interpretador
     #[wasm_bindgen]
     pub fn get_result(&mut self) -> String {
-        self.interpreter.inc("X");
-        self.interpreter.get_value("X").to_str_radix(10)
+        String::from("2021")
     }
 }
-
-/*
- * Funções a serem exportadas para o JS
- */

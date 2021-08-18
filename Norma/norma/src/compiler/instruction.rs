@@ -1,18 +1,20 @@
+use std::fmt;
+
 #[derive(Clone, Debug)]
 pub enum OperationType {
     Inc,
     Dec,
     AddConst,
     SubConst,
-    CmpConst,
     AddRegs,
-    SubRegs,
-    CmpRegs
+    SubRegs
 }
 
 #[derive(Clone, Debug)]
 pub enum TestType {
-    Zero
+    Zero,
+    CmpConst,
+    CmpRegs
 }
 
 #[derive(Clone, Debug)]
@@ -62,5 +64,61 @@ impl Instruction {
     pub fn set_next_instructions(&mut self, next_true: String, next_false: Option<String>) {
         self.next_label_true = next_true;
         self.next_label_false = next_false;
+    }
+}
+
+impl fmt::Display for Instruction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let operation = self.get_instruction_string();
+        let registers = self.get_registers_string();
+        let constant = self.get_constant_string();
+
+        write!(f, "{}", operation + &registers + &constant)
+    }
+}
+
+// Funções auxiliares para display (todas fechadas)
+impl Instruction {
+    fn get_instruction_string(&self) -> String {
+        match self.instruction_type.clone() {
+            InstructionType::Operation(o) => self.get_operation_string(o),
+            InstructionType::Test(t) => self.get_test_string(t)
+        }
+    }
+
+    fn get_operation_string(&self, operation: OperationType) -> String {
+        match operation {
+            OperationType::Inc => String::from("+= 1 "),
+            OperationType::Dec => String::from("DEC "),
+            OperationType::AddConst => String::from("ADD "),
+            OperationType::SubConst => String::from("SUB "),
+            OperationType::AddRegs => String::from("ADD "),
+            OperationType::SubRegs => String::from("SUB "),
+        }
+    }
+
+    fn get_test_string(&self, test: TestType) -> String {
+        match test {
+            TestType::Zero => String::from("ZERO "),
+            TestType::CmpConst => String::from("CMP "),
+            TestType::CmpRegs => String::from("CMP ")
+        }
+    }
+
+    fn get_registers_string(&self) -> String {
+        let mut registers_list = String::new();
+
+        for reg in self.registers.iter() {
+            registers_list += reg;
+            registers_list.push(' ');
+        }
+        registers_list
+    }
+
+    fn get_constant_string(&self) -> String {
+        match self.constant {
+            Some(cons) => cons.to_string(),
+            None => String::new()
+        }
     }
 }
