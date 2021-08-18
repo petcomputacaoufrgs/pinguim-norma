@@ -1,11 +1,14 @@
 // Theme
 const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+const toggleIcon = document.getElementById('toggle-icon');
 function switchTheme(e) {
     if (e.target.checked) {
         document.documentElement.setAttribute('data-theme', 'dark');
+        toggleIcon.innerHTML = 'dark_mode';
     }
     else {
         document.documentElement.setAttribute('data-theme', 'light');
+        toggleIcon.innerHTML = 'light_mode';
     }    
 }
 toggleSwitch.addEventListener('change', switchTheme, false);
@@ -20,26 +23,48 @@ if (currentTheme) {
 }
 
 // Upload and download buttons
+const downloadBtn = document.getElementById('download_button');
 const actualBtn = document.getElementById('upload_button');
 const fileChosen = document.getElementById('file-chosen');
-actualBtn.addEventListener('change', function(){
-  fileChosen.textContent = this.files[0].name
-})
+
+const download = (text, filename) => {
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename); 
+
+    element.style.display = 'none';
+
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
+
+const upload = (file) => {
+    const reader = new FileReader();
+    
+    fileChosen.textContent = file.name;
+    reader.readAsText(file, "UTF-8");
+
+    reader.onload = (e) => {
+        textAreaHTML.value = e.target.result;
+        highlight();
+    } 
+}
+
+actualBtn.addEventListener('change', () => upload(actualBtn.files[actualBtn.files.length - 1]));
+downloadBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    download(textAreaHTML.value, "maqnorma.mn");
+});
 
 // Highlight 
 const textAreaHTML = document.getElementById('userinput');
 const codeAreaHTML = document.getElementById('codeholder');
+const preAreaHTML = document.getElementById('codeediting');
 
-/**
- * O que estiver dentro de // é expressão regular -> /conteudo/
- * O separador | indica 'ou' -> /a/ ou /b/ == /a|b/
- * A flag \b indica que a expressão precisa ser identica -> /\bIGUAL\b/
- * A flag 'g' significa global -> /tudoQueDarMatch/g
- * A flag 'i' significa case insensitive -> /AbCaTe/i == /ABACATE/i == /abacate/i
- */
 const reservedWords = /\bmain\b|\bif\b|\bthen\b|\belse\b|\bdo\b|\bgoto\b|\boperation\b|\btest\b/gi;
 const builtInFuncs = /\binc\b|\bdec\b|\bzero\b|\badd\b|\bsub\b|\bcmp\b/gi;
-const regexLabels = /[0-9][:]/g;
+const regexLabels = /[a-zA-z0-9_-]*[:]/g;
 
 const spanEnd = '</span>';
 const spanLabels = '<span class="label">';
@@ -48,71 +73,98 @@ const spanBuiltIn = '<span class="builtin">';
 
 const highlight = () => {
     let baseText = textAreaHTML.value;
-    let finalText = baseText.replace(regexLabels, (match) => {return spanLabels + match + spanEnd});
-    finalText = finalText.replace(reservedWords, (match) => {return spanReserved + match + spanEnd});
-    finalText = finalText.replace(builtInFuncs, (match) => {return spanBuiltIn + match + spanEnd});
+    let finalText = baseText.replace(regexLabels, (match) => spanLabels + match + spanEnd);
+    finalText = finalText.replace(reservedWords, (match) => spanReserved + match + spanEnd);
+    finalText = finalText.replace(builtInFuncs, (match) => spanBuiltIn + match + spanEnd);
 
-    codeAreaHTML.innerHTML = finalText
+    codeAreaHTML.innerHTML = finalText;
 }
 
-// Tab key
-// Allows tab identation inside textarea
+const handleKeys = {
+    'Tab': (e) => handleTab(e),
+    'Enter': (e) => handleEnter(e),
+    'Backspace': (e) => handleBackspace(e),
+    '(': (e) => handleBracket(e),
+    '{': (e) => handleCurly(e)
+}
+
 textAreaHTML.addEventListener('keydown', (e) => {
-    if(e.key == 'Tab') {
+     try { handleKeys[e.key](e) }
+     catch(e) {}
+});
+
+textAreaHTML.addEventListener('scroll', (e) => handleScroll());
+
+const handleScroll = () => {
+    preAreaHTML.scrollTop = textAreaHTML.scrollTop;
+    preAreaHTML.scrollLeft = textAreaHTML.scrollLeft;
+}
+
+const handleTab = (e) => {
+    e.preventDefault();
+    const start = textAreaHTML.selectionStart;
+    const end = textAreaHTML.selectionEnd;
+
+    textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
+        "\t" + textAreaHTML.value.substring(end);
+
+    textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 1;
+}
+
+const handleEnter = (e) => {
+    const start = textAreaHTML.selectionStart;
+    const end = textAreaHTML.selectionEnd;
+
+    if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') && 
+        (textAreaHTML.value[textAreaHTML.selectionStart] == '}')) {
         e.preventDefault();
         const start = textAreaHTML.selectionStart;
         const end = textAreaHTML.selectionEnd;
-        
-        textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
-            "\t" + textAreaHTML.value.substring(end);
 
-        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 1;
+        textAreaHTML.value = textAreaHTML.value.substring(0, start) +
+            "\n\t\n" + textAreaHTML.value.substring(end);
+
+        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 2;
     }
-});
+}
 
-// Bracket key
-// Auto complete the bracket
-textAreaHTML.addEventListener('keydown', (e) => {
-    if(e.key == '(') {
+const handleBackspace = (e) => {
+    const start = textAreaHTML.selectionStart;
+    const end = textAreaHTML.selectionEnd;
+
+    if(((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '(') && 
+        (textAreaHTML.value[textAreaHTML.selectionStart] == ')')) 
+        || 
+        ((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') && 
+        (textAreaHTML.value[textAreaHTML.selectionStart] == '}'))) {
+            
         e.preventDefault();
-        const start = textAreaHTML.selectionStart;
-        const end = textAreaHTML.selectionEnd;
 
-        textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
-            "()" + textAreaHTML.value.substring(end);
+        textAreaHTML.value = textAreaHTML.value.substring(0, start).slice(0, start - 1)
+            + textAreaHTML.value.substring(end).slice(1, end);
 
-        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
+        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start - 1;
     }
-});
+}
 
-// Curly bracket key
-// Auto complete the curly bracket
-textAreaHTML.addEventListener('keydown', (e) => {
-    if(e.key == '{') {
-        e.preventDefault();
-        const start = textAreaHTML.selectionStart;
-        const end = textAreaHTML.selectionEnd;
+const handleBracket = (e) => {
+    e.preventDefault();
+    const start = textAreaHTML.selectionStart;
+    const end = textAreaHTML.selectionEnd;
 
-        textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
-            "{}" + textAreaHTML.value.substring(end);
+    textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
+        "()" + textAreaHTML.value.substring(end);
 
-        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
-    }
-});
+    textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
+}
 
-textAreaHTML.addEventListener('keydown', (e) => {
-    if(e.key == 'Enter') {
-        if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') && 
-            (textAreaHTML.value[textAreaHTML.selectionStart] == '}')) {
-            e.preventDefault();
-            const start = textAreaHTML.selectionStart;
-            const end = textAreaHTML.selectionEnd;
+const handleCurly = (e) => {
+    e.preventDefault();
+    const start = textAreaHTML.selectionStart;
+    const end = textAreaHTML.selectionEnd;
 
-            textAreaHTML.value = textAreaHTML.value.substring(0, start) +
-                "\n\t\n" + textAreaHTML.value.substring(end);
+    textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
+        "{}" + textAreaHTML.value.substring(end);
 
-            textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 2;
-        }
-    }
-});
-
+    textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
+}
