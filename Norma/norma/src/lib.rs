@@ -1,15 +1,14 @@
-use wasm_bindgen::prelude::*;
-use std::collections::HashMap;
 use num_bigint::BigUint;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use wasm_bindgen::prelude::*;
 
 mod norma;
-mod lexer;
-mod token;
+mod compiler;
 
 // Import javascript functions
 #[wasm_bindgen]
-extern {
+extern "C" {
     pub fn alert(s: &str);
 
     #[wasm_bindgen(js_namespace= console , js_name = log)]
@@ -25,15 +24,15 @@ extern {
 #[derive(Serialize, Deserialize)]
 pub struct ExportableMachine {
     pub registers: HashMap<String, String>,
-    pub counter: String
+    pub counter: String,
 }
 
 impl ExportableMachine {
     pub fn from_machine(mut machine: norma::Machine) -> ExportableMachine {
         return ExportableMachine {
             registers: machine.get_registers_exportable(),
-            counter: machine.get_counter().to_str_radix(10).to_string()
-        }
+            counter: machine.get_counter().to_str_radix(10).to_string(),
+        };
     }
 }
 
@@ -46,7 +45,9 @@ pub fn vetor(input: &[usize]) {
 
 #[wasm_bindgen]
 pub fn square(input: &str) -> JsValue {
-    let mut registers = norma::Machine::new(BigUint::parse_bytes(input.as_bytes(),10).unwrap());
+    let mut registers = norma::Machine::new(
+        BigUint::parse_bytes(input.as_bytes(), 10).unwrap(),
+    );
     registers.insert("VAL");
     registers.insert("TMP");
     registers.insert("CNT");
@@ -72,15 +73,16 @@ pub fn square(input: &str) -> JsValue {
         }
     }
 
-
     JsValue::from_serde(&ExportableMachine::from_machine(registers)).unwrap()
 }
 
 #[wasm_bindgen]
 pub fn test(input: &str) -> JsValue {
-    let mut registers = norma::Machine::new(BigUint::parse_bytes(input.as_bytes(),10).unwrap());
+    let mut registers = norma::Machine::new(
+        BigUint::parse_bytes(input.as_bytes(), 10).unwrap(),
+    );
     registers.insert("J");
-    for _i in 1..=3 {
+    for _i in 1 ..= 3 {
         registers.apply("X", |reg| {
             reg.dec();
         });
@@ -95,7 +97,7 @@ pub fn test(input: &str) -> JsValue {
 
     if registers.is_zero("X").unwrap() {
         registers.inc("Y");
-        registers.dec("J");   
+        registers.dec("J");
     }
 
     JsValue::from_serde(&ExportableMachine::from_machine(registers)).unwrap()

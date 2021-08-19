@@ -1,5 +1,5 @@
 use super::generate_tokens;
-use crate::token::{Position, Token, TokenType};
+use super::super::token::{Position, Token, TokenType};
 
 // ISSUES:
 // - just a single token might not be scanned at all
@@ -18,7 +18,7 @@ fn single_main() {
         vec![Token {
             token_type: TokenType::Main,
             content: "main".to_owned(),
-            position: Position { line: 1, column: 1 },
+            position: Position { line: 1, column: 2 },
         }]
     );
 }
@@ -64,7 +64,7 @@ fn single_close_paren_many_spaces_before() {
     assert_eq!(
         generate_tokens("     )".to_owned()),
         vec![Token {
-            token_type: TokenType::CloseCurly,
+            token_type: TokenType::CloseParen,
             content: ")".to_owned(),
             position: Position { line: 1, column: 6 },
         }]
@@ -72,7 +72,7 @@ fn single_close_paren_many_spaces_before() {
 }
 
 #[test]
-fn single_close_paren_many_spaces_after() {
+fn single_colon_many_spaces_after() {
     assert_eq!(
         generate_tokens(":         ".to_owned()),
         vec![Token {
@@ -84,12 +84,12 @@ fn single_close_paren_many_spaces_after() {
 }
 
 #[test]
-fn single_close_paren_many_spaces_around() {
+fn single_add_many_spaces_around() {
     assert_eq!(
-        generate_tokens("   ;       ".to_owned()),
+        generate_tokens("   add       ".to_owned()),
         vec![Token {
-            token_type: TokenType::Colon,
-            content: ";".to_owned(),
+            token_type: TokenType::Add,
+            content: "add".to_owned(),
             position: Position { line: 1, column: 4 },
         }]
     );
@@ -126,6 +126,7 @@ fn id_program() {
     source.push_str("\t2: do inc Y goto 3\n");
     source.push_str("\t3: do dec X goto 1\n");
     source.push_str("}\n");
+    eprintln!("{:#?}", generate_tokens(source.clone()));
     assert_eq!(
         generate_tokens(source),
         vec![
@@ -182,17 +183,87 @@ fn id_program() {
             Token {
                 token_type: TokenType::Else,
                 content: "else".to_owned(),
-                position: Position { line: 2, column: 22 },
+                position: Position { line: 2, column: 27 },
             },
             Token {
                 token_type: TokenType::Goto,
                 content: "goto".to_owned(),
-                position: Position { line: 2, column: 27 },
+                position: Position { line: 2, column: 32 },
             },
             Token {
                 token_type: TokenType::Number,
                 content: "2".to_owned(),
-                position: Position { line: 2, column: 32 },
+                position: Position { line: 2, column: 37 },
+            },
+            Token {
+                token_type: TokenType::Number,
+                content: "2".to_owned(),
+                position: Position { line: 3, column: 2 },
+            },
+            Token {
+                token_type: TokenType::Colon,
+                content: ":".to_owned(),
+                position: Position { line: 3, column: 3 },
+            },
+            Token {
+                token_type: TokenType::Do,
+                content: "do".to_owned(),
+                position: Position { line: 3, column: 5 },
+            },
+            Token {
+                token_type: TokenType::Inc,
+                content: "inc".to_owned(),
+                position: Position { line: 3, column: 8 },
+            },
+            Token {
+                token_type: TokenType::Register,
+                content: "Y".to_owned(),
+                position: Position { line: 3, column: 12 },
+            },
+            Token {
+                token_type: TokenType::Goto,
+                content: "goto".to_owned(),
+                position: Position { line: 3, column: 14 },
+            },
+            Token {
+                token_type: TokenType::Number,
+                content: "3".to_owned(),
+                position: Position { line: 3, column: 19 },
+            },
+            Token {
+                token_type: TokenType::Number,
+                content: "3".to_owned(),
+                position: Position { line: 4, column: 2 },
+            },
+            Token {
+                token_type: TokenType::Colon,
+                content: ":".to_owned(),
+                position: Position { line: 4, column: 3 },
+            },
+            Token {
+                token_type: TokenType::Do,
+                content: "do".to_owned(),
+                position: Position { line: 4, column: 5 },
+            },
+            Token {
+                token_type: TokenType::Dec,
+                content: "dec".to_owned(),
+                position: Position { line: 4, column: 8 },
+            },
+            Token {
+                token_type: TokenType::Register,
+                content: "X".to_owned(),
+                position: Position { line: 4, column: 12 },
+            },
+            Token {
+                token_type: TokenType::Goto,
+                content: "goto".to_owned(),
+                position: Position { line: 4, column: 14 },
+            },
+            Token {
+                token_type: TokenType::Number,
+                content: "1".to_owned(),
+                position: Position { line: 4, column: 19 },
             },
             Token {
                 token_type: TokenType::CloseCurly,

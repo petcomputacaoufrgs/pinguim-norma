@@ -7,7 +7,7 @@ pub struct Position {
 impl Position {
     pub fn update_for_newline(&mut self) {
         self.line = self.line + 1;
-        self.column = 0;
+        self.column = 1;
     }
 
     pub fn update_column(&mut self) {
@@ -37,7 +37,6 @@ pub enum TokenType {
     String,
     Colon,
     Comma,
-    Semicolon,
     OpenParen,
     CloseParen,
     OpenCurly,
