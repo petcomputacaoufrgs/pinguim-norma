@@ -4,208 +4,234 @@ mod test;
 use super::token::*;
 use regex::Regex;
 
-pub fn generate_tokens(text: String) -> Vec<Token> {
-    // vetor final de tokens
-    let mut tokens = Vec::<Token>::new();
+#[derive(Debug, Clone)]
+struct Lexer {
+    curr_position: Position,
+    next_position: Position,
+    tokens: Vec<Token>,
+    token_type: TokenType,
+    token_content: String,
+}
 
-    // localização inicial
-    let mut curr_location = Position { line: 1, column: 1 };
-    let mut next_location = curr_location;
+impl Default for Lexer {
+    fn default() -> Self {
+        Self {
+            curr_position: Position { line: 1, column: 1 },
+            next_position: Position { line: 1, column: 1 },
+            tokens: Vec::new(),
+            token_type: TokenType::None,
+            token_content: String::new(),
+        }
+    }
+}
 
-    // conteúdo do token, se for maior que um caracter
-    let mut token_content = Vec::<char>::new();
-    let mut token_type = TokenType::None;
-
-    for character in text.chars() {
-
-        if check_newline(character) {
-            next_location.update_for_newline();
-
-            // newline marca o fim de um comentário
-            if token_type == TokenType::Comment {
-                token_type = TokenType::None;
-            }
-
-            if token_type == TokenType::None {
-                curr_location = next_location;
-            }
+impl Lexer {
+    fn handle_char(&mut self, character: char) {
+        if Self::check_newline(character) {
+            self.handle_newline();
         } else {
-            if token_type == TokenType::None {
-                curr_location = next_location;
+            if self.token_type == TokenType::None {
+                self.curr_position = self.next_position;
             }
-            let punct_location = next_location;
-            
-            next_location.update_column();
+            let punct_position = self.next_position;
+            self.next_position.update_column();
 
-            // ignorar tudo que for lido se for um comentário
-            if token_type == TokenType::Comment {
-                continue;
-            } else if check_comment(character) {
-                if token_type == TokenType::None {
-                    token_type = TokenType::SingleSlash;
-                } else if token_type == TokenType::SingleSlash {
-                    token_type = TokenType::Comment;
-                }
-            } else if check_punctuation(character) {
-                // acho que da pra fazer melhor esse bloco
-                if token_type == TokenType::String {
-                    if check_keyword(token_content.iter().collect()) {
-                        token_type =
-                            match_keyword(token_content.iter().collect())
-                                .unwrap();
-                    } else if check_builtin_func(token_content.iter().collect())
-                    {
-                        token_type =
-                            match_builtin_func(token_content.iter().collect())
-                                .unwrap();
-                    }
-                }
-
-                // termina o token de antes (string/número)
-                if token_type != TokenType::None {
-                    tokens.push(Token {
-                        token_type,
-                        content: token_content.iter().collect(),
-                        position: curr_location,
-                    });
-                }
-
-                token_content = Vec::<char>::new();
-                token_type = TokenType::None;
-
-                if let Some(t) = match_punctuation(character) {
-                    tokens.push(Token {
-                        token_type: t,
-                        content: String::from(character),
-                        position: punct_location,
-                    });
-                }
-
-                curr_location = next_location;
-            } else {
-                token_content.push(character);
-
-                if character.is_ascii_digit() {
-                    if token_type == TokenType::None {
-                        token_type = TokenType::Number;
-                    }
-                } else if character.is_uppercase() {
-                    if token_type == TokenType::None {
-                        token_type = TokenType::Register;
-                    }
-                } else if character.is_alphabetic() {
-                    match token_type {
-                        TokenType::None => token_type = TokenType::String,
-                        TokenType::Number => token_type = TokenType::String,
-                        TokenType::SingleSlash => {
-                            panic!(
-                                "Comment: Sintax error at {:?}",
-                                curr_location
-                            )
-                        },
-                        TokenType::Register => {
-                            panic!(
-                                "Register: Sintax error at {:?}",
-                                curr_location
-                            )
-                        },
-                        _ => {
-                            continue;
-                        },
-                    }
+            if self.token_type != TokenType::Comment {
+                if Self::check_comment(character) {
+                    self.handle_comment();
+                } else if Self::check_punctuation(character) {
+                    self.handle_punctuation(character, punct_position);
                 } else {
-                    panic!(
-                        "Invalid Character: Sintax error at {:?}",
-                        curr_location
-                    );
+                    self.handle_default(character);
                 }
             }
         }
     }
 
-    return tokens;
-}
+    fn handle_newline(&mut self) {
+        self.next_position.update_for_newline();
 
-fn check_newline(c: char) -> bool {
-    return c == '\n';
-}
+        if self.token_type == TokenType::Comment {
+            self.token_type = TokenType::None;
+        }
 
-fn check_keyword(word: String) -> bool {
-    let mut keywords =
-        vec!["do", "if", "then", "else", "goto", "main", "operation", "test"];
-    keywords.sort();
-
-    for kw in keywords {
-        if word == kw {
-            return true;
+        if self.token_type == TokenType::None {
+            self.curr_position = self.next_position;
         }
     }
 
-    return false;
-}
-
-fn match_keyword(word: String) -> Option<TokenType> {
-    match word.as_str() {
-        "do" => return Some(TokenType::Do),
-        "else" => return Some(TokenType::Else),
-        "goto" => return Some(TokenType::Goto),
-        "if" => return Some(TokenType::If),
-        "main" => return Some(TokenType::Main),
-        "operation" => return Some(TokenType::Operation),
-        "test" => return Some(TokenType::Test),
-        "then" => return Some(TokenType::Then),
-        _ => return None,
-    }
-}
-
-fn check_builtin_func(func: String) -> bool {
-    let mut builtin_func = vec!["inc", "dec", "add", "sub", "cmp", "zero"];
-    builtin_func.sort();
-
-    for bf in builtin_func {
-        if func == bf {
-            return true;
+    fn handle_comment(&mut self) {
+        if self.token_type == TokenType::None {
+            self.token_type = TokenType::SingleSlash;
+        } else if self.token_type == TokenType::SingleSlash {
+            self.token_type = TokenType::Comment;
         }
     }
 
-    return false;
-}
+    fn handle_punctuation(
+        &mut self,
+        character: char,
+        punct_position: Position,
+    ) {
+        if self.token_type == TokenType::String {
+            self.handle_string();
+        }
 
-fn match_builtin_func(func: String) -> Option<TokenType> {
-    match func.as_str() {
-        "add" => return Some(TokenType::Add),
-        "sub" => return Some(TokenType::Sub),
-        "cmp" => return Some(TokenType::Cmp),
-        "zero" => return Some(TokenType::Zero),
-        "inc" => return Some(TokenType::Inc),
-        "dec" => return Some(TokenType::Dec),
-        _ => return None,
+        // termina o token de antes (string/número)
+        if self.token_type != TokenType::None {
+            self.finish_token();
+        }
+
+        if let Some(typ) = Self::match_punctuation(character) {
+            self.curr_position = punct_position;
+            self.token_content.push(character);
+            self.token_type = typ;
+            self.finish_token();
+        }
+
+        self.curr_position = self.next_position;
+    }
+
+    fn handle_string(&mut self) {
+        if Self::check_keyword(self.token_content.clone()) {
+            self.handle_keyword();
+        } else if Self::check_builtin_func(self.token_content.clone()) {
+            self.handle_builtin_func();
+        }
+    }
+
+    fn handle_keyword(&mut self) {
+        self.token_type =
+            Self::match_keyword(self.token_content.clone()).unwrap();
+    }
+
+    fn handle_builtin_func(&mut self) {
+        self.token_type =
+            Self::match_builtin_func(self.token_content.clone()).unwrap();
+    }
+
+    fn handle_default(&mut self, character: char) {
+        self.token_content.push(character);
+
+        if character.is_ascii_digit() {
+            self.handle_digit();
+        } else if character.is_uppercase() {
+            self.handle_register();
+        } else if character.is_alphabetic() {
+            self.handle_string_start();
+        } else {
+            panic!(
+                "Invalid Character: Sintax error at {:?}",
+                self.curr_position
+            )
+        }
+    }
+
+    fn handle_digit(&mut self) {
+        if self.token_type == TokenType::None {
+            self.token_type = TokenType::Number;
+        }
+    }
+
+    fn handle_register(&mut self) {
+        if self.token_type == TokenType::None {
+            self.token_type = TokenType::Register;
+        }
+    }
+
+    fn handle_string_start(&mut self) {
+        match self.token_type {
+            TokenType::None => self.token_type = TokenType::String,
+            TokenType::Number => self.token_type = TokenType::String,
+            TokenType::SingleSlash => {
+                panic!("Comment: Sintax error at {:?}", self.curr_position)
+            },
+            TokenType::Register => {
+                panic!("Register: Sintax error at {:?}", self.curr_position)
+            },
+            _ => (),
+        }
+    }
+
+    fn finish_token(&mut self) {
+        let token = Token {
+            token_type: self.token_type,
+            content: self.token_content.clone(),
+            position: self.curr_position,
+        };
+        self.tokens.push(token);
+        self.token_content.clear();
+        self.token_type = TokenType::None;
+    }
+
+    fn check_newline(character: char) -> bool {
+        character == '\n'
+    }
+
+    fn check_comment(character: char) -> bool {
+        character == '/'
+    }
+
+    fn check_punctuation(character: char) -> bool {
+        let rgx = Regex::new(r"[\s:;,\{\}\(\)]").unwrap();
+        rgx.is_match(&character.to_string())
+    }
+
+    fn check_keyword(word: String) -> bool {
+        let keywords =
+            ["do", "if", "then", "else", "goto", "main", "operation", "test"];
+        keywords.contains(&word.as_str())
+    }
+
+    fn match_punctuation(character: char) -> Option<TokenType> {
+        match character {
+            ' ' => None,
+            ':' => Some(TokenType::Colon),
+            ',' => Some(TokenType::Comma),
+            '{' => Some(TokenType::OpenCurly),
+            '}' => Some(TokenType::CloseCurly),
+            '(' => Some(TokenType::OpenParen),
+            ')' => Some(TokenType::CloseParen),
+            _ => None,
+        }
+    }
+
+    fn match_keyword(word: String) -> Option<TokenType> {
+        match word.as_str() {
+            "do" => return Some(TokenType::Do),
+            "else" => return Some(TokenType::Else),
+            "goto" => return Some(TokenType::Goto),
+            "if" => return Some(TokenType::If),
+            "main" => return Some(TokenType::Main),
+            "operation" => return Some(TokenType::Operation),
+            "test" => return Some(TokenType::Test),
+            "then" => return Some(TokenType::Then),
+            _ => return None,
+        }
+    }
+
+    fn check_builtin_func(func: String) -> bool {
+        let builtin_func = ["inc", "dec", "add", "sub", "cmp", "zero"];
+        builtin_func.contains(&func.as_str())
+    }
+
+    fn match_builtin_func(func: String) -> Option<TokenType> {
+        match func.as_str() {
+            "add" => Some(TokenType::Add),
+            "sub" => Some(TokenType::Sub),
+            "cmp" => Some(TokenType::Cmp),
+            "zero" => Some(TokenType::Zero),
+            "inc" => Some(TokenType::Inc),
+            "dec" => Some(TokenType::Dec),
+            _ => None,
+        }
     }
 }
 
-fn check_punctuation(c: char) -> bool {
-    let rgx = Regex::new(r"[\s:;,\{\}\(\)]").unwrap();
-    return rgx.is_match(&c.to_string());
-}
-
-fn match_punctuation(c: char) -> Option<TokenType> {
-    match c {
-        ' ' => {return None},
-        ':' => {return Some(TokenType::Colon);},
-        ',' => {return Some(TokenType::Comma)},
-        '{' => {return Some(TokenType::OpenCurly)},
-        '}' => {return Some(TokenType::CloseCurly)},
-        '(' => {return Some(TokenType::OpenParen)},
-        ')' => {return Some(TokenType::CloseParen)},
-        _ => {return None}
+pub fn generate_tokens(text: String) -> Vec<Token> {
+    let mut lexer = Lexer::default();
+    for character in text.chars() {
+        lexer.handle_char(character);
     }
+    lexer.tokens
 }
-
-fn check_comment(c: char) -> bool {
-    if c == '/' {
-        return true;
-    } else {
-        return false;
-    }
-}
-
