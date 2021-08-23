@@ -1,167 +1,202 @@
 #[cfg(test)]
 mod test;
 
-use super::token::*;
+use super::{
+    error::{BadCommentStart, BadRegister, Diagnostics, Error, InvalidChar},
+    token::{Position, Span, Token, TokenType},
+};
 use regex::Regex;
+use std::{error::Error as StdError, mem};
 
 #[derive(Debug, Clone)]
 struct Lexer {
-    curr_position: Position,
-    next_position: Position,
     tokens: Vec<Token>,
-    token_type: TokenType,
-    token_content: String,
+    is_curr_error: bool,
+    curr_token: Token,
 }
 
 impl Default for Lexer {
     fn default() -> Self {
         Self {
-            curr_position: Position { line: 1, column: 1 },
-            next_position: Position { line: 1, column: 1 },
+            is_curr_error: false,
+            curr_token: Token {
+                span: Span::from_start(Position { line: 1, column: 1 }),
+                token_type: TokenType::None,
+                content: String::new(),
+            },
             tokens: Vec::new(),
-            token_type: TokenType::None,
-            token_content: String::new(),
         }
     }
 }
 
 impl Lexer {
-    fn handle_char(&mut self, character: char) {
+    fn handle_char(&mut self, character: char, diagnostics: &mut Diagnostics) {
+        if self.curr_token.token_type == TokenType::None {
+            self.curr_token.span.finish();
+        }
+
+        let mut char_span = self.curr_token.span;
+        char_span.finish();
+        char_span.update_column();
+
+        if self.curr_token.token_type != TokenType::Comment {
+            if Self::check_comment(character) {
+                self.handle_comment();
+            } else if Self::check_punctuation(character) {
+                self.handle_punctuation(character, char_span);
+            } else {
+                self.handle_default(character, char_span, diagnostics);
+            }
+        }
+
         if Self::check_newline(character) {
             self.handle_newline();
         } else {
-            if self.token_type == TokenType::None {
-                self.curr_position = self.next_position;
-            }
-            let punct_position = self.next_position;
-            self.next_position.update_column();
+            self.curr_token.span.update_column();
+        }
+    }
 
-            if self.token_type != TokenType::Comment {
-                if Self::check_comment(character) {
-                    self.handle_comment();
-                } else if Self::check_punctuation(character) {
-                    self.handle_punctuation(character, punct_position);
-                } else {
-                    self.handle_default(character);
-                }
-            }
+    fn end(&mut self) {
+        if self.curr_token.token_type == TokenType::String {
+            self.handle_string();
+        }
+
+        if self.curr_token.token_type != TokenType::None {
+            self.finish_token();
         }
     }
 
     fn handle_newline(&mut self) {
-        self.next_position.update_for_newline();
+        self.curr_token.span.update_for_newline();
 
-        if self.token_type == TokenType::Comment {
-            self.token_type = TokenType::None;
+        if self.curr_token.token_type == TokenType::Comment {
+            self.curr_token.token_type = TokenType::None;
         }
 
-        if self.token_type == TokenType::None {
-            self.curr_position = self.next_position;
+        if self.curr_token.token_type == TokenType::None {
+            self.curr_token.span.finish();
         }
     }
 
     fn handle_comment(&mut self) {
-        if self.token_type == TokenType::None {
-            self.token_type = TokenType::SingleSlash;
-        } else if self.token_type == TokenType::SingleSlash {
-            self.token_type = TokenType::Comment;
+        if self.curr_token.token_type == TokenType::None {
+            self.curr_token.token_type = TokenType::SingleSlash;
+        } else if self.curr_token.token_type == TokenType::SingleSlash {
+            self.curr_token.token_type = TokenType::Comment;
         }
     }
 
-    fn handle_punctuation(
-        &mut self,
-        character: char,
-        punct_position: Position,
-    ) {
-        if self.token_type == TokenType::String {
+    fn handle_punctuation(&mut self, character: char, char_span: Span) {
+        if self.curr_token.token_type == TokenType::String {
             self.handle_string();
         }
 
         // termina o token de antes (string/número)
-        if self.token_type != TokenType::None {
+        if self.curr_token.token_type != TokenType::None {
             self.finish_token();
         }
 
         if let Some(typ) = Self::match_punctuation(character) {
-            self.curr_position = punct_position;
-            self.token_content.push(character);
-            self.token_type = typ;
+            let prev_span = mem::replace(&mut self.curr_token.span, char_span);
+            self.curr_token.content.push(character);
+            self.curr_token.token_type = typ;
             self.finish_token();
+            self.curr_token.span = prev_span;
         }
 
-        self.curr_position = self.next_position;
+        self.curr_token.span.finish();
     }
 
     fn handle_string(&mut self) {
-        if Self::check_keyword(self.token_content.clone()) {
+        if Self::check_keyword(self.curr_token.content.clone()) {
             self.handle_keyword();
-        } else if Self::check_builtin_func(self.token_content.clone()) {
+        } else if Self::check_builtin_func(self.curr_token.content.clone()) {
             self.handle_builtin_func();
         }
     }
 
     fn handle_keyword(&mut self) {
-        self.token_type =
-            Self::match_keyword(self.token_content.clone()).unwrap();
+        self.curr_token.token_type =
+            Self::match_keyword(self.curr_token.content.clone()).unwrap();
     }
 
     fn handle_builtin_func(&mut self) {
-        self.token_type =
-            Self::match_builtin_func(self.token_content.clone()).unwrap();
+        self.curr_token.token_type =
+            Self::match_builtin_func(self.curr_token.content.clone()).unwrap();
     }
 
-    fn handle_default(&mut self, character: char) {
-        self.token_content.push(character);
-
+    fn handle_default(
+        &mut self,
+        character: char,
+        char_span: Span,
+        diagnostics: &mut Diagnostics,
+    ) {
         if character.is_ascii_digit() {
+            self.curr_token.content.push(character);
             self.handle_digit();
         } else if character.is_uppercase() {
+            self.curr_token.content.push(character);
             self.handle_register();
         } else if character.is_alphabetic() {
-            self.handle_string_start();
+            self.curr_token.content.push(character);
+            self.handle_string_start(char_span, diagnostics);
         } else {
-            panic!(
-                "Invalid Character: Sintax error at {:?}",
-                self.curr_position
-            )
+            self.handle_punctuation(character, char_span);
+            self.raise(diagnostics, InvalidChar { character }, char_span);
         }
     }
 
     fn handle_digit(&mut self) {
-        if self.token_type == TokenType::None {
-            self.token_type = TokenType::Number;
+        if self.curr_token.token_type == TokenType::None {
+            self.curr_token.token_type = TokenType::Number;
         }
     }
 
     fn handle_register(&mut self) {
-        if self.token_type == TokenType::None {
-            self.token_type = TokenType::Register;
+        if self.curr_token.token_type == TokenType::None {
+            self.curr_token.token_type = TokenType::Register;
         }
     }
 
-    fn handle_string_start(&mut self) {
-        match self.token_type {
-            TokenType::None => self.token_type = TokenType::String,
-            TokenType::Number => self.token_type = TokenType::String,
+    fn handle_string_start(
+        &mut self,
+        char_span: Span,
+        diagnostics: &mut Diagnostics,
+    ) {
+        match self.curr_token.token_type {
+            TokenType::None => self.curr_token.token_type = TokenType::String,
+            TokenType::Number => self.curr_token.token_type = TokenType::String,
             TokenType::SingleSlash => {
-                panic!("Comment: Sintax error at {:?}", self.curr_position)
+                self.raise(diagnostics, BadCommentStart, char_span)
             },
-            TokenType::Register => {
-                panic!("Register: Sintax error at {:?}", self.curr_position)
+            TokenType::Register if !self.is_curr_error => {
+                let content = self.curr_token.content.clone();
+                let mut span = self.curr_token.span;
+                span.update_column();
+                self.raise(diagnostics, BadRegister { content }, span);
             },
             _ => (),
         }
     }
 
     fn finish_token(&mut self) {
-        let token = Token {
-            token_type: self.token_type,
-            content: self.token_content.clone(),
-            position: self.curr_position,
+        let new_token = Token {
+            token_type: TokenType::None,
+            content: String::new(),
+            span: self.curr_token.span,
         };
+        let token = mem::replace(&mut self.curr_token, new_token);
         self.tokens.push(token);
-        self.token_content.clear();
-        self.token_type = TokenType::None;
+        self.curr_token.span.finish();
+        self.is_curr_error = false;
+    }
+
+    fn raise<E>(&mut self, diagnostics: &mut Diagnostics, cause: E, span: Span)
+    where
+        E: StdError + Send + Sync + 'static,
+    {
+        diagnostics.raise(Error::new(cause, span));
+        self.is_curr_error = true;
     }
 
     fn check_newline(character: char) -> bool {
@@ -228,10 +263,14 @@ impl Lexer {
     }
 }
 
-pub fn generate_tokens(text: String) -> Vec<Token> {
+pub fn generate_tokens(
+    source: String,
+    diagnostics: &mut Diagnostics,
+) -> Vec<Token> {
     let mut lexer = Lexer::default();
-    for character in text.chars() {
-        lexer.handle_char(character);
+    for character in source.chars() {
+        lexer.handle_char(character, diagnostics);
     }
+    lexer.end();
     lexer.tokens
 }
