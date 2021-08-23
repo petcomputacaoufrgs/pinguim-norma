@@ -12,15 +12,18 @@ use std::{error::Error as StdError, mem};
 struct Lexer {
     tokens: Vec<Token>,
     is_curr_error: bool,
+    next_position: Position,
     curr_token: Token,
 }
 
 impl Default for Lexer {
     fn default() -> Self {
+        let initial_pos = Position { line: 1, column: 1 };
         Self {
             is_curr_error: false,
+            next_position: initial_pos,
             curr_token: Token {
-                span: Span::from_start(Position { line: 1, column: 1 }),
+                span: Span::from_start(initial_pos),
                 token_type: TokenType::None,
                 content: String::new(),
             },
@@ -32,12 +35,14 @@ impl Default for Lexer {
 impl Lexer {
     fn handle_char(&mut self, character: char, diagnostics: &mut Diagnostics) {
         if self.curr_token.token_type == TokenType::None {
-            self.curr_token.span.finish();
+            self.finish_span();
         }
 
-        let mut char_span = self.curr_token.span;
-        char_span.finish();
-        char_span.update_column();
+        let char_span = Span {
+            start: self.next_position,
+            end: self.next_position,
+            length: 1,
+        };
 
         if self.curr_token.token_type != TokenType::Comment {
             if Self::check_comment(character) {
@@ -49,14 +54,13 @@ impl Lexer {
             }
         }
 
+        self.next_position(character);
         if Self::check_newline(character) {
             self.handle_newline();
-        } else {
-            self.curr_token.span.update_column();
         }
     }
 
-    fn end(&mut self) {
+    fn end_token(&mut self) {
         if self.curr_token.token_type == TokenType::String {
             self.handle_string();
         }
@@ -66,15 +70,24 @@ impl Lexer {
         }
     }
 
-    fn handle_newline(&mut self) {
-        self.curr_token.span.update_for_newline();
+    fn next_position(&mut self, character: char) {
+        self.curr_token.span.length += 1;
+        self.curr_token.span.end = self.next_position;
+        self.next_position.update(character);
+    }
 
+    fn finish_span(&mut self) {
+        self.curr_token.span.length = 0;
+        self.curr_token.span.start = self.next_position;
+    }
+
+    fn handle_newline(&mut self) {
         if self.curr_token.token_type == TokenType::Comment {
             self.curr_token.token_type = TokenType::None;
         }
 
         if self.curr_token.token_type == TokenType::None {
-            self.curr_token.span.finish();
+            self.finish_span();
         }
     }
 
@@ -87,14 +100,8 @@ impl Lexer {
     }
 
     fn handle_punctuation(&mut self, character: char, char_span: Span) {
-        if self.curr_token.token_type == TokenType::String {
-            self.handle_string();
-        }
-
         // termina o token de antes (string/número)
-        if self.curr_token.token_type != TokenType::None {
-            self.finish_token();
-        }
+        self.end_token();
 
         if let Some(typ) = Self::match_punctuation(character) {
             let prev_span = mem::replace(&mut self.curr_token.span, char_span);
@@ -104,7 +111,7 @@ impl Lexer {
             self.curr_token.span = prev_span;
         }
 
-        self.curr_token.span.finish();
+        self.finish_span();
     }
 
     fn handle_string(&mut self) {
@@ -167,12 +174,16 @@ impl Lexer {
             TokenType::None => self.curr_token.token_type = TokenType::String,
             TokenType::Number => self.curr_token.token_type = TokenType::String,
             TokenType::SingleSlash => {
+                self.curr_token.content.clear();
                 self.raise(diagnostics, BadCommentStart, char_span)
             },
             TokenType::Register if !self.is_curr_error => {
                 let content = self.curr_token.content.clone();
-                let mut span = self.curr_token.span;
-                span.update_column();
+                let span = Span {
+                    start: self.curr_token.span.start,
+                    end: self.next_position,
+                    length: self.curr_token.span.length + 1,
+                };
                 self.raise(diagnostics, BadRegister { content }, span);
             },
             _ => (),
@@ -187,7 +198,7 @@ impl Lexer {
         };
         let token = mem::replace(&mut self.curr_token, new_token);
         self.tokens.push(token);
-        self.curr_token.span.finish();
+        self.finish_span();
         self.is_curr_error = false;
     }
 
@@ -271,6 +282,6 @@ pub fn generate_tokens(
     for character in source.chars() {
         lexer.handle_char(character, diagnostics);
     }
-    lexer.end();
+    lexer.end_token();
     lexer.tokens
 }

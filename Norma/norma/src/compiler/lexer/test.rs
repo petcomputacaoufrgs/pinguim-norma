@@ -26,7 +26,7 @@ fn single_main() {
             content: "main".to_owned(),
             span: Span {
                 start: Position { line: 1, column: 2 },
-                end: Position { line: 1, column: 6 },
+                end: Position { line: 1, column: 5 },
                 length: 4,
             },
         }]
@@ -44,7 +44,7 @@ fn single_open_curly_space_before() {
             content: "{".to_owned(),
             span: Span {
                 start: Position { line: 1, column: 2 },
-                end: Position { line: 1, column: 3 },
+                end: Position { line: 1, column: 2 },
                 length: 1,
             }
         }]
@@ -64,7 +64,7 @@ fn single_close_curly_space_after() {
             content: "}".to_owned(),
             span: Span {
                 start: Position { line: 1, column: 1 },
-                end: Position { line: 1, column: 2 },
+                end: Position { line: 1, column: 1 },
                 length: 1,
             },
         }]
@@ -83,7 +83,7 @@ fn single_open_paren_space_around() {
             content: "(".to_owned(),
             span: Span {
                 start: Position { line: 1, column: 2 },
-                end: Position { line: 1, column: 3 },
+                end: Position { line: 1, column: 2 },
                 length: 1,
             },
         }]
@@ -103,7 +103,7 @@ fn single_close_paren_many_spaces_before() {
             content: ")".to_owned(),
             span: Span {
                 start: Position { line: 1, column: 6 },
-                end: Position { line: 1, column: 7 },
+                end: Position { line: 1, column: 6 },
                 length: 1,
             },
         }]
@@ -122,7 +122,7 @@ fn single_colon_many_spaces_after() {
             content: ":".to_owned(),
             span: Span {
                 start: Position { line: 1, column: 1 },
-                end: Position { line: 1, column: 2 },
+                end: Position { line: 1, column: 1 },
                 length: 1,
             },
         }]
@@ -142,7 +142,7 @@ fn single_add_many_spaces_around() {
             content: "add".to_owned(),
             span: Span {
                 start: Position { line: 1, column: 4 },
-                end: Position { line: 1, column: 7 },
+                end: Position { line: 1, column: 6 },
                 length: 3,
             },
         }]
@@ -162,7 +162,7 @@ fn empty_main() {
                 content: "main".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 1 },
-                    end: Position { line: 1, column: 5 },
+                    end: Position { line: 1, column: 4 },
                     length: 4,
                 },
             },
@@ -171,7 +171,7 @@ fn empty_main() {
                 content: "{".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 6 },
-                    end: Position { line: 1, column: 7 },
+                    end: Position { line: 1, column: 6 },
                     length: 1,
                 },
             },
@@ -180,7 +180,7 @@ fn empty_main() {
                 content: "}".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 7 },
-                    end: Position { line: 1, column: 8 },
+                    end: Position { line: 1, column: 7 },
                     length: 1,
                 },
             },
@@ -205,7 +205,7 @@ fn comments() {
                 content: "goto".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 1 },
-                    end: Position { line: 2, column: 5 },
+                    end: Position { line: 2, column: 4 },
                     length: 4,
                 },
             },
@@ -214,7 +214,7 @@ fn comments() {
                 content: "3".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 6 },
-                    end: Position { line: 2, column: 7 },
+                    end: Position { line: 2, column: 6 },
                     length: 1,
                 },
             },
@@ -223,7 +223,7 @@ fn comments() {
                 content: "if".to_owned(),
                 span: Span {
                     start: Position { line: 4, column: 1 },
-                    end: Position { line: 4, column: 3 },
+                    end: Position { line: 4, column: 2 },
                     length: 2,
                 },
             },
@@ -232,7 +232,7 @@ fn comments() {
                 content: "zero".to_owned(),
                 span: Span {
                     start: Position { line: 4, column: 4 },
-                    end: Position { line: 4, column: 8 },
+                    end: Position { line: 4, column: 7 },
                     length: 4,
                 },
             },
@@ -241,7 +241,7 @@ fn comments() {
                 content: "do".to_owned(),
                 span: Span {
                     start: Position { line: 6, column: 1 },
-                    end: Position { line: 6, column: 3 },
+                    end: Position { line: 6, column: 2 },
                     length: 2,
                 },
             },
@@ -250,7 +250,7 @@ fn comments() {
                 content: "inc".to_owned(),
                 span: Span {
                     start: Position { line: 6, column: 4 },
-                    end: Position { line: 6, column: 7 },
+                    end: Position { line: 6, column: 6 },
                     length: 3,
                 },
             },
@@ -276,7 +276,7 @@ fn id_program() {
                 content: "main".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 1 },
-                    end: Position { line: 1, column: 5 },
+                    end: Position { line: 1, column: 4 },
                     length: 4
                 },
             },
@@ -285,7 +285,7 @@ fn id_program() {
                 content: "{".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 6 },
-                    end: Position { line: 1, column: 7 },
+                    end: Position { line: 1, column: 6 },
                     length: 1
                 },
             },
@@ -294,7 +294,7 @@ fn id_program() {
                 content: "1".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 2 },
-                    end: Position { line: 2, column: 3 },
+                    end: Position { line: 2, column: 2 },
                     length: 1
                 },
             },
@@ -303,7 +303,7 @@ fn id_program() {
                 content: ":".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 3 },
-                    end: Position { line: 2, column: 4 },
+                    end: Position { line: 2, column: 3 },
                     length: 1
                 },
             },
@@ -312,7 +312,7 @@ fn id_program() {
                 content: "if".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 5 },
-                    end: Position { line: 2, column: 7 },
+                    end: Position { line: 2, column: 6 },
                     length: 2
                 },
             },
@@ -321,7 +321,7 @@ fn id_program() {
                 content: "zero".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 8 },
-                    end: Position { line: 2, column: 12 },
+                    end: Position { line: 2, column: 11 },
                     length: 4
                 },
             },
@@ -330,7 +330,7 @@ fn id_program() {
                 content: "X".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 13 },
-                    end: Position { line: 2, column: 14 },
+                    end: Position { line: 2, column: 13 },
                     length: 1
                 },
             },
@@ -339,7 +339,7 @@ fn id_program() {
                 content: "then".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 15 },
-                    end: Position { line: 2, column: 19 },
+                    end: Position { line: 2, column: 18 },
                     length: 4
                 },
             },
@@ -348,7 +348,7 @@ fn id_program() {
                 content: "goto".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 20 },
-                    end: Position { line: 2, column: 24 },
+                    end: Position { line: 2, column: 23 },
                     length: 4
                 },
             },
@@ -357,7 +357,7 @@ fn id_program() {
                 content: "0".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 25 },
-                    end: Position { line: 2, column: 26 },
+                    end: Position { line: 2, column: 25 },
                     length: 1
                 },
             },
@@ -366,7 +366,7 @@ fn id_program() {
                 content: "else".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 27 },
-                    end: Position { line: 2, column: 31 },
+                    end: Position { line: 2, column: 30 },
                     length: 4
                 },
             },
@@ -375,7 +375,7 @@ fn id_program() {
                 content: "goto".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 32 },
-                    end: Position { line: 2, column: 36 },
+                    end: Position { line: 2, column: 35 },
                     length: 4
                 },
             },
@@ -384,7 +384,7 @@ fn id_program() {
                 content: "2".to_owned(),
                 span: Span {
                     start: Position { line: 2, column: 37 },
-                    end: Position { line: 2, column: 38 },
+                    end: Position { line: 2, column: 37 },
                     length: 1
                 },
             },
@@ -393,7 +393,7 @@ fn id_program() {
                 content: "2".to_owned(),
                 span: Span {
                     start: Position { line: 3, column: 2 },
-                    end: Position { line: 3, column: 3 },
+                    end: Position { line: 3, column: 2 },
                     length: 1
                 },
             },
@@ -402,7 +402,7 @@ fn id_program() {
                 content: ":".to_owned(),
                 span: Span {
                     start: Position { line: 3, column: 3 },
-                    end: Position { line: 3, column: 4 },
+                    end: Position { line: 3, column: 3 },
                     length: 1
                 },
             },
@@ -411,7 +411,7 @@ fn id_program() {
                 content: "do".to_owned(),
                 span: Span {
                     start: Position { line: 3, column: 5 },
-                    end: Position { line: 3, column: 7 },
+                    end: Position { line: 3, column: 6 },
                     length: 2
                 },
             },
@@ -420,7 +420,7 @@ fn id_program() {
                 content: "inc".to_owned(),
                 span: Span {
                     start: Position { line: 3, column: 8 },
-                    end: Position { line: 3, column: 11 },
+                    end: Position { line: 3, column: 10 },
                     length: 3
                 },
             },
@@ -429,7 +429,7 @@ fn id_program() {
                 content: "Y".to_owned(),
                 span: Span {
                     start: Position { line: 3, column: 12 },
-                    end: Position { line: 3, column: 13 },
+                    end: Position { line: 3, column: 12 },
                     length: 1
                 },
             },
@@ -438,7 +438,7 @@ fn id_program() {
                 content: "goto".to_owned(),
                 span: Span {
                     start: Position { line: 3, column: 14 },
-                    end: Position { line: 3, column: 18 },
+                    end: Position { line: 3, column: 17 },
                     length: 4
                 },
             },
@@ -447,7 +447,7 @@ fn id_program() {
                 content: "3".to_owned(),
                 span: Span {
                     start: Position { line: 3, column: 19 },
-                    end: Position { line: 3, column: 20 },
+                    end: Position { line: 3, column: 19 },
                     length: 1
                 },
             },
@@ -456,7 +456,7 @@ fn id_program() {
                 content: "3".to_owned(),
                 span: Span {
                     start: Position { line: 4, column: 2 },
-                    end: Position { line: 4, column: 3 },
+                    end: Position { line: 4, column: 2 },
                     length: 1
                 },
             },
@@ -465,7 +465,7 @@ fn id_program() {
                 content: ":".to_owned(),
                 span: Span {
                     start: Position { line: 4, column: 3 },
-                    end: Position { line: 4, column: 4 },
+                    end: Position { line: 4, column: 3 },
                     length: 1
                 },
             },
@@ -474,7 +474,7 @@ fn id_program() {
                 content: "do".to_owned(),
                 span: Span {
                     start: Position { line: 4, column: 5 },
-                    end: Position { line: 4, column: 7 },
+                    end: Position { line: 4, column: 6 },
                     length: 2
                 },
             },
@@ -483,7 +483,7 @@ fn id_program() {
                 content: "dec".to_owned(),
                 span: Span {
                     start: Position { line: 4, column: 8 },
-                    end: Position { line: 4, column: 11 },
+                    end: Position { line: 4, column: 10 },
                     length: 3
                 },
             },
@@ -492,7 +492,7 @@ fn id_program() {
                 content: "X".to_owned(),
                 span: Span {
                     start: Position { line: 4, column: 12 },
-                    end: Position { line: 4, column: 13 },
+                    end: Position { line: 4, column: 12 },
                     length: 1
                 },
             },
@@ -501,7 +501,7 @@ fn id_program() {
                 content: "goto".to_owned(),
                 span: Span {
                     start: Position { line: 4, column: 14 },
-                    end: Position { line: 4, column: 18 },
+                    end: Position { line: 4, column: 17 },
                     length: 4
                 },
             },
@@ -510,7 +510,7 @@ fn id_program() {
                 content: "1".to_owned(),
                 span: Span {
                     start: Position { line: 4, column: 19 },
-                    end: Position { line: 4, column: 20 },
+                    end: Position { line: 4, column: 19 },
                     length: 1
                 },
             },
@@ -519,7 +519,7 @@ fn id_program() {
                 content: "}".to_owned(),
                 span: Span {
                     start: Position { line: 5, column: 1 },
-                    end: Position { line: 5, column: 2 },
+                    end: Position { line: 5, column: 1 },
                     length: 1
                 },
             },
@@ -546,7 +546,7 @@ fn invalid_char() {
                 content: "main".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 1 },
-                    end: Position { line: 1, column: 5 },
+                    end: Position { line: 1, column: 4 },
                     length: 4,
                 },
             },
@@ -555,7 +555,7 @@ fn invalid_char() {
                 content: "{".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 6 },
-                    end: Position { line: 1, column: 7 },
+                    end: Position { line: 1, column: 6 },
                     length: 1,
                 },
             },
@@ -564,7 +564,43 @@ fn invalid_char() {
                 content: "}".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 7 },
-                    end: Position { line: 1, column: 8 },
+                    end: Position { line: 1, column: 7 },
+                    length: 1,
+                },
+            },
+        ]
+    );
+}
+
+#[test]
+fn invalid_comment_start() {
+    let mut diagnostics = Diagnostics::new();
+    let tokens = generate_tokens("if /a/b\nc".to_owned(), &mut diagnostics);
+    assert!(diagnostics.is_err());
+
+    let errors =
+        diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
+
+    assert_eq!(errors, &["Começo inválido de comentário, linha 1 e coluna 5"]);
+
+    assert_eq!(
+        tokens,
+        &[
+            Token {
+                token_type: TokenType::If,
+                content: "if".to_owned(),
+                span: Span {
+                    start: Position { line: 1, column: 1 },
+                    end: Position { line: 1, column: 2 },
+                    length: 2,
+                },
+            },
+            Token {
+                token_type: TokenType::String,
+                content: "c".to_owned(),
+                span: Span {
+                    start: Position { line: 2, column: 1 },
+                    end: Position { line: 2, column: 1 },
                     length: 1,
                 },
             },
@@ -585,7 +621,7 @@ fn invalid_register() {
     assert_eq!(
         errors,
         &["Apenas letras maiúsculas são permitidas em registradores, \"Yx\" \
-           é um registrador inválido, de linha 1 e coluna 8, até coluna 10"]
+           é um registrador inválido, de linha 1 e coluna 8, até coluna 9"]
     );
 
     assert_eq!(
@@ -596,7 +632,7 @@ fn invalid_register() {
                 content: "do".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 1 },
-                    end: Position { line: 1, column: 3 },
+                    end: Position { line: 1, column: 2 },
                     length: 2,
                 },
             },
@@ -605,7 +641,7 @@ fn invalid_register() {
                 content: "inc".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 4 },
-                    end: Position { line: 1, column: 7 },
+                    end: Position { line: 1, column: 6 },
                     length: 3,
                 },
             },
@@ -614,7 +650,7 @@ fn invalid_register() {
                 content: "Yxz".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 8 },
-                    end: Position { line: 1, column: 11 },
+                    end: Position { line: 1, column: 10 },
                     length: 3,
                 },
             },
@@ -623,7 +659,7 @@ fn invalid_register() {
                 content: "goto".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 12 },
-                    end: Position { line: 1, column: 16 },
+                    end: Position { line: 1, column: 15 },
                     length: 4,
                 },
             },
@@ -632,7 +668,7 @@ fn invalid_register() {
                 content: "31".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 17 },
-                    end: Position { line: 1, column: 19 },
+                    end: Position { line: 1, column: 18 },
                     length: 2,
                 },
             },
@@ -655,7 +691,7 @@ fn many_errors() {
             "Caracter '@' é inválido, linha 1 e coluna 4",
             "Caracter '#' é inválido, linha 1 e coluna 6",
             "Apenas letras maiúsculas são permitidas em registradores, \"Xy\" \
-             é um registrador inválido, de linha 1 e coluna 8, até coluna 10"
+             é um registrador inválido, de linha 1 e coluna 8, até coluna 9"
         ]
     );
 
@@ -667,7 +703,7 @@ fn many_errors() {
                 content: "foo".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 1 },
-                    end: Position { line: 1, column: 4 },
+                    end: Position { line: 1, column: 3 },
                     length: 3,
                 },
             },
@@ -676,7 +712,7 @@ fn many_errors() {
                 content: "{".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 5 },
-                    end: Position { line: 1, column: 6 },
+                    end: Position { line: 1, column: 5 },
                     length: 1,
                 },
             },
@@ -685,7 +721,7 @@ fn many_errors() {
                 content: "}".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 7 },
-                    end: Position { line: 1, column: 8 },
+                    end: Position { line: 1, column: 7 },
                     length: 1,
                 },
             },
@@ -694,7 +730,7 @@ fn many_errors() {
                 content: "Xy".to_owned(),
                 span: Span {
                     start: Position { line: 1, column: 8 },
-                    end: Position { line: 1, column: 10 },
+                    end: Position { line: 1, column: 9 },
                     length: 2,
                 },
             },

@@ -15,6 +15,14 @@ impl Position {
     pub fn update_column(&mut self) {
         self.column = self.column + 1;
     }
+
+    pub fn update(&mut self, character: char) {
+        if character == '\n' {
+            self.update_for_newline();
+        } else {
+            self.update_column()
+        }
+    }
 }
 
 impl fmt::Display for Position {
@@ -26,28 +34,18 @@ impl fmt::Display for Position {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Span {
     pub start: Position,
+    /// Inclusive
     pub end: Position,
     pub length: u64,
 }
 
 impl Span {
     pub fn from_start(start: Position) -> Self {
-        Self { start, end: start, length: 0 }
-    }
-
-    pub fn update_for_newline(&mut self) {
-        self.end.update_for_newline();
-        self.length += 1;
-    }
-
-    pub fn update_column(&mut self) {
-        self.end.update_column();
-        self.length += 1;
-    }
-
-    pub fn finish(&mut self) {
-        self.start = self.end;
-        self.length = 0;
+        Self {
+            start,
+            end: Position { line: start.line - 1, column: start.column - 1 },
+            length: 0,
+        }
     }
 }
 
