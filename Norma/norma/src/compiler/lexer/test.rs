@@ -9,7 +9,7 @@ use super::{
 #[test]
 fn empty_src() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens("".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens("", &mut diagnostics);
     assert!(diagnostics.is_ok());
     assert_eq!(tokens, Vec::new());
 }
@@ -17,7 +17,7 @@ fn empty_src() {
 #[test]
 fn single_main() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens(" main ".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens(" main ", &mut diagnostics);
     assert!(diagnostics.is_ok());
     assert_eq!(
         tokens,
@@ -36,7 +36,7 @@ fn single_main() {
 #[test]
 fn single_open_curly_space_before() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens(" {".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens(" {", &mut diagnostics);
     assert_eq!(
         tokens,
         &[Token {
@@ -55,7 +55,7 @@ fn single_open_curly_space_before() {
 #[test]
 fn single_close_curly_space_after() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens("} ".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens("} ", &mut diagnostics);
     assert!(diagnostics.is_ok());
     assert_eq!(
         tokens,
@@ -74,7 +74,7 @@ fn single_close_curly_space_after() {
 #[test]
 fn single_open_paren_space_around() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens(" ( ".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens(" ( ", &mut diagnostics);
     assert!(diagnostics.is_ok());
     assert_eq!(
         tokens,
@@ -94,7 +94,7 @@ fn single_open_paren_space_around() {
 #[test]
 fn single_close_paren_many_spaces_before() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens("     )".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens("     )", &mut diagnostics);
     assert!(diagnostics.is_ok());
     assert_eq!(
         tokens,
@@ -113,7 +113,7 @@ fn single_close_paren_many_spaces_before() {
 #[test]
 fn single_colon_many_spaces_after() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens(":         ".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens(":         ", &mut diagnostics);
     assert!(diagnostics.is_ok());
     assert_eq!(
         tokens,
@@ -133,7 +133,7 @@ fn single_colon_many_spaces_after() {
 #[test]
 fn single_add_many_spaces_around() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens("   add       ".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens("   add       ", &mut diagnostics);
     assert!(diagnostics.is_ok());
     assert_eq!(
         tokens,
@@ -152,7 +152,7 @@ fn single_add_many_spaces_around() {
 #[test]
 fn empty_main() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens("main {}".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens("main {}", &mut diagnostics);
     assert!(diagnostics.is_ok());
     assert_eq!(
         tokens,
@@ -192,7 +192,7 @@ fn empty_main() {
 fn comments() {
     let mut diagnostics = Diagnostics::new();
     let tokens = generate_tokens(
-        "//here\ngoto 3\n//hello\nif zero\n  //world\ndo inc".to_owned(),
+        "//here\ngoto 3\n//hello\nif zero\n  //world\ndo inc",
         &mut diagnostics,
     );
     assert!(diagnostics.is_ok());
@@ -266,7 +266,7 @@ fn id_program() {
     source.push_str("\t2: do inc Y goto 3\n");
     source.push_str("\t3: do dec X goto 1\n");
     source.push_str("}\n");
-    let tokens = generate_tokens(source, &mut diagnostics);
+    let tokens = generate_tokens(&source, &mut diagnostics);
     assert!(diagnostics.is_ok());
     assert_eq!(
         tokens,
@@ -530,7 +530,7 @@ fn id_program() {
 #[test]
 fn invalid_char() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens("main${}".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens("main${}", &mut diagnostics);
     assert!(diagnostics.is_err());
 
     let errors =
@@ -575,7 +575,7 @@ fn invalid_char() {
 #[test]
 fn invalid_comment_start() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens("if /a/b\nc".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens("if /a/b\nc", &mut diagnostics);
     assert!(diagnostics.is_err());
 
     let errors =
@@ -611,8 +611,7 @@ fn invalid_comment_start() {
 #[test]
 fn invalid_register() {
     let mut diagnostics = Diagnostics::new();
-    let tokens =
-        generate_tokens("do inc Yxz goto 31".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens("do inc Yxz goto 31", &mut diagnostics);
     assert!(diagnostics.is_err());
 
     let errors =
@@ -679,7 +678,7 @@ fn invalid_register() {
 #[test]
 fn many_errors() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens("foo@{#}Xy".to_owned(), &mut diagnostics);
+    let tokens = generate_tokens("foo@{#}Xy", &mut diagnostics);
     assert!(diagnostics.is_err());
 
     let errors =

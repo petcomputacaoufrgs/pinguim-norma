@@ -115,21 +115,21 @@ impl Lexer {
     }
 
     fn handle_string(&mut self) {
-        if Self::check_keyword(self.curr_token.content.clone()) {
+        if Self::check_keyword(&self.curr_token.content) {
             self.handle_keyword();
-        } else if Self::check_builtin_func(self.curr_token.content.clone()) {
+        } else if Self::check_builtin_func(&self.curr_token.content) {
             self.handle_builtin_func();
         }
     }
 
     fn handle_keyword(&mut self) {
         self.curr_token.token_type =
-            Self::match_keyword(self.curr_token.content.clone()).unwrap();
+            Self::match_keyword(&self.curr_token.content).unwrap();
     }
 
     fn handle_builtin_func(&mut self) {
         self.curr_token.token_type =
-            Self::match_builtin_func(self.curr_token.content.clone()).unwrap();
+            Self::match_builtin_func(&self.curr_token.content).unwrap();
     }
 
     fn handle_default(
@@ -223,10 +223,10 @@ impl Lexer {
         rgx.is_match(&character.to_string())
     }
 
-    fn check_keyword(word: String) -> bool {
+    fn check_keyword(word: &str) -> bool {
         let keywords =
             ["do", "if", "then", "else", "goto", "main", "operation", "test"];
-        keywords.contains(&word.as_str())
+        keywords.contains(&word)
     }
 
     fn match_punctuation(character: char) -> Option<TokenType> {
@@ -242,27 +242,27 @@ impl Lexer {
         }
     }
 
-    fn match_keyword(word: String) -> Option<TokenType> {
-        match word.as_str() {
-            "do" => return Some(TokenType::Do),
-            "else" => return Some(TokenType::Else),
-            "goto" => return Some(TokenType::Goto),
-            "if" => return Some(TokenType::If),
-            "main" => return Some(TokenType::Main),
-            "operation" => return Some(TokenType::Operation),
-            "test" => return Some(TokenType::Test),
-            "then" => return Some(TokenType::Then),
-            _ => return None,
+    fn match_keyword(word: &str) -> Option<TokenType> {
+        match word {
+            "do" => Some(TokenType::Do),
+            "else" => Some(TokenType::Else),
+            "goto" => Some(TokenType::Goto),
+            "if" => Some(TokenType::If),
+            "main" => Some(TokenType::Main),
+            "operation" => Some(TokenType::Operation),
+            "test" => Some(TokenType::Test),
+            "then" => Some(TokenType::Then),
+            _ => None,
         }
     }
 
-    fn check_builtin_func(func: String) -> bool {
+    fn check_builtin_func(func: &str) -> bool {
         let builtin_func = ["inc", "dec", "add", "sub", "cmp", "zero"];
-        builtin_func.contains(&func.as_str())
+        builtin_func.contains(&func)
     }
 
-    fn match_builtin_func(func: String) -> Option<TokenType> {
-        match func.as_str() {
+    fn match_builtin_func(func: &str) -> Option<TokenType> {
+        match func {
             "add" => Some(TokenType::Add),
             "sub" => Some(TokenType::Sub),
             "cmp" => Some(TokenType::Cmp),
@@ -275,7 +275,7 @@ impl Lexer {
 }
 
 pub fn generate_tokens(
-    source: String,
+    source: &str,
     diagnostics: &mut Diagnostics,
 ) -> Vec<Token> {
     let mut lexer = Lexer::default();
