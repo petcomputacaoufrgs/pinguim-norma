@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 use communication::*;
 
 // Core da máquina norma
-mod norma;
+mod machine;
 // Módulo de comunicação com o frontend
 mod communication;
 // Módulo do compilador
@@ -41,10 +41,12 @@ fn lines_mock() -> Vec<IndexedLine> {
     i.set_type(InstructionType::Test(TestType::CmpConst));
     i.set_registers(vec![String::from("A")]);
     i.set_constant(5);
+    i.set_next_instructions(String::from("1.add.fim"), Some(String::from("1.add.fim")));
 
     let mut j = Instruction::new();
     j.set_type(InstructionType::Operation(OperationType::AddRegs));
     j.set_registers(vec![String::from("Y"), String::from("B")]);
+    j.set_next_instructions(String::from("1.add.2"), None);
 
     let line1 = IndexedLine::from_instruction(String::from("1.add.1."), i);
     let line2 = IndexedLine::from_instruction(String::from("1.add.2."), j);

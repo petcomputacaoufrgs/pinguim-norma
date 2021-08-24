@@ -72,8 +72,9 @@ impl fmt::Display for Instruction {
         let operation = self.get_instruction_string();
         let registers = self.get_registers_string();
         let constant = self.get_constant_string();
+        let next_instruction = self.get_next_instruction_string();
 
-        write!(f, "{}", operation + &registers + &constant)
+        write!(f, "{}({}{}) {}", operation, registers, constant, next_instruction)
     }
 }
 
@@ -88,20 +89,20 @@ impl Instruction {
 
     fn get_operation_string(&self, operation: OperationType) -> String {
         match operation {
-            OperationType::Inc => String::from("+= 1 "),
-            OperationType::Dec => String::from("DEC "),
-            OperationType::AddConst => String::from("ADD "),
-            OperationType::SubConst => String::from("SUB "),
-            OperationType::AddRegs => String::from("ADD "),
-            OperationType::SubRegs => String::from("SUB "),
+            OperationType::Inc => String::from("do inc"),
+            OperationType::Dec => String::from("do dec"),
+            OperationType::AddConst => String::from("do add"),
+            OperationType::SubConst => String::from("do sub"),
+            OperationType::AddRegs => String::from("do add"),
+            OperationType::SubRegs => String::from("do sub"),
         }
     }
 
     fn get_test_string(&self, test: TestType) -> String {
         match test {
-            TestType::Zero => String::from("ZERO "),
-            TestType::CmpConst => String::from("CMP "),
-            TestType::CmpRegs => String::from("CMP ")
+            TestType::Zero => String::from("if zero"),
+            TestType::CmpConst => String::from("if cmp"),
+            TestType::CmpRegs => String::from("if cmp")
         }
     }
 
@@ -110,15 +111,33 @@ impl Instruction {
 
         for reg in self.registers.iter() {
             registers_list += reg;
-            registers_list.push(' ');
+            registers_list.push(',');
         }
+        registers_list.pop();
         registers_list
     }
 
     fn get_constant_string(&self) -> String {
         match self.constant {
-            Some(cons) => cons.to_string(),
+            Some(cons) => format!(",{}",cons.to_string()),
             None => String::new()
         }
+    }
+
+    fn get_next_instruction_string(&self) -> String {
+        match self.instruction_type.clone() {
+            InstructionType::Operation(_) => self.get_next_operation_string(),
+            InstructionType::Test(_) => self.get_next_test_string()
+        }
+    }
+
+    fn get_next_operation_string(&self) -> String {
+        format!{"goto {}", self.next_label_true}
+    }
+
+    fn get_next_test_string(&self) -> String {
+        format!{"then goto {} else goto {}",
+                self.next_label_true.clone(), 
+                self.next_label_false.clone().unwrap()}
     }
 }

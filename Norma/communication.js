@@ -6,8 +6,9 @@ export const send_text = async text => {
     await init()
             .then( () => {
                 machinePtr = compileText(text);
-                console.log(compileText(text) instanceof DataExporter);
+                console.log(machinePtr)
+                console.log(machinePtr.getLines());
             });
 }
 
-document.getElementById('verify').addEventListener('click', () => send_text("abc123"));
+document.getElementById('checkbox').addEventListener('click', () => send_text("abc123"));
