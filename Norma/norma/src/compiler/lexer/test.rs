@@ -25,9 +25,18 @@ fn single_main() {
             token_type: TokenType::Main,
             content: "main".to_owned(),
             span: Span {
-                start: Position { line: 1, column: 2 },
-                end: Position { line: 1, column: 5 },
-                length: 4,
+                start: Position {
+                    line: 1,
+                    column: 2,
+                    utf8_index: 1,
+                    utf16_index: 1,
+                },
+                end: Position {
+                    line: 1,
+                    column: 6,
+                    utf8_index: 5,
+                    utf16_index: 5,
+                },
             },
         }]
     );
@@ -43,9 +52,18 @@ fn single_open_curly_space_before() {
             token_type: TokenType::OpenCurly,
             content: "{".to_owned(),
             span: Span {
-                start: Position { line: 1, column: 2 },
-                end: Position { line: 1, column: 2 },
-                length: 1,
+                start: Position {
+                    line: 1,
+                    column: 2,
+                    utf8_index: 1,
+                    utf16_index: 1,
+                },
+                end: Position {
+                    line: 1,
+                    column: 3,
+                    utf8_index: 2,
+                    utf16_index: 2,
+                },
             }
         }]
     );
@@ -63,9 +81,18 @@ fn single_close_curly_space_after() {
             token_type: TokenType::CloseCurly,
             content: "}".to_owned(),
             span: Span {
-                start: Position { line: 1, column: 1 },
-                end: Position { line: 1, column: 1 },
-                length: 1,
+                start: Position {
+                    line: 1,
+                    column: 1,
+                    utf8_index: 0,
+                    utf16_index: 0,
+                },
+                end: Position {
+                    line: 1,
+                    column: 2,
+                    utf8_index: 1,
+                    utf16_index: 1,
+                },
             },
         }]
     );
@@ -82,9 +109,18 @@ fn single_open_paren_space_around() {
             token_type: TokenType::OpenParen,
             content: "(".to_owned(),
             span: Span {
-                start: Position { line: 1, column: 2 },
-                end: Position { line: 1, column: 2 },
-                length: 1,
+                start: Position {
+                    line: 1,
+                    column: 2,
+                    utf8_index: 1,
+                    utf16_index: 1,
+                },
+                end: Position {
+                    line: 1,
+                    column: 3,
+                    utf8_index: 2,
+                    utf16_index: 2,
+                },
             },
         }]
     );
@@ -102,9 +138,18 @@ fn single_close_paren_many_spaces_before() {
             token_type: TokenType::CloseParen,
             content: ")".to_owned(),
             span: Span {
-                start: Position { line: 1, column: 6 },
-                end: Position { line: 1, column: 6 },
-                length: 1,
+                start: Position {
+                    line: 1,
+                    column: 6,
+                    utf8_index: 5,
+                    utf16_index: 5,
+                },
+                end: Position {
+                    line: 1,
+                    column: 7,
+                    utf8_index: 6,
+                    utf16_index: 6,
+                },
             },
         }]
     );
@@ -121,9 +166,18 @@ fn single_colon_many_spaces_after() {
             token_type: TokenType::Colon,
             content: ":".to_owned(),
             span: Span {
-                start: Position { line: 1, column: 1 },
-                end: Position { line: 1, column: 1 },
-                length: 1,
+                start: Position {
+                    line: 1,
+                    column: 1,
+                    utf8_index: 0,
+                    utf16_index: 0,
+                },
+                end: Position {
+                    line: 1,
+                    column: 2,
+                    utf8_index: 1,
+                    utf16_index: 1,
+                },
             },
         }]
     );
@@ -141,9 +195,18 @@ fn single_add_many_spaces_around() {
             token_type: TokenType::Add,
             content: "add".to_owned(),
             span: Span {
-                start: Position { line: 1, column: 4 },
-                end: Position { line: 1, column: 6 },
-                length: 3,
+                start: Position {
+                    line: 1,
+                    column: 4,
+                    utf8_index: 3,
+                    utf16_index: 3,
+                },
+                end: Position {
+                    line: 1,
+                    column: 7,
+                    utf8_index: 6,
+                    utf16_index: 6,
+                },
             },
         }]
     );
@@ -161,27 +224,54 @@ fn empty_main() {
                 token_type: TokenType::Main,
                 content: "main".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 1 },
-                    end: Position { line: 1, column: 4 },
-                    length: 4,
+                    start: Position {
+                        line: 1,
+                        column: 1,
+                        utf8_index: 0,
+                        utf16_index: 0,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 5,
+                        utf8_index: 4,
+                        utf16_index: 4,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::OpenCurly,
                 content: "{".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 6 },
-                    end: Position { line: 1, column: 6 },
-                    length: 1,
+                    start: Position {
+                        line: 1,
+                        column: 6,
+                        utf8_index: 5,
+                        utf16_index: 5,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 7,
+                        utf8_index: 6,
+                        utf16_index: 6,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::CloseCurly,
                 content: "}".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 7 },
-                    end: Position { line: 1, column: 7 },
-                    length: 1,
+                    start: Position {
+                        line: 1,
+                        column: 7,
+                        utf8_index: 6,
+                        utf16_index: 6,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 8,
+                        utf8_index: 7,
+                        utf16_index: 7,
+                    },
                 },
             },
         ]
@@ -204,54 +294,108 @@ fn comments() {
                 token_type: TokenType::Goto,
                 content: "goto".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 1 },
-                    end: Position { line: 2, column: 4 },
-                    length: 4,
+                    start: Position {
+                        line: 2,
+                        column: 1,
+                        utf8_index: 7,
+                        utf16_index: 7,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 5,
+                        utf8_index: 11,
+                        utf16_index: 11,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Number,
                 content: "3".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 6 },
-                    end: Position { line: 2, column: 6 },
-                    length: 1,
+                    start: Position {
+                        line: 2,
+                        column: 6,
+                        utf8_index: 12,
+                        utf16_index: 12,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 7,
+                        utf8_index: 13,
+                        utf16_index: 13,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::If,
                 content: "if".to_owned(),
                 span: Span {
-                    start: Position { line: 4, column: 1 },
-                    end: Position { line: 4, column: 2 },
-                    length: 2,
+                    start: Position {
+                        line: 4,
+                        column: 1,
+                        utf8_index: 22,
+                        utf16_index: 22,
+                    },
+                    end: Position {
+                        line: 4,
+                        column: 3,
+                        utf8_index: 24,
+                        utf16_index: 24,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Zero,
                 content: "zero".to_owned(),
                 span: Span {
-                    start: Position { line: 4, column: 4 },
-                    end: Position { line: 4, column: 7 },
-                    length: 4,
+                    start: Position {
+                        line: 4,
+                        column: 4,
+                        utf8_index: 25,
+                        utf16_index: 25,
+                    },
+                    end: Position {
+                        line: 4,
+                        column: 8,
+                        utf8_index: 29,
+                        utf16_index: 29,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Do,
                 content: "do".to_owned(),
                 span: Span {
-                    start: Position { line: 6, column: 1 },
-                    end: Position { line: 6, column: 2 },
-                    length: 2,
+                    start: Position {
+                        line: 6,
+                        column: 1,
+                        utf8_index: 40,
+                        utf16_index: 40,
+                    },
+                    end: Position {
+                        line: 6,
+                        column: 3,
+                        utf8_index: 42,
+                        utf16_index: 42,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Inc,
                 content: "inc".to_owned(),
                 span: Span {
-                    start: Position { line: 6, column: 4 },
-                    end: Position { line: 6, column: 6 },
-                    length: 3,
+                    start: Position {
+                        line: 6,
+                        column: 4,
+                        utf8_index: 43,
+                        utf16_index: 43,
+                    },
+                    end: Position {
+                        line: 6,
+                        column: 7,
+                        utf8_index: 46,
+                        utf16_index: 46,
+                    },
                 },
             },
         ]
@@ -268,6 +412,7 @@ fn id_program() {
     source.push_str("}\n");
     let tokens = generate_tokens(&source, &mut diagnostics);
     assert!(diagnostics.is_ok());
+    eprintln!("{:#?}", tokens);
     assert_eq!(
         tokens,
         &[
@@ -275,252 +420,504 @@ fn id_program() {
                 token_type: TokenType::Main,
                 content: "main".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 1 },
-                    end: Position { line: 1, column: 4 },
-                    length: 4
+                    start: Position {
+                        line: 1,
+                        column: 1,
+                        utf8_index: 0,
+                        utf16_index: 0,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 5,
+                        utf8_index: 4,
+                        utf16_index: 4,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::OpenCurly,
                 content: "{".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 6 },
-                    end: Position { line: 1, column: 6 },
-                    length: 1
+                    start: Position {
+                        line: 1,
+                        column: 6,
+                        utf8_index: 5,
+                        utf16_index: 5,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 7,
+                        utf8_index: 6,
+                        utf16_index: 6,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Number,
                 content: "1".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 2 },
-                    end: Position { line: 2, column: 2 },
-                    length: 1
+                    start: Position {
+                        line: 2,
+                        column: 2,
+                        utf8_index: 8,
+                        utf16_index: 8,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 3,
+                        utf8_index: 9,
+                        utf16_index: 9,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Colon,
                 content: ":".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 3 },
-                    end: Position { line: 2, column: 3 },
-                    length: 1
+                    start: Position {
+                        line: 2,
+                        column: 3,
+                        utf8_index: 9,
+                        utf16_index: 9,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 4,
+                        utf8_index: 10,
+                        utf16_index: 10,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::If,
                 content: "if".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 5 },
-                    end: Position { line: 2, column: 6 },
-                    length: 2
+                    start: Position {
+                        line: 2,
+                        column: 5,
+                        utf8_index: 11,
+                        utf16_index: 11,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 7,
+                        utf8_index: 13,
+                        utf16_index: 13,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Zero,
                 content: "zero".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 8 },
-                    end: Position { line: 2, column: 11 },
-                    length: 4
+                    start: Position {
+                        line: 2,
+                        column: 8,
+                        utf8_index: 14,
+                        utf16_index: 14,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 12,
+                        utf8_index: 18,
+                        utf16_index: 18,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Register,
                 content: "X".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 13 },
-                    end: Position { line: 2, column: 13 },
-                    length: 1
+                    start: Position {
+                        line: 2,
+                        column: 13,
+                        utf8_index: 19,
+                        utf16_index: 19,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 14,
+                        utf8_index: 20,
+                        utf16_index: 20,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Then,
                 content: "then".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 15 },
-                    end: Position { line: 2, column: 18 },
-                    length: 4
+                    start: Position {
+                        line: 2,
+                        column: 15,
+                        utf8_index: 21,
+                        utf16_index: 21,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 19,
+                        utf8_index: 25,
+                        utf16_index: 25,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Goto,
                 content: "goto".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 20 },
-                    end: Position { line: 2, column: 23 },
-                    length: 4
+                    start: Position {
+                        line: 2,
+                        column: 20,
+                        utf8_index: 26,
+                        utf16_index: 26,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 24,
+                        utf8_index: 30,
+                        utf16_index: 30,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Number,
                 content: "0".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 25 },
-                    end: Position { line: 2, column: 25 },
-                    length: 1
+                    start: Position {
+                        line: 2,
+                        column: 25,
+                        utf8_index: 31,
+                        utf16_index: 31,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 26,
+                        utf8_index: 32,
+                        utf16_index: 32,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Else,
                 content: "else".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 27 },
-                    end: Position { line: 2, column: 30 },
-                    length: 4
+                    start: Position {
+                        line: 2,
+                        column: 27,
+                        utf8_index: 33,
+                        utf16_index: 33,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 31,
+                        utf8_index: 37,
+                        utf16_index: 37,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Goto,
                 content: "goto".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 32 },
-                    end: Position { line: 2, column: 35 },
-                    length: 4
+                    start: Position {
+                        line: 2,
+                        column: 32,
+                        utf8_index: 38,
+                        utf16_index: 38,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 36,
+                        utf8_index: 42,
+                        utf16_index: 42,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Number,
                 content: "2".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 37 },
-                    end: Position { line: 2, column: 37 },
-                    length: 1
+                    start: Position {
+                        line: 2,
+                        column: 37,
+                        utf8_index: 43,
+                        utf16_index: 43,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 38,
+                        utf8_index: 44,
+                        utf16_index: 44,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Number,
                 content: "2".to_owned(),
                 span: Span {
-                    start: Position { line: 3, column: 2 },
-                    end: Position { line: 3, column: 2 },
-                    length: 1
+                    start: Position {
+                        line: 3,
+                        column: 2,
+                        utf8_index: 46,
+                        utf16_index: 46,
+                    },
+                    end: Position {
+                        line: 3,
+                        column: 3,
+                        utf8_index: 47,
+                        utf16_index: 47,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Colon,
                 content: ":".to_owned(),
                 span: Span {
-                    start: Position { line: 3, column: 3 },
-                    end: Position { line: 3, column: 3 },
-                    length: 1
+                    start: Position {
+                        line: 3,
+                        column: 3,
+                        utf8_index: 47,
+                        utf16_index: 47,
+                    },
+                    end: Position {
+                        line: 3,
+                        column: 4,
+                        utf8_index: 48,
+                        utf16_index: 48,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Do,
                 content: "do".to_owned(),
                 span: Span {
-                    start: Position { line: 3, column: 5 },
-                    end: Position { line: 3, column: 6 },
-                    length: 2
+                    start: Position {
+                        line: 3,
+                        column: 5,
+                        utf8_index: 49,
+                        utf16_index: 49,
+                    },
+                    end: Position {
+                        line: 3,
+                        column: 7,
+                        utf8_index: 51,
+                        utf16_index: 51,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Inc,
                 content: "inc".to_owned(),
                 span: Span {
-                    start: Position { line: 3, column: 8 },
-                    end: Position { line: 3, column: 10 },
-                    length: 3
+                    start: Position {
+                        line: 3,
+                        column: 8,
+                        utf8_index: 52,
+                        utf16_index: 52,
+                    },
+                    end: Position {
+                        line: 3,
+                        column: 11,
+                        utf8_index: 55,
+                        utf16_index: 55,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Register,
                 content: "Y".to_owned(),
                 span: Span {
-                    start: Position { line: 3, column: 12 },
-                    end: Position { line: 3, column: 12 },
-                    length: 1
+                    start: Position {
+                        line: 3,
+                        column: 12,
+                        utf8_index: 56,
+                        utf16_index: 56,
+                    },
+                    end: Position {
+                        line: 3,
+                        column: 13,
+                        utf8_index: 57,
+                        utf16_index: 57,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Goto,
                 content: "goto".to_owned(),
                 span: Span {
-                    start: Position { line: 3, column: 14 },
-                    end: Position { line: 3, column: 17 },
-                    length: 4
+                    start: Position {
+                        line: 3,
+                        column: 14,
+                        utf8_index: 58,
+                        utf16_index: 58,
+                    },
+                    end: Position {
+                        line: 3,
+                        column: 18,
+                        utf8_index: 62,
+                        utf16_index: 62,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Number,
                 content: "3".to_owned(),
                 span: Span {
-                    start: Position { line: 3, column: 19 },
-                    end: Position { line: 3, column: 19 },
-                    length: 1
+                    start: Position {
+                        line: 3,
+                        column: 19,
+                        utf8_index: 63,
+                        utf16_index: 63,
+                    },
+                    end: Position {
+                        line: 3,
+                        column: 20,
+                        utf8_index: 64,
+                        utf16_index: 64,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Number,
                 content: "3".to_owned(),
                 span: Span {
-                    start: Position { line: 4, column: 2 },
-                    end: Position { line: 4, column: 2 },
-                    length: 1
+                    start: Position {
+                        line: 4,
+                        column: 2,
+                        utf8_index: 66,
+                        utf16_index: 66,
+                    },
+                    end: Position {
+                        line: 4,
+                        column: 3,
+                        utf8_index: 67,
+                        utf16_index: 67,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Colon,
                 content: ":".to_owned(),
                 span: Span {
-                    start: Position { line: 4, column: 3 },
-                    end: Position { line: 4, column: 3 },
-                    length: 1
+                    start: Position {
+                        line: 4,
+                        column: 3,
+                        utf8_index: 67,
+                        utf16_index: 67,
+                    },
+                    end: Position {
+                        line: 4,
+                        column: 4,
+                        utf8_index: 68,
+                        utf16_index: 68,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Do,
                 content: "do".to_owned(),
                 span: Span {
-                    start: Position { line: 4, column: 5 },
-                    end: Position { line: 4, column: 6 },
-                    length: 2
+                    start: Position {
+                        line: 4,
+                        column: 5,
+                        utf8_index: 69,
+                        utf16_index: 69,
+                    },
+                    end: Position {
+                        line: 4,
+                        column: 7,
+                        utf8_index: 71,
+                        utf16_index: 71,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Dec,
                 content: "dec".to_owned(),
                 span: Span {
-                    start: Position { line: 4, column: 8 },
-                    end: Position { line: 4, column: 10 },
-                    length: 3
+                    start: Position {
+                        line: 4,
+                        column: 8,
+                        utf8_index: 72,
+                        utf16_index: 72,
+                    },
+                    end: Position {
+                        line: 4,
+                        column: 11,
+                        utf8_index: 75,
+                        utf16_index: 75,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Register,
                 content: "X".to_owned(),
                 span: Span {
-                    start: Position { line: 4, column: 12 },
-                    end: Position { line: 4, column: 12 },
-                    length: 1
+                    start: Position {
+                        line: 4,
+                        column: 12,
+                        utf8_index: 76,
+                        utf16_index: 76,
+                    },
+                    end: Position {
+                        line: 4,
+                        column: 13,
+                        utf8_index: 77,
+                        utf16_index: 77,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Goto,
                 content: "goto".to_owned(),
                 span: Span {
-                    start: Position { line: 4, column: 14 },
-                    end: Position { line: 4, column: 17 },
-                    length: 4
+                    start: Position {
+                        line: 4,
+                        column: 14,
+                        utf8_index: 78,
+                        utf16_index: 78,
+                    },
+                    end: Position {
+                        line: 4,
+                        column: 18,
+                        utf8_index: 82,
+                        utf16_index: 82,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Number,
                 content: "1".to_owned(),
                 span: Span {
-                    start: Position { line: 4, column: 19 },
-                    end: Position { line: 4, column: 19 },
-                    length: 1
+                    start: Position {
+                        line: 4,
+                        column: 19,
+                        utf8_index: 83,
+                        utf16_index: 83,
+                    },
+                    end: Position {
+                        line: 4,
+                        column: 20,
+                        utf8_index: 84,
+                        utf16_index: 84,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::CloseCurly,
                 content: "}".to_owned(),
                 span: Span {
-                    start: Position { line: 5, column: 1 },
-                    end: Position { line: 5, column: 1 },
-                    length: 1
+                    start: Position {
+                        line: 5,
+                        column: 1,
+                        utf8_index: 85,
+                        utf16_index: 85,
+                    },
+                    end: Position {
+                        line: 5,
+                        column: 2,
+                        utf8_index: 86,
+                        utf16_index: 86,
+                    },
                 },
             },
         ]
@@ -536,7 +933,7 @@ fn invalid_char() {
     let errors =
         diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
 
-    assert_eq!(errors, &["Caracter '$' é inválido, linha 1 e coluna 5"]);
+    assert_eq!(errors, &["Caracter '$' é inválido, na linha 1 e coluna 5"]);
 
     assert_eq!(
         tokens,
@@ -545,27 +942,54 @@ fn invalid_char() {
                 token_type: TokenType::Main,
                 content: "main".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 1 },
-                    end: Position { line: 1, column: 4 },
-                    length: 4,
+                    start: Position {
+                        line: 1,
+                        column: 1,
+                        utf8_index: 0,
+                        utf16_index: 0,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 5,
+                        utf8_index: 4,
+                        utf16_index: 4,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::OpenCurly,
                 content: "{".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 6 },
-                    end: Position { line: 1, column: 6 },
-                    length: 1,
+                    start: Position {
+                        line: 1,
+                        column: 6,
+                        utf8_index: 5,
+                        utf16_index: 5,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 7,
+                        utf8_index: 6,
+                        utf16_index: 6,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::CloseCurly,
                 content: "}".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 7 },
-                    end: Position { line: 1, column: 7 },
-                    length: 1,
+                    start: Position {
+                        line: 1,
+                        column: 7,
+                        utf8_index: 6,
+                        utf16_index: 6,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 8,
+                        utf8_index: 7,
+                        utf16_index: 7,
+                    },
                 },
             },
         ]
@@ -581,7 +1005,10 @@ fn invalid_comment_start() {
     let errors =
         diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
 
-    assert_eq!(errors, &["Começo inválido de comentário, linha 1 e coluna 5"]);
+    assert_eq!(
+        errors,
+        &["Começo inválido de comentário, na linha 1 e coluna 5"]
+    );
 
     assert_eq!(
         tokens,
@@ -590,18 +1017,36 @@ fn invalid_comment_start() {
                 token_type: TokenType::If,
                 content: "if".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 1 },
-                    end: Position { line: 1, column: 2 },
-                    length: 2,
+                    start: Position {
+                        line: 1,
+                        column: 1,
+                        utf8_index: 0,
+                        utf16_index: 0,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 3,
+                        utf8_index: 2,
+                        utf16_index: 2,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::String,
                 content: "c".to_owned(),
                 span: Span {
-                    start: Position { line: 2, column: 1 },
-                    end: Position { line: 2, column: 1 },
-                    length: 1,
+                    start: Position {
+                        line: 2,
+                        column: 1,
+                        utf8_index: 8,
+                        utf16_index: 8,
+                    },
+                    end: Position {
+                        line: 2,
+                        column: 2,
+                        utf8_index: 9,
+                        utf16_index: 9,
+                    },
                 },
             },
         ]
@@ -630,45 +1075,90 @@ fn invalid_register() {
                 token_type: TokenType::Do,
                 content: "do".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 1 },
-                    end: Position { line: 1, column: 2 },
-                    length: 2,
+                    start: Position {
+                        line: 1,
+                        column: 1,
+                        utf8_index: 0,
+                        utf16_index: 0,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 3,
+                        utf8_index: 2,
+                        utf16_index: 2,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Inc,
                 content: "inc".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 4 },
-                    end: Position { line: 1, column: 6 },
-                    length: 3,
+                    start: Position {
+                        line: 1,
+                        column: 4,
+                        utf8_index: 3,
+                        utf16_index: 3,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 7,
+                        utf8_index: 6,
+                        utf16_index: 6,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Register,
                 content: "Yxz".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 8 },
-                    end: Position { line: 1, column: 10 },
-                    length: 3,
+                    start: Position {
+                        line: 1,
+                        column: 8,
+                        utf8_index: 7,
+                        utf16_index: 7,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 11,
+                        utf8_index: 10,
+                        utf16_index: 10,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Goto,
                 content: "goto".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 12 },
-                    end: Position { line: 1, column: 15 },
-                    length: 4,
+                    start: Position {
+                        line: 1,
+                        column: 12,
+                        utf8_index: 11,
+                        utf16_index: 11,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 16,
+                        utf8_index: 15,
+                        utf16_index: 15,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Number,
                 content: "31".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 17 },
-                    end: Position { line: 1, column: 18 },
-                    length: 2,
+                    start: Position {
+                        line: 1,
+                        column: 17,
+                        utf8_index: 16,
+                        utf16_index: 16,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 19,
+                        utf8_index: 18,
+                        utf16_index: 18,
+                    },
                 },
             },
         ]
@@ -687,8 +1177,8 @@ fn many_errors() {
     assert_eq!(
         errors,
         &[
-            "Caracter '@' é inválido, linha 1 e coluna 4",
-            "Caracter '#' é inválido, linha 1 e coluna 6",
+            "Caracter '@' é inválido, na linha 1 e coluna 4",
+            "Caracter '#' é inválido, na linha 1 e coluna 6",
             "Apenas letras maiúsculas são permitidas em registradores, \"Xy\" \
              é um registrador inválido, de linha 1 e coluna 8, até coluna 9"
         ]
@@ -701,36 +1191,72 @@ fn many_errors() {
                 token_type: TokenType::String,
                 content: "foo".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 1 },
-                    end: Position { line: 1, column: 3 },
-                    length: 3,
+                    start: Position {
+                        line: 1,
+                        column: 1,
+                        utf8_index: 0,
+                        utf16_index: 0,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 4,
+                        utf8_index: 3,
+                        utf16_index: 3,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::OpenCurly,
                 content: "{".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 5 },
-                    end: Position { line: 1, column: 5 },
-                    length: 1,
+                    start: Position {
+                        line: 1,
+                        column: 5,
+                        utf8_index: 4,
+                        utf16_index: 4,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 6,
+                        utf8_index: 5,
+                        utf16_index: 5,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::CloseCurly,
                 content: "}".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 7 },
-                    end: Position { line: 1, column: 7 },
-                    length: 1,
+                    start: Position {
+                        line: 1,
+                        column: 7,
+                        utf8_index: 6,
+                        utf16_index: 6,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 8,
+                        utf8_index: 7,
+                        utf16_index: 7,
+                    },
                 },
             },
             Token {
                 token_type: TokenType::Register,
                 content: "Xy".to_owned(),
                 span: Span {
-                    start: Position { line: 1, column: 8 },
-                    end: Position { line: 1, column: 9 },
-                    length: 2,
+                    start: Position {
+                        line: 1,
+                        column: 8,
+                        utf8_index: 7,
+                        utf16_index: 7,
+                    },
+                    end: Position {
+                        line: 1,
+                        column: 10,
+                        utf8_index: 9,
+                        utf16_index: 9,
+                    },
                 },
             },
         ]

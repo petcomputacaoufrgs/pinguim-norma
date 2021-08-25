@@ -3,7 +3,7 @@ mod test;
 
 use super::{
     error::{BadCommentStart, BadRegister, Diagnostics, Error, InvalidChar},
-    token::{Position, Span, Token, TokenType},
+    token::{Span, Token, TokenType},
 };
 use regex::Regex;
 use std::{error::Error as StdError, mem};
@@ -12,18 +12,15 @@ use std::{error::Error as StdError, mem};
 struct Lexer {
     tokens: Vec<Token>,
     is_curr_error: bool,
-    next_position: Position,
     curr_token: Token,
 }
 
 impl Default for Lexer {
     fn default() -> Self {
-        let initial_pos = Position { line: 1, column: 1 };
         Self {
             is_curr_error: false,
-            next_position: initial_pos,
             curr_token: Token {
-                span: Span::from_start(initial_pos),
+                span: Span::default(),
                 token_type: TokenType::None,
                 content: String::new(),
             },
@@ -35,14 +32,12 @@ impl Default for Lexer {
 impl Lexer {
     fn handle_char(&mut self, character: char, diagnostics: &mut Diagnostics) {
         if self.curr_token.token_type == TokenType::None {
-            self.finish_span();
+            self.curr_token.span.finish();
         }
 
-        let char_span = Span {
-            start: self.next_position,
-            end: self.next_position,
-            length: 1,
-        };
+        let mut char_span = self.curr_token.span;
+        char_span.finish();
+        char_span.update(character);
 
         if self.curr_token.token_type != TokenType::Comment {
             if Self::check_comment(character) {
@@ -54,7 +49,7 @@ impl Lexer {
             }
         }
 
-        self.next_position(character);
+        self.curr_token.span.update(character);
         if Self::check_newline(character) {
             self.handle_newline();
         }
@@ -70,24 +65,13 @@ impl Lexer {
         }
     }
 
-    fn next_position(&mut self, character: char) {
-        self.curr_token.span.length += 1;
-        self.curr_token.span.end = self.next_position;
-        self.next_position.update(character);
-    }
-
-    fn finish_span(&mut self) {
-        self.curr_token.span.length = 0;
-        self.curr_token.span.start = self.next_position;
-    }
-
     fn handle_newline(&mut self) {
         if self.curr_token.token_type == TokenType::Comment {
             self.curr_token.token_type = TokenType::None;
         }
 
         if self.curr_token.token_type == TokenType::None {
-            self.finish_span();
+            self.curr_token.span.finish();
         }
     }
 
@@ -111,7 +95,7 @@ impl Lexer {
             self.curr_token.span = prev_span;
         }
 
-        self.finish_span();
+        self.curr_token.span.finish();
     }
 
     fn handle_string(&mut self) {
@@ -178,13 +162,12 @@ impl Lexer {
                 self.raise(diagnostics, BadCommentStart, char_span)
             },
             TokenType::Register if !self.is_curr_error => {
-                let content = self.curr_token.content.clone();
+                let reg_name = self.curr_token.content.clone();
                 let span = Span {
                     start: self.curr_token.span.start,
-                    end: self.next_position,
-                    length: self.curr_token.span.length + 1,
+                    end: char_span.end,
                 };
-                self.raise(diagnostics, BadRegister { content }, span);
+                self.raise(diagnostics, BadRegister { reg_name }, span);
             },
             _ => (),
         }
@@ -198,7 +181,7 @@ impl Lexer {
         };
         let token = mem::replace(&mut self.curr_token, new_token);
         self.tokens.push(token);
-        self.finish_span();
+        self.curr_token.span.finish();
         self.is_curr_error = false;
     }
 
