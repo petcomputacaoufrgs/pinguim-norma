@@ -2,231 +2,220 @@
 mod test;
 
 use super::{
-    error::{BadCommentStart, BadRegister, Diagnostics, Error, InvalidChar},
+    error::{BadCommentStart, Diagnostics, Error, InvalidChar},
     token::{Span, Token, TokenType},
 };
-use regex::Regex;
-use std::{error::Error as StdError, mem};
+use std::{error::Error as StdError, iter::Peekable, str};
+
+pub fn generate_tokens(
+    source: &str,
+    diagnostics: &mut Diagnostics,
+) -> Vec<Token> {
+    let mut lexer = Lexer::new(source);
+    let mut tokens = Vec::new();
+
+    while let Some(token) = lexer.generate_token(diagnostics) {
+        tokens.push(token);
+    }
+
+    tokens
+}
 
 #[derive(Debug, Clone)]
-struct Lexer {
-    tokens: Vec<Token>,
-    is_curr_error: bool,
-    curr_token: Token,
+enum Failure {
+    EndOfInput,
+    TryAgain,
 }
 
-impl Default for Lexer {
-    fn default() -> Self {
+#[derive(Debug, Clone)]
+struct Lexer<'src> {
+    source: Peekable<str::Chars<'src>>,
+    token_content: String,
+    token_span: Span,
+}
+
+impl<'src> Lexer<'src> {
+    fn new(source: &'src str) -> Self {
         Self {
-            is_curr_error: false,
-            curr_token: Token {
-                span: Span::default(),
-                token_type: TokenType::None,
-                content: String::new(),
-            },
-            tokens: Vec::new(),
+            source: source.chars().peekable(),
+            token_span: Span::default(),
+            token_content: String::new(),
         }
     }
-}
 
-impl Lexer {
-    fn handle_char(&mut self, character: char, diagnostics: &mut Diagnostics) {
-        if self.curr_token.token_type == TokenType::None {
-            self.curr_token.span.finish();
-        }
-
-        let mut char_span = self.curr_token.span;
-        char_span.finish();
-        char_span.update(character);
-
-        if self.curr_token.token_type != TokenType::Comment {
-            if Self::check_comment(character) {
-                self.handle_comment();
-            } else if Self::check_punctuation(character) {
-                self.handle_punctuation(character, char_span);
-            } else {
-                self.handle_default(character, char_span, diagnostics);
+    fn generate_token(
+        &mut self,
+        diagnostics: &mut Diagnostics,
+    ) -> Option<Token> {
+        loop {
+            match self.try_generate_token(diagnostics) {
+                Ok(token) => break Some(token),
+                Err(Failure::EndOfInput) => break None,
+                Err(Failure::TryAgain) => (),
             }
         }
-
-        self.curr_token.span.update(character);
-        if Self::check_newline(character) {
-            self.handle_newline();
-        }
     }
 
-    fn end_token(&mut self) {
-        if self.curr_token.token_type == TokenType::String {
-            self.handle_string();
-        }
-
-        if self.curr_token.token_type != TokenType::None {
-            self.finish_token();
-        }
-    }
-
-    fn handle_newline(&mut self) {
-        if self.curr_token.token_type == TokenType::Comment {
-            self.curr_token.token_type = TokenType::None;
-        }
-
-        if self.curr_token.token_type == TokenType::None {
-            self.curr_token.span.finish();
-        }
-    }
-
-    fn handle_comment(&mut self) {
-        if self.curr_token.token_type == TokenType::None {
-            self.curr_token.token_type = TokenType::SingleSlash;
-        } else if self.curr_token.token_type == TokenType::SingleSlash {
-            self.curr_token.token_type = TokenType::Comment;
-        }
-    }
-
-    fn handle_punctuation(&mut self, character: char, char_span: Span) {
-        // termina o token de antes (string/número)
-        self.end_token();
-
-        if let Some(typ) = Self::match_punctuation(character) {
-            let prev_span = mem::replace(&mut self.curr_token.span, char_span);
-            self.curr_token.content.push(character);
-            self.curr_token.token_type = typ;
-            self.finish_token();
-            self.curr_token.span = prev_span;
-        }
-
-        self.curr_token.span.finish();
-    }
-
-    fn handle_string(&mut self) {
-        if Self::check_keyword(&self.curr_token.content) {
-            self.handle_keyword();
-        } else if Self::check_builtin_func(&self.curr_token.content) {
-            self.handle_builtin_func();
-        }
-    }
-
-    fn handle_keyword(&mut self) {
-        self.curr_token.token_type =
-            Self::match_keyword(&self.curr_token.content).unwrap();
-    }
-
-    fn handle_builtin_func(&mut self) {
-        self.curr_token.token_type =
-            Self::match_builtin_func(&self.curr_token.content).unwrap();
-    }
-
-    fn handle_default(
+    fn try_generate_token(
         &mut self,
-        character: char,
-        char_span: Span,
         diagnostics: &mut Diagnostics,
-    ) {
-        if character.is_ascii_digit() {
-            self.curr_token.content.push(character);
-            self.handle_digit();
-        } else if character.is_uppercase() {
-            self.curr_token.content.push(character);
-            self.handle_register();
-        } else if character.is_alphabetic() {
-            self.curr_token.content.push(character);
-            self.handle_string_start(char_span, diagnostics);
+    ) -> Result<Token, Failure> {
+        self.skip_discardable(diagnostics);
+
+        self.clear_current();
+
+        if self.is_identifier() {
+            Ok(self.tokenize_ident())
+        } else if let Some(typ) = self.match_punctuation() {
+            Ok(self.tokenize_punct(typ))
         } else {
-            self.handle_punctuation(character, char_span);
-            self.raise(diagnostics, InvalidChar { character }, char_span);
+            match self.source.peek() {
+                Some(&character) => {
+                    self.next_char();
+                    self.raise(diagnostics, InvalidChar { character });
+                    Err(Failure::TryAgain)
+                },
+                None => Err(Failure::EndOfInput),
+            }
         }
     }
 
-    fn handle_digit(&mut self) {
-        if self.curr_token.token_type == TokenType::None {
-            self.curr_token.token_type = TokenType::Number;
+    fn next_char(&mut self) {
+        if let Some(character) = self.source.next() {
+            self.token_span.update(character);
+            self.token_content.push(character);
         }
     }
 
-    fn handle_register(&mut self) {
-        if self.curr_token.token_type == TokenType::None {
-            self.curr_token.token_type = TokenType::Register;
+    fn clear_current(&mut self) {
+        self.token_content.clear();
+        self.token_span.finish();
+    }
+
+    fn skip_discardable(&mut self, diagnostics: &mut Diagnostics) {
+        while self.skip_whitespace() || self.skip_comment(diagnostics) {}
+    }
+
+    fn skip_whitespace(&mut self) -> bool {
+        let mut skipped = false;
+        while self.is_whitespace() {
+            self.next_char();
+            skipped = true;
+        }
+        skipped
+    }
+
+    fn skip_comment(&mut self, diagnostics: &mut Diagnostics) -> bool {
+        if self.is_comment_start() {
+            self.clear_current();
+            self.next_char();
+            if self.is_comment_start() {
+                self.next_char();
+            } else {
+                self.raise(diagnostics, BadCommentStart)
+            }
+            while !self.is_comment_end() {
+                self.next_char();
+            }
+            true
+        } else {
+            false
         }
     }
 
-    fn handle_string_start(
-        &mut self,
-        char_span: Span,
-        diagnostics: &mut Diagnostics,
-    ) {
-        match self.curr_token.token_type {
-            TokenType::None => self.curr_token.token_type = TokenType::String,
-            TokenType::Number => self.curr_token.token_type = TokenType::String,
-            TokenType::SingleSlash => {
-                self.curr_token.content.clear();
-                self.raise(diagnostics, BadCommentStart, char_span)
-            },
-            TokenType::Register if !self.is_curr_error => {
-                let reg_name = self.curr_token.content.clone();
-                let span = Span {
-                    start: self.curr_token.span.start,
-                    end: char_span.end,
-                };
-                self.raise(diagnostics, BadRegister { reg_name }, span);
-            },
-            _ => (),
+    fn tokenize_ident(&mut self) -> Token {
+        let mut only_number = true;
+        while self.is_identifier() {
+            only_number = only_number && self.is_number();
+            self.next_char();
         }
-    }
 
-    fn finish_token(&mut self) {
-        let new_token = Token {
-            token_type: TokenType::None,
-            content: String::new(),
-            span: self.curr_token.span,
+        let token_type = if only_number {
+            TokenType::Number
+        } else if let Some(keyword) = self.match_keyword() {
+            keyword
+        } else if let Some(builtin_func) = self.match_builtin_func() {
+            builtin_func
+        } else {
+            TokenType::Identifier
         };
-        let token = mem::replace(&mut self.curr_token, new_token);
-        self.tokens.push(token);
-        self.curr_token.span.finish();
-        self.is_curr_error = false;
+
+        self.make_token(token_type)
     }
 
-    fn raise<E>(&mut self, diagnostics: &mut Diagnostics, cause: E, span: Span)
+    fn tokenize_punct(&mut self, token_type: TokenType) -> Token {
+        self.next_char();
+        self.make_token(token_type)
+    }
+
+    fn make_token(&mut self, token_type: TokenType) -> Token {
+        Token {
+            token_type,
+            content: self.token_content.clone(),
+            span: self.token_span,
+        }
+    }
+
+    fn is_whitespace(&mut self) -> bool {
+        match self.source.peek() {
+            Some(&character) => character.is_whitespace(),
+            None => false,
+        }
+    }
+
+    fn is_comment_start(&mut self) -> bool {
+        match self.source.peek() {
+            Some(&character) => character == '/',
+            None => false,
+        }
+    }
+
+    fn is_comment_end(&mut self) -> bool {
+        match self.source.peek() {
+            Some(&character) => character == '\n',
+            None => false,
+        }
+    }
+
+    fn is_identifier(&mut self) -> bool {
+        match self.source.peek() {
+            Some('_') => true,
+            Some(&character) => character.is_ascii_alphanumeric(),
+            None => false,
+        }
+    }
+
+    fn is_number(&mut self) -> bool {
+        match self.source.peek() {
+            Some(&character) => character.is_ascii_digit(),
+            None => false,
+        }
+    }
+
+    fn raise<E>(&mut self, diagnostics: &mut Diagnostics, cause: E)
     where
         E: StdError + Send + Sync + 'static,
     {
-        diagnostics.raise(Error::new(cause, span));
-        self.is_curr_error = true;
+        diagnostics.raise(Error::new(cause, self.token_span));
     }
 
-    fn check_newline(character: char) -> bool {
-        character == '\n'
-    }
-
-    fn check_comment(character: char) -> bool {
-        character == '/'
-    }
-
-    fn check_punctuation(character: char) -> bool {
-        let rgx = Regex::new(r"[\s:;,\{\}\(\)]").unwrap();
-        rgx.is_match(&character.to_string())
-    }
-
-    fn check_keyword(word: &str) -> bool {
-        let keywords =
-            ["do", "if", "then", "else", "goto", "main", "operation", "test"];
-        keywords.contains(&word)
-    }
-
-    fn match_punctuation(character: char) -> Option<TokenType> {
-        match character {
-            ' ' => None,
-            ':' => Some(TokenType::Colon),
-            ',' => Some(TokenType::Comma),
-            '{' => Some(TokenType::OpenCurly),
-            '}' => Some(TokenType::CloseCurly),
-            '(' => Some(TokenType::OpenParen),
-            ')' => Some(TokenType::CloseParen),
+    fn match_punctuation(&mut self) -> Option<TokenType> {
+        match self.source.peek() {
+            Some(&character) => match character {
+                ':' => Some(TokenType::Colon),
+                ',' => Some(TokenType::Comma),
+                '{' => Some(TokenType::OpenCurly),
+                '}' => Some(TokenType::CloseCurly),
+                '(' => Some(TokenType::OpenParen),
+                ')' => Some(TokenType::CloseParen),
+                _ => None,
+            },
             _ => None,
         }
     }
 
-    fn match_keyword(word: &str) -> Option<TokenType> {
-        match word {
+    fn match_keyword(&self) -> Option<TokenType> {
+        match self.token_content.as_str() {
             "do" => Some(TokenType::Do),
             "else" => Some(TokenType::Else),
             "goto" => Some(TokenType::Goto),
@@ -239,13 +228,8 @@ impl Lexer {
         }
     }
 
-    fn check_builtin_func(func: &str) -> bool {
-        let builtin_func = ["inc", "dec", "add", "sub", "cmp", "zero"];
-        builtin_func.contains(&func)
-    }
-
-    fn match_builtin_func(func: &str) -> Option<TokenType> {
-        match func {
+    fn match_builtin_func(&self) -> Option<TokenType> {
+        match self.token_content.as_str() {
             "add" => Some(TokenType::Add),
             "sub" => Some(TokenType::Sub),
             "cmp" => Some(TokenType::Cmp),
@@ -255,16 +239,4 @@ impl Lexer {
             _ => None,
         }
     }
-}
-
-pub fn generate_tokens(
-    source: &str,
-    diagnostics: &mut Diagnostics,
-) -> Vec<Token> {
-    let mut lexer = Lexer::default();
-    for character in source.chars() {
-        lexer.handle_char(character, diagnostics);
-    }
-    lexer.end_token();
-    lexer.tokens
 }

@@ -525,7 +525,7 @@ fn id_program() {
                 },
             },
             Token {
-                token_type: TokenType::Register,
+                token_type: TokenType::Identifier,
                 content: "X".to_owned(),
                 span: Span {
                     start: Position {
@@ -723,7 +723,7 @@ fn id_program() {
                 },
             },
             Token {
-                token_type: TokenType::Register,
+                token_type: TokenType::Identifier,
                 content: "Y".to_owned(),
                 span: Span {
                     start: Position {
@@ -849,7 +849,7 @@ fn id_program() {
                 },
             },
             Token {
-                token_type: TokenType::Register,
+                token_type: TokenType::Identifier,
                 content: "X".to_owned(),
                 span: Span {
                     start: Position {
@@ -1007,7 +1007,7 @@ fn invalid_comment_start() {
 
     assert_eq!(
         errors,
-        &["Começo inválido de comentário, na linha 1 e coluna 5"]
+        &["Começo inválido de comentário, na linha 1 e coluna 4"]
     );
 
     assert_eq!(
@@ -1032,7 +1032,7 @@ fn invalid_comment_start() {
                 },
             },
             Token {
-                token_type: TokenType::String,
+                token_type: TokenType::Identifier,
                 content: "c".to_owned(),
                 span: Span {
                     start: Position {
@@ -1054,121 +1054,9 @@ fn invalid_comment_start() {
 }
 
 #[test]
-fn invalid_register() {
-    let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens("do inc Yxz goto 31", &mut diagnostics);
-    assert!(diagnostics.is_err());
-
-    let errors =
-        diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
-
-    assert_eq!(
-        errors,
-        &["Apenas letras maiúsculas são permitidas em registradores, \"Yx\" \
-           é um registrador inválido, de linha 1 e coluna 8, até coluna 9"]
-    );
-
-    assert_eq!(
-        tokens,
-        &[
-            Token {
-                token_type: TokenType::Do,
-                content: "do".to_owned(),
-                span: Span {
-                    start: Position {
-                        line: 1,
-                        column: 1,
-                        utf8_index: 0,
-                        utf16_index: 0,
-                    },
-                    end: Position {
-                        line: 1,
-                        column: 3,
-                        utf8_index: 2,
-                        utf16_index: 2,
-                    },
-                },
-            },
-            Token {
-                token_type: TokenType::Inc,
-                content: "inc".to_owned(),
-                span: Span {
-                    start: Position {
-                        line: 1,
-                        column: 4,
-                        utf8_index: 3,
-                        utf16_index: 3,
-                    },
-                    end: Position {
-                        line: 1,
-                        column: 7,
-                        utf8_index: 6,
-                        utf16_index: 6,
-                    },
-                },
-            },
-            Token {
-                token_type: TokenType::Register,
-                content: "Yxz".to_owned(),
-                span: Span {
-                    start: Position {
-                        line: 1,
-                        column: 8,
-                        utf8_index: 7,
-                        utf16_index: 7,
-                    },
-                    end: Position {
-                        line: 1,
-                        column: 11,
-                        utf8_index: 10,
-                        utf16_index: 10,
-                    },
-                },
-            },
-            Token {
-                token_type: TokenType::Goto,
-                content: "goto".to_owned(),
-                span: Span {
-                    start: Position {
-                        line: 1,
-                        column: 12,
-                        utf8_index: 11,
-                        utf16_index: 11,
-                    },
-                    end: Position {
-                        line: 1,
-                        column: 16,
-                        utf8_index: 15,
-                        utf16_index: 15,
-                    },
-                },
-            },
-            Token {
-                token_type: TokenType::Number,
-                content: "31".to_owned(),
-                span: Span {
-                    start: Position {
-                        line: 1,
-                        column: 17,
-                        utf8_index: 16,
-                        utf16_index: 16,
-                    },
-                    end: Position {
-                        line: 1,
-                        column: 19,
-                        utf8_index: 18,
-                        utf16_index: 18,
-                    },
-                },
-            },
-        ]
-    );
-}
-
-#[test]
 fn many_errors() {
     let mut diagnostics = Diagnostics::new();
-    let tokens = generate_tokens("foo@{#}Xy", &mut diagnostics);
+    let tokens = generate_tokens("foo@{#}/a\nXY", &mut diagnostics);
     assert!(diagnostics.is_err());
 
     let errors =
@@ -1179,8 +1067,7 @@ fn many_errors() {
         &[
             "Caracter '@' é inválido, na linha 1 e coluna 4",
             "Caracter '#' é inválido, na linha 1 e coluna 6",
-            "Apenas letras maiúsculas são permitidas em registradores, \"Xy\" \
-             é um registrador inválido, de linha 1 e coluna 8, até coluna 9"
+            "Começo inválido de comentário, na linha 1 e coluna 8"
         ]
     );
 
@@ -1188,7 +1075,7 @@ fn many_errors() {
         tokens,
         &[
             Token {
-                token_type: TokenType::String,
+                token_type: TokenType::Identifier,
                 content: "foo".to_owned(),
                 span: Span {
                     start: Position {
@@ -1242,20 +1129,20 @@ fn many_errors() {
                 },
             },
             Token {
-                token_type: TokenType::Register,
-                content: "Xy".to_owned(),
+                token_type: TokenType::Identifier,
+                content: "XY".to_owned(),
                 span: Span {
                     start: Position {
-                        line: 1,
-                        column: 8,
-                        utf8_index: 7,
-                        utf16_index: 7,
+                        line: 2,
+                        column: 1,
+                        utf8_index: 10,
+                        utf16_index: 10,
                     },
                     end: Position {
-                        line: 1,
-                        column: 10,
-                        utf8_index: 9,
-                        utf16_index: 9,
+                        line: 2,
+                        column: 3,
+                        utf8_index: 12,
+                        utf16_index: 12,
                     },
                 },
             },

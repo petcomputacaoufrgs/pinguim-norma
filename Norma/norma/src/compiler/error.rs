@@ -145,21 +145,3 @@ impl fmt::Display for BadCommentStart {
 }
 
 impl StdError for BadCommentStart {}
-
-#[derive(Debug, Clone)]
-pub struct BadRegister {
-    pub reg_name: String,
-}
-
-impl fmt::Display for BadRegister {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            formatter,
-            "Apenas letras maiúsculas são permitidas em registradores, \"{}\" \
-             é um registrador inválido",
-            self.reg_name
-        )
-    }
-}
-
-impl StdError for BadRegister {}
