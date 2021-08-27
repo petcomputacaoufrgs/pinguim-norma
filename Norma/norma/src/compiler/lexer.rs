@@ -173,7 +173,7 @@ impl<'src> Lexer<'src> {
     fn is_comment_end(&mut self) -> bool {
         match self.source.peek() {
             Some(&character) => character == '\n',
-            None => false,
+            None => true,
         }
     }
 
