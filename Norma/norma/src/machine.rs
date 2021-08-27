@@ -73,6 +73,7 @@ impl Register {
 }
 
 /// Banco de registradores da Norma.
+#[derive(Debug, Clone)]
 pub struct Machine {
     /// Mapa de nomes de registradores para seus valores.
     registers: HashMap<String, Register>,

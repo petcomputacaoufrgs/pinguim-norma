@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
 mod machine;
+mod interpreter;
 
 use machine::Machine;
 
