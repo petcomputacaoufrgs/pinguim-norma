@@ -1,23 +1,24 @@
-use crate::machine::Machine;
-use std::collections::HashMap;
+use crate::machine::{Machine, RegisterName};
+use indexmap::IndexMap;
+use num_bigint::BigUint;
 
 // ("1.add.2", "do inc X goto 1.add.3")
 
 #[derive(Debug, Clone)]
 pub struct Program {
-    start: Label,
     current: Label,
-    instructions: HashMap<Label, Instruction>,
+    instructions: IndexMap<Label, Instruction>,
     machine: Machine,
 }
 
 impl Program {
     pub fn new(
-        start: Label,
-        instructions: HashMap<Label, Instruction>,
+        instructions: IndexMap<Label, Instruction>,
         machine: Machine,
     ) -> Self {
-        Self { current: start.clone(), start, instructions, machine }
+        let (current, _) =
+            instructions.first().expect("One instruction required");
+        Self { current: current.clone(), instructions, machine }
     }
 
     pub fn run_step(&mut self) -> bool {
@@ -55,22 +56,26 @@ impl Program {
 
     fn run_operation(&mut self, operation: Operation) {
         match operation.kind {
-            OperationKind::Inc(register) => self.run_inc(register),
-            OperationKind::Dec(register) => self.run_dec(register),
-            OperationKind::Add(reg_left, reg_right) => {
-                self.run_add(reg_left, reg_right)
+            OperationKind::Inc(register) => self.run_inc(&register),
+            OperationKind::Dec(register) => self.run_dec(&register),
+            OperationKind::Add(reg_left, reg_right, reg_tmp) => {
+                self.run_add(&reg_left, &reg_right, &reg_tmp)
             },
         }
         self.current = operation.next;
     }
 
-    fn run_inc(&mut self, reg_name: RegisterName) {
-        self.machine.inc(&reg_name.content);
+    fn run_inc(&mut self, reg_name: &RegisterName) {
+        self.machine.inc(reg_name);
+    }
+
+    fn run_dec(&mut self, reg_name: &RegisterName) {
+        self.machine.dec(reg_name);
     }
 
     fn run_test(&mut self, test: Test) {
         let success = match test.kind {
-            TestKind::Zero(register) => self.test_zero(register),
+            TestKind::Zero(register) => self.test_zero(&register),
             TestKind::Equals(reg_left, reg_right) => {
                 self.test_equals(reg_left, reg_right)
             },
@@ -81,8 +86,8 @@ impl Program {
         self.current = if success { test.next_then } else { test.next_else };
     }
 
-    fn test_zero(&mut self, reg_name: RegisterName) -> bool {
-        self.machine.is_zero(&reg_name.content)
+    fn test_zero(&mut self, reg_name: &RegisterName) -> bool {
+        self.machine.is_zero(reg_name)
     }
 }
 
@@ -91,14 +96,8 @@ pub struct Label {
     content: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct RegisterName {
-    content: String,
-}
-
 #[derive(Debug, Clone)]
 pub struct Instruction {
-    pub index: usize,
     pub kind: InstructionKind,
 }
 
@@ -118,7 +117,10 @@ pub struct Operation {
 pub enum OperationKind {
     Inc(RegisterName),
     Dec(RegisterName),
-    Add(RegisterName, RegisterName),
+    AddConst(BigUint, RegisterName),
+    Add(RegisterName, RegisterName, RegisterName),
+    SubConst(BigUint, RegisterName),
+    Sub(RegisterName, RegisterName, RegisterName),
 }
 
 #[derive(Debug, Clone)]
