@@ -15,6 +15,7 @@ wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 num-bigint = "0.4"
 num-traits = "0.2"
 regex = "1.5.4"
+indexmap = "1.7.0"
 
 [profile.release]
 lto = true
