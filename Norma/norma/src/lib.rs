@@ -33,7 +33,9 @@ impl ExportableMachine {
     pub fn from_machine(mut machine: Machine) -> ExportableMachine {
         return ExportableMachine {
             registers: machine.export_registers(),
-            counter: machine.get_counted_steps().to_str_radix(10).to_string(),
+            //counter: machine.get_counted_steps().to_str_radix(10).
+            // to_string(),
+            counter: todo!(),
         };
     }
 }

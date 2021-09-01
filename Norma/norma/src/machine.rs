@@ -3,7 +3,7 @@ mod test;
 
 use num_bigint::BigUint;
 use num_traits::identities::Zero;
-use std::{cmp::Ordering, collections::HashMap, ops::AddAssign};
+use std::{cmp::Ordering, collections::HashMap};
 
 /// Um registrador da norma (sendo um  número natural arbitrário).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -77,9 +77,6 @@ impl Register {
 pub struct Machine {
     /// Mapa de nomes de registradores para seus valores.
     registers: HashMap<String, Register>,
-    /// Contador de passos.
-    /// (LEMBRETE: rever se isso fica aqui ou vai pro interpretador).
-    steps_counter: BigUint,
 }
 
 impl Machine {
@@ -91,7 +88,7 @@ impl Machine {
         let mut register_bank: HashMap<String, Register> = HashMap::new();
         register_bank.insert("X".to_string(), Register::new(input));
         register_bank.insert("Y".to_string(), Register::new_empty());
-        Machine { registers: register_bank, steps_counter: BigUint::zero() }
+        Machine { registers: register_bank }
     }
 
     /// Insere um novo registrador no banco de nome `key`.
@@ -111,7 +108,6 @@ impl Machine {
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
     pub fn inc(&mut self, key: &str) {
-        self.count_steps(1u8);
         self.get_register_mut(key).inc();
     }
 
@@ -121,7 +117,6 @@ impl Machine {
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
     pub fn dec(&mut self, key: &str) {
-        self.count_steps(1u8);
         self.get_register_mut(key).dec();
     }
 
@@ -131,7 +126,6 @@ impl Machine {
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
     pub fn add_const(&mut self, key: &str, constant: &BigUint) {
-        self.count_steps(constant);
         self.get_register_mut(key).add_const(constant);
     }
 
@@ -141,7 +135,6 @@ impl Machine {
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
     pub fn sub_const(&mut self, key: &str, constant: &BigUint) {
-        self.count_steps(constant);
         self.get_register_mut(key).sub_const(constant);
     }
 
@@ -170,7 +163,6 @@ impl Machine {
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
     pub fn is_zero(&mut self, key: &str) -> bool {
-        self.count_steps(1u8);
         self.get_register_mut(key).is_zero()
     }
 
@@ -180,11 +172,6 @@ impl Machine {
     /// Invoca `panic!` se o registrador não existir.
     pub fn get_value(&self, key: &str) -> BigUint {
         self.get_register(key).get_value()
-    }
-
-    /// Retorna valor do contador de passos.
-    pub fn get_counted_steps(&self) -> BigUint {
-        self.steps_counter.clone()
     }
 
     /// Exporta os registradores em um mapa de
@@ -197,16 +184,6 @@ impl Machine {
                 .insert(reg_name.to_string(), reg_obj.value.to_str_radix(10));
         }
         exported
-    }
-
-    /// Conta a quantidade informada de passos dados, tal que a quantidade seja
-    /// de qualquer tipo somável a um `BigUint`, tal como `u8`, `u64`,
-    /// `BigUint`, `&BigUint`, etc.
-    fn count_steps<T>(&mut self, value: T)
-    where
-        BigUint: AddAssign<T>,
-    {
-        self.steps_counter += value;
     }
 
     /// Pesquisa um registrador existente de nome `key` e retorna uma referência
