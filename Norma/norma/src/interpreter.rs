@@ -1,4 +1,4 @@
-use crate::machine::{Machine, RegisterName};
+use crate::machine::Machine;
 use indexmap::IndexMap;
 use num_bigint::BigUint;
 
@@ -6,14 +6,14 @@ use num_bigint::BigUint;
 
 #[derive(Debug, Clone)]
 pub struct Program {
-    current: Label,
-    instructions: IndexMap<Label, Instruction>,
+    current: String,
+    instructions: IndexMap<String, Instruction>,
     machine: Machine,
 }
 
 impl Program {
     pub fn new(
-        instructions: IndexMap<Label, Instruction>,
+        instructions: IndexMap<String, Instruction>,
         machine: Machine,
     ) -> Self {
         let (current, _) =
@@ -58,6 +58,9 @@ impl Program {
         match operation.kind {
             OperationKind::Inc(register) => self.run_inc(&register),
             OperationKind::Dec(register) => self.run_dec(&register),
+            OperationKind::AddConst(register, constant) => {
+                self.run_add_const(&register, &constant)
+            },
             OperationKind::Add(reg_left, reg_right, reg_tmp) => {
                 self.run_add(&reg_left, &reg_right, &reg_tmp)
             },
@@ -65,35 +68,51 @@ impl Program {
         self.current = operation.next;
     }
 
-    fn run_inc(&mut self, reg_name: &RegisterName) {
+    fn run_inc(&mut self, reg_name: &str) {
         self.machine.inc(reg_name);
     }
 
-    fn run_dec(&mut self, reg_name: &RegisterName) {
+    fn run_dec(&mut self, reg_name: &str) {
         self.machine.dec(reg_name);
+    }
+
+    fn run_add_const(&mut self, reg_name: &str, constant: &BigUint) {
+        self.machine.add_const(reg_name, constant);
+    }
+
+    fn run_add(&mut self, reg_left: &str, reg_right: &str, reg_tmp: &str) {
+        todo!()
     }
 
     fn run_test(&mut self, test: Test) {
         let success = match test.kind {
             TestKind::Zero(register) => self.test_zero(&register),
-            TestKind::Equals(reg_left, reg_right) => {
-                self.test_equals(reg_left, reg_right)
+            TestKind::EqConst(register, constant) => {
+                self.test_eq_const(&register, &constant)
             },
-            TestKind::LessThan(reg_left, reg_right) => {
-                self.test_less_than(reg_left, reg_right)
+            TestKind::Eq(reg_left, reg_right, reg_tmp) => {
+                self.test_eq(&reg_left, &reg_right, &reg_tmp)
             },
         };
         self.current = if success { test.next_then } else { test.next_else };
     }
 
-    fn test_zero(&mut self, reg_name: &RegisterName) -> bool {
+    fn test_zero(&mut self, reg_name: &str) -> bool {
         self.machine.is_zero(reg_name)
     }
-}
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Label {
-    content: String,
+    fn test_eq_const(&mut self, register: &str, constant: &BigUint) -> bool {
+        self.machine.eq_const(register, constant)
+    }
+
+    fn test_eq(
+        &mut self,
+        reg_left: &str,
+        reg_right: &str,
+        reg_tmp: &str,
+    ) -> bool {
+        todo!()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -110,29 +129,27 @@ pub enum InstructionKind {
 #[derive(Debug, Clone)]
 pub struct Operation {
     pub kind: OperationKind,
-    pub next: Label,
+    pub next: String,
 }
 
 #[derive(Debug, Clone)]
 pub enum OperationKind {
-    Inc(RegisterName),
-    Dec(RegisterName),
-    AddConst(BigUint, RegisterName),
-    Add(RegisterName, RegisterName, RegisterName),
-    SubConst(BigUint, RegisterName),
-    Sub(RegisterName, RegisterName, RegisterName),
+    Inc(String),
+    Dec(String),
+    AddConst(String, BigUint),
+    Add(String, String, String),
 }
 
 #[derive(Debug, Clone)]
 pub struct Test {
     pub kind: TestKind,
-    pub next_then: Label,
-    pub next_else: Label,
+    pub next_then: String,
+    pub next_else: String,
 }
 
 #[derive(Debug, Clone)]
 pub enum TestKind {
-    Zero(RegisterName),
-    Equals(RegisterName, RegisterName),
-    LessThan(RegisterName, RegisterName),
+    Zero(String),
+    EqConst(String, BigUint),
+    Eq(String, String, String),
 }
