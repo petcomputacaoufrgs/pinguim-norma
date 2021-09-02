@@ -1,8 +1,49 @@
+use indexmap::IndexMap;
 use num_bigint::BigUint;
+
+/// Um programa da Norma.
+#[derive(Debug, Clone)]
+pub struct Program {
+    instructions: IndexMap<String, Instruction>,
+}
+
+impl Program {
+    /// Cria um programa vazio. TODO: vamos permitir mesmo criar programas
+    /// vazios? Ou vamos exigir uma instrução inicial na criação do programa?
+    pub fn empty() -> Self {
+        Self { instructions: IndexMap::new() }
+    }
+
+    /// Retorna o primeiro rótulo, se houver ao menos uma instrução no programa.
+    pub fn first_label(&self) -> Option<String> {
+        self.instructions.first().map(|(label, _)| label).cloned()
+    }
+
+    /// Insere uma dada instrução no programa. Rótulos repetidos sobreescrevem o
+    /// antigo (TODO: vai ser assim mesmo?).
+    pub fn insert(&mut self, instruction: Instruction) {
+        self.instructions.insert(instruction.label.clone(), instruction);
+    }
+
+    /// Busca a instrução associada com o dado rótulo. Retorna `None` caso o
+    /// rótulo seja inválido (fora do programa).
+    pub fn get_instruction(&self, label: &str) -> Option<Instruction> {
+        self.instructions.get(label).cloned()
+    }
+}
 
 /// Uma instrução genérica da Norma.
 #[derive(Debug, Clone)]
-pub enum Instruction {
+pub struct Instruction {
+    /// O rótulo identificado essa instrução.
+    pub label: String,
+    /// O tipo específico dessa instrução.
+    pub kind: InstructionKind,
+}
+
+/// Um tipo específico de instrução.
+#[derive(Debug, Clone)]
+pub enum InstructionKind {
     /// Uma instrução de operação.
     Operation(Operation),
     /// Um instrução de teste.

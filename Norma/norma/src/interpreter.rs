@@ -1,11 +1,21 @@
 //! Define itens relacionados ao interpretador da Norma.
 
-pub mod instruction;
+#[cfg(test)]
+mod test;
 
-use instruction::{Instruction, Operation, OperationKind, Test, TestKind};
+pub mod program;
+
+use program::{
+    Instruction,
+    InstructionKind,
+    Operation,
+    OperationKind,
+    Program,
+    Test,
+    TestKind,
+};
 
 use crate::machine::Machine;
-use indexmap::IndexMap;
 use num_bigint::BigUint;
 use num_traits::Zero;
 use std::{cmp::Ordering, ops::AddAssign};
@@ -13,18 +23,18 @@ use std::{cmp::Ordering, ops::AddAssign};
 // ("1.add.2", "do inc X goto 1.add.3")
 
 /// Executa um dado programa uma única vez, a partir da entrada (AKA registrador
-/// X), mapa de rótulos para instruções, e iterável (e.g. lista) de nomes de
+/// X), programa com as instruções, e iterável (e.g. lista) de nomes de
 /// registradores usados no programa (não precisa passar os nomes "X" nem "Y").
 /// Retorna a saída do programa (AKA registrador Y).
 pub fn run_once<'regs, I>(
     input: BigUint,
-    instructions: IndexMap<String, Instruction>,
+    program: Program,
     aux_registers: I,
 ) -> BigUint
 where
     I: IntoIterator<Item = &'regs str>,
 {
-    let mut interpreter = Interpreter::new(instructions, aux_registers);
+    let mut interpreter = Interpreter::new(program, aux_registers);
     interpreter.input(input);
     interpreter.run_all();
     interpreter.output()
@@ -35,8 +45,8 @@ where
 pub struct Interpreter {
     /// Rótulo da instrução atual.
     current: String,
-    /// Mapeamento de rótulos para instruções.
-    instructions: IndexMap<String, Instruction>,
+    /// Programa com mapeamento de rótulos para instruções.
+    program: Program,
     /// Máquina sendo operada.
     machine: Machine,
     /// Passos dados.
@@ -44,37 +54,34 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    /// Inicia o interpretador com o estado inicial do programa, a partir das
-    /// instruções do programa, e de um iterável (e.g. lista) de nomes de
+    /// Inicia o interpretador com o estado inicial do programa, a partir do
+    /// programa com as instruções, e de um iterável (e.g. lista) de nomes de
     /// registradores usados (não precisa passar os nomes "X" nem "Y").
-    pub fn new<'regs, I>(
-        instructions: IndexMap<String, Instruction>,
-        aux_registers: I,
-    ) -> Self
+    pub fn new<'regs, I>(program: Program, aux_registers: I) -> Self
     where
         I: IntoIterator<Item = &'regs str>,
     {
-        let (start, _) =
-            instructions.first().expect("No mínimo uma instrução esperada");
+        let start =
+            program.first_label().expect("No mínimo uma instrução esperada");
 
         let mut machine = Machine::default();
         for register in aux_registers {
             machine.insert(register);
         }
 
-        Self::from_state(start.clone(), instructions, machine, BigUint::zero())
+        Self::from_state(start, program, machine, BigUint::zero())
     }
 
     /// Cria um novo interpretador a partir de um dado estado: o rótulo da
-    /// instrução atual, as instruções, a máquina sendo operada, e os
-    /// passos dados.
+    /// instrução atual, o programa com as instruções, a máquina sendo operada,
+    /// e os passos dados.
     pub fn from_state(
         current: String,
-        instructions: IndexMap<String, Instruction>,
+        program: Program,
         machine: Machine,
         steps: BigUint,
     ) -> Self {
-        Self { current, instructions, machine, steps }
+        Self { current, program, machine, steps }
     }
 
     /// Define o valor de entrada (AKA valor do registrador X).
@@ -91,13 +98,11 @@ impl Interpreter {
     /// redefinindo o rótulo da instrução atual como o rótulo da primeira
     /// instrução do mapa de instruções.
     pub fn reset(&mut self) {
-        let (start, _) = self
-            .instructions
-            .first()
-            .expect("No mínimo uma instrução esperada");
-
         self.machine.clear_all();
-        self.current = start.clone();
+        self.current = self
+            .program
+            .first_label()
+            .expect("No mínimo uma instrução esperada");
     }
 
     /// Roda a instrução atual, mas somente essa, caso o rótulo da instrução
@@ -106,7 +111,7 @@ impl Interpreter {
     /// específica. Retorna `true` se o rótulo é válido e a instrução foi de
     /// fato executada.
     pub fn run_step(&mut self) -> bool {
-        let entry = self.instructions.get(&self.current).cloned();
+        let entry = self.program.get_instruction(&self.current);
         match entry {
             Some(instruction) => {
                 self.run_instruction(instruction);
@@ -153,9 +158,11 @@ impl Interpreter {
     /// o tipo específico de instrução (cada tipo também atualiza o rótulo atual
     /// de uma forma própria).
     fn run_instruction(&mut self, instruction: Instruction) {
-        match instruction {
-            Instruction::Test(test) => self.run_test(test),
-            Instruction::Operation(operation) => self.run_operation(operation),
+        match instruction.kind {
+            InstructionKind::Test(test) => self.run_test(test),
+            InstructionKind::Operation(operation) => {
+                self.run_operation(operation)
+            },
         }
     }
 
