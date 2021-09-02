@@ -40,6 +40,7 @@ impl Register {
         self.value.is_zero()
     }
 
+    /// Limpa o valor do registrador (define-o para zero).
     fn clear(&mut self) {
         self.value.set_zero();
     }
@@ -69,6 +70,11 @@ impl Register {
     fn get_value(&self) -> BigUint {
         self.value.clone()
     }
+
+    /// Define o valor do registrador.
+    fn set_value(&mut self, value: BigUint) {
+        self.value = value;
+    }
 }
 
 /// Banco de registradores da Norma.
@@ -79,6 +85,7 @@ pub struct Machine {
 }
 
 impl Default for Machine {
+    /// Inicia com ambos X e Y zerados.
     fn default() -> Self {
         Self::new(BigUint::zero())
     }
@@ -96,6 +103,12 @@ impl Machine {
         this
     }
 
+    /// Define o valor de entrada (AKA valor do registrador X).
+    pub fn input(&mut self, data: BigUint) {
+        self.get_register_mut("X").set_value(data);
+    }
+
+    /// Pega o valor de saída (AKA valor do registrador Y).
     pub fn output(&self) -> BigUint {
         self.get_value("Y")
     }
@@ -112,14 +125,19 @@ impl Machine {
         self.registers.insert(reg_name.to_string(), Register::new(value));
     }
 
-    pub fn clear(&mut self, reg_name: &str) {
-        self.get_register_mut(reg_name).clear();
-    }
-
+    /// Limpa todos registradores (define-os para zero).
     pub fn clear_all(&mut self) {
         for register in self.registers.values_mut() {
             register.clear();
         }
+    }
+
+    /// Limpa o valor do dado registrador (define-o para zero).
+    ///
+    /// # Panics
+    /// Invoca `panic!` se o registrador não existir.
+    pub fn clear(&mut self, reg_name: &str) {
+        self.get_register_mut(reg_name).clear();
     }
 
     /// Incrementa o valor de um registrador existente com nome `reg_name`.
@@ -139,6 +157,15 @@ impl Machine {
         self.get_register_mut(reg_name).dec();
     }
 
+    /// Performa uma adição entre registradores.
+    ///
+    /// É colocado em `dest` o resultado da adição `dest + src`, emulando o
+    /// uso do registrador `tmp` como temporário/auxiliar, que será atualizado
+    /// para zero.
+    ///
+    /// # Panics
+    /// Invoca `panic!` se qualquer um dos registradores `dest`, `src` ou `tmp`
+    /// não existir.
     pub fn add(&mut self, dest: &str, src: &str, tmp: &str) {
         let operand = self.get_value(src);
         self.get_register_mut(dest).add(&operand);
@@ -154,6 +181,15 @@ impl Machine {
         self.get_register_mut(reg_name).add(constant);
     }
 
+    /// Performa uma subtração entre registradores.
+    ///
+    /// É colocado em `dest` o resultado da subtração `dest - src`, emulando o
+    /// uso do registrador `tmp` como temporário/auxiliar, que será atualizado
+    /// para zero.
+    ///
+    /// # Panics
+    /// Invoca `panic!` se qualquer um dos registradores `dest`, `src` ou `tmp`
+    /// não existir.
     pub fn sub(&mut self, dest: &str, src: &str, tmp: &str) {
         let operand = self.get_value(src);
         self.get_register_mut(dest).sub(&operand);
@@ -169,6 +205,15 @@ impl Machine {
         self.get_register_mut(reg_name).sub(constant);
     }
 
+    /// Performa uma comparação entre registradores.
+    ///
+    /// Retorna a ordem (menor/igual/maior) entre `left` e `right`, emulando
+    /// o uso do registrador `tmp` como temporário/auxiliar, que será
+    /// atualizado para zero.
+    ///
+    /// # Panics
+    /// Invoca `panic!` se qualquer um dos registradores `left`, `right` ou
+    /// `tmp` não existir.
     pub fn cmp(
         &mut self,
         reg_left: &str,

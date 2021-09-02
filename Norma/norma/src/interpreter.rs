@@ -1,3 +1,9 @@
+//! Define itens relacionados ao interpretador da Norma.
+
+pub mod instruction;
+
+use instruction::{Instruction, Operation, OperationKind, Test, TestKind};
+
 use crate::machine::Machine;
 use indexmap::IndexMap;
 use num_bigint::BigUint;
@@ -6,6 +12,10 @@ use std::{cmp::Ordering, ops::AddAssign};
 
 // ("1.add.2", "do inc X goto 1.add.3")
 
+/// Executa um dado programa uma única vez, a partir da entrada (AKA registrador
+/// X), mapa de rótulos para instruções, e iterável (e.g. lista) de nomes de
+/// registradores usados no programa (não precisa passar os nomes "X" nem "Y").
+/// Retorna a saída do programa (AKA registrador Y).
 pub fn run_once<'regs, I>(
     input: BigUint,
     instructions: IndexMap<String, Instruction>,
@@ -34,6 +44,9 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
+    /// Inicia o interpretador com o estado inicial do programa, a partir das
+    /// instruções do programa, e de um iterável (e.g. lista) de nomes de
+    /// registradores usados (não precisa passar os nomes "X" nem "Y").
     pub fn new<'regs, I>(
         instructions: IndexMap<String, Instruction>,
         aux_registers: I,
@@ -64,14 +77,19 @@ impl Interpreter {
         Self { current, instructions, machine, steps }
     }
 
+    /// Define o valor de entrada (AKA valor do registrador X).
     pub fn input(&mut self, data: BigUint) {
-        self.machine.insert_with_value("X", data)
+        self.machine.input(data);
     }
 
+    /// Pega o valor de saída (AKA valor do registrador Y).
     pub fn output(&self) -> BigUint {
         self.machine.output()
     }
 
+    /// Reseta o estado do programa, limpando todos os registradores, e
+    /// redefinindo o rótulo da instrução atual como o rótulo da primeira
+    /// instrução do mapa de instruções.
     pub fn reset(&mut self) {
         let (start, _) = self
             .instructions
@@ -82,6 +100,11 @@ impl Interpreter {
         self.current = start.clone();
     }
 
+    /// Roda a instrução atual, mas somente essa, caso o rótulo da instrução
+    /// atual seja válido (caso contrário, chegamos ao final do programa). O
+    /// rótulo da instrução atual é atualizado de acordo com a instrução
+    /// específica. Retorna `true` se o rótulo é válido e a instrução foi de
+    /// fato executada.
     pub fn run_step(&mut self) -> bool {
         let entry = self.instructions.get(&self.current).cloned();
         match entry {
@@ -93,6 +116,10 @@ impl Interpreter {
         }
     }
 
+    /// Roda no máximo `max_steps` instrções, a partir do rótulo atual (que é
+    /// redefinido após cada instrução). Se chegarmos ao final do programa antes
+    /// de `max_steps`, a execução para. Retorna `true` se ainda restam
+    /// instruções para serem executadas.
     pub fn run_steps(&mut self, max_steps: u64) -> bool {
         for _ in 0 .. max_steps {
             if !self.run_step() {
@@ -102,14 +129,19 @@ impl Interpreter {
         true
     }
 
+    /// Executa todas as instruções, partindo do rótulo atual, até chegar no
+    /// final do programa (potencial loop infinito).
     pub fn run_all(&mut self) {
         while self.run_step() {}
     }
 
+    /// Retorna quantos passos foram dados.
     pub fn steps(&self) -> BigUint {
         self.steps.clone()
     }
 
+    /// Conta a dada quantidade de passos dados em uma determinada instrução,
+    /// junto com os passos anteriores.
     fn count_steps<T>(&mut self, amount: T)
     where
         BigUint: AddAssign<T>,
@@ -117,15 +149,18 @@ impl Interpreter {
         self.steps += amount;
     }
 
+    /// Performa a execução de uma dada instrução (no parâmetro), de acordo com
+    /// o tipo específico de instrução (cada tipo também atualiza o rótulo atual
+    /// de uma forma própria).
     fn run_instruction(&mut self, instruction: Instruction) {
-        match instruction.kind {
-            InstructionKind::Test(test) => self.run_test(test),
-            InstructionKind::Operation(operation) => {
-                self.run_operation(operation)
-            },
+        match instruction {
+            Instruction::Test(test) => self.run_test(test),
+            Instruction::Operation(operation) => self.run_operation(operation),
         }
     }
 
+    /// Executa uma dada instrução do tipo operação. Além de executar a operação
+    /// em si, atualiza o rótulo para aquele indicado no `goto` da operação.
     fn run_operation(&mut self, operation: Operation) {
         match operation.kind {
             OperationKind::Inc(register) => self.run_inc(&register),
@@ -147,6 +182,9 @@ impl Interpreter {
         self.current = operation.next;
     }
 
+    /// Executa uma dada instrução do tipo teste. Além de executar o teste em
+    /// si, atualiza o rótulo para aquele indicado no `then goto` ou `else goto`
+    /// do teste, de acordo com o resultado do teste.
     fn run_test(&mut self, test: Test) {
         let success = match test.kind {
             TestKind::Zero(register) => self.test_zero(&register),
@@ -481,48 +519,4 @@ impl Interpreter {
         self.count_steps(steps);
         ordering == Ordering::Less
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct Instruction {
-    pub kind: InstructionKind,
-}
-
-#[derive(Debug, Clone)]
-pub enum InstructionKind {
-    Operation(Operation),
-    Test(Test),
-}
-
-#[derive(Debug, Clone)]
-pub struct Operation {
-    pub kind: OperationKind,
-    pub next: String,
-}
-
-#[derive(Debug, Clone)]
-pub enum OperationKind {
-    Inc(String),
-    Dec(String),
-    Clear(String),
-    AddConst(String, BigUint),
-    Add(String, String, String),
-    SubConst(String, BigUint),
-    Sub(String, String, String),
-}
-
-#[derive(Debug, Clone)]
-pub struct Test {
-    pub kind: TestKind,
-    pub next_then: String,
-    pub next_else: String,
-}
-
-#[derive(Debug, Clone)]
-pub enum TestKind {
-    Zero(String),
-    EqualsConst(String, BigUint),
-    Equals(String, String, String),
-    LessThanConst(String, BigUint),
-    LessThan(String, String, String),
 }
