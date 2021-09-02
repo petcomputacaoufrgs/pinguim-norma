@@ -97,12 +97,8 @@ pub enum TokenType {
     Operation,
     Test,
     Then,
-    Zero,
-    Inc,
-    Dec,
-    Add,
-    Sub,
-    Cmp,
+    BuiltInOper(BuiltInOperation),
+    BuiltInTest(BuiltInTest),
     Number,
     Identifier,
     Colon,
@@ -118,4 +114,18 @@ pub struct Token {
     pub token_type: TokenType,
     pub content: String,
     pub span: Span,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum BuiltInOperation {
+    Inc,
+    Dec,
+    Add,
+    Sub,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum BuiltInTest {
+    Zero,
+    Cmp,
 }

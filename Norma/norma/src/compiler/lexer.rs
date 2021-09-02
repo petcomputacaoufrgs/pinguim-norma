@@ -3,7 +3,7 @@ mod test;
 
 use super::{
     error::{BadCommentStart, Diagnostics, Error, InvalidChar},
-    token::{Span, Token, TokenType},
+    token::{Span, Token, TokenType, BuiltInOperation, BuiltInTest},
 };
 use std::{error::Error as StdError, iter::Peekable, str};
 
@@ -134,8 +134,10 @@ impl<'src> Lexer<'src> {
             TokenType::Number
         } else if let Some(keyword) = self.match_keyword() {
             keyword
-        } else if let Some(builtin_func) = self.match_builtin_func() {
-            builtin_func
+        } else if let Some(builtin_oper) = self.match_builtin_oper() {
+            TokenType::BuiltInOper(builtin_oper)
+        } else if let Some(builtin_test) = self.match_builtin_test() {
+            TokenType::BuiltInTest(builtin_test)
         } else {
             TokenType::Identifier
         };
@@ -228,15 +230,23 @@ impl<'src> Lexer<'src> {
         }
     }
 
-    fn match_builtin_func(&self) -> Option<TokenType> {
+    fn match_builtin_oper(&self) -> Option<BuiltInOperation> {
         match self.token_content.as_str() {
-            "add" => Some(TokenType::Add),
-            "sub" => Some(TokenType::Sub),
-            "cmp" => Some(TokenType::Cmp),
-            "zero" => Some(TokenType::Zero),
-            "inc" => Some(TokenType::Inc),
-            "dec" => Some(TokenType::Dec),
+            "add" => Some(BuiltInOperation::Add),
+            "sub" => Some(BuiltInOperation::Sub),
+            "inc" => Some(BuiltInOperation::Inc),
+            "dec" => Some(BuiltInOperation::Dec),
             _ => None,
         }
     }
+
+    fn match_builtin_test(&self) -> Option<BuiltInTest> {
+        match self.token_content.as_str() {
+            "cmp" => Some(BuiltInTest::Cmp),
+            "zero" => Some(BuiltInTest::Zero),
+            _ => None,
+        }
+    }
+
+    
 }
