@@ -4,10 +4,10 @@ use std::ops::Range;
 use std::collections::HashMap;
 use indexmap::IndexMap;
 
+#[derive(Clone, Debug)]
 pub struct Parser {
     tokens: Vec<Token>,
     curr_token: usize,
-
 }
 
 impl Parser {
@@ -129,19 +129,97 @@ impl Parser {
     }
 
     pub fn parse_instr_op(&mut self) -> Option<(Operation, Parameters)> {
-        todo!()
+        self.next();
+        let oper_type = self.parse_operation_type();
+        let parameters = self.parse_parameters();
+
+        self.expect(TokenType::Goto);
+        let next_label = self.parse_label();
+
+        let operation = Operation {
+            oper_type: oper_type?,
+            next_label: next_label?
+        };
+
+        Some((operation, parameters?))
     }
 
     pub fn parse_operation_type(&mut self) -> Option<OperationType> {
-        todo!()
-        // criar enum BuiltIn para OperationType e TestType ????
+        match self.current() {
+            Some(token) => {
+                match token.token_type {
+                    TokenType::Identifier => {
+                        let macro_name = Symbol {
+                            content: token.content.clone(),
+                            span: token.span,
+                        };
+
+                        self.next();
+                        Some(OperationType::Macro(macro_name))
+                    },
+
+                    TokenType::BuiltInOper(oper) => {
+                        self.next();
+                        Some(OperationType::BuiltIn(oper))
+                    },
+
+                    _ => panic!("Erro")
+                }
+            }, 
+            None => panic!("AAAA")           
+        }
     }
 
     pub fn parse_instr_test(&mut self) -> Option<(Test, Parameters)> {
-        todo!()
+        self.next();
+        let test_type = self.parse_test_type();
+        let parameters = self.parse_parameters();
+
+        self.expect(TokenType::Then);
+        self.expect(TokenType::Goto);
+        let then_label = self.parse_label();
+
+        self.expect(TokenType::Else);
+        self.expect(TokenType::Goto);
+        let else_label = self.parse_label();
+
+        let test = Test {
+            test_type: test_type?,
+            next_true_label: then_label?,
+            next_false_label: else_label?,
+        };
+
+        Some((test, parameters?))
     }
 
-    pub fn parse_parameters() -> Option<Parameters> {
+    pub fn parse_test_type(&mut self) -> Option<TestType> {
+        match self.current() {
+            Some(token) => {
+                match token.token_type {
+                    TokenType::Identifier => {
+                        let macro_name = Symbol {
+                            content: token.content.clone(),
+                            span: token.span,
+                        };
+
+                        self.next();
+                        Some(TestType::Macro(macro_name))
+                    },
+
+                    TokenType::BuiltInTest(test) => {
+                        self.next();
+                        Some(TestType::BuiltIn(test))
+                    },
+
+                    _ => panic!("Erro")
+                }
+            }, 
+            None => panic!("AAAA")           
+        }
+    } 
+
+    pub fn parse_parameters(&mut self) -> Option<Parameters> {
+        // passar como parametro um bool ou um enum que diga se eh builtin ou macro
         todo!()
     }
 

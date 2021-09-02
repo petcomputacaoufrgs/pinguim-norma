@@ -39,15 +39,15 @@ pub enum InstructionType {
 
 #[derive(Clone, Debug)]
 pub struct Operation {
-    oper_type: OperationType,
-    next_label: Symbol,
+    pub oper_type: OperationType,
+    pub next_label: Symbol,
 }
 
 #[derive(Clone, Debug)]
 pub struct Test {
-    test_type: TestType,
-    next_true_label: Symbol,
-    next_false_label: Symbol,
+    pub test_type: TestType,
+    pub next_true_label: Symbol,
+    pub next_false_label: Symbol,
 }
 
 #[derive(Clone, Debug)]
@@ -72,8 +72,9 @@ pub struct Symbol {
 
 #[derive(Clone, Debug)]
 pub struct Parameters {
-    registers: Vec<String>,
-    constant: Option<BigUint>,
+    // adicionar algum tipo de enum para builtin X macro??
+    pub registers: Vec<String>,
+    pub constant: Option<BigUint>,
 }
 
 #[derive(Clone, Debug)]
