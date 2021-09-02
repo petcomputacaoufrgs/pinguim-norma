@@ -1,46 +1,33 @@
-use super::token::Span;
+use super::token::{Span, BuiltInOperation, BuiltInTest};
 use indexmap::IndexMap;
-use std::collections::HashMap;
+use num_bigint::BigUint;
 
 #[derive(Clone, Debug)]
 pub struct Instruction {
-    label: String,
-    instruction_type: InstructionType,
-    registers: Vec<Symbol>,
-    constant: Option<usize>,
+    pub label: Symbol,
+    pub instruction_type: InstructionType,
+    pub parameters: Parameters,
 }
 
 impl Instruction {
-    pub fn new(label: String, typ: InstructionType, regs: Vec<Symbol>, constant: Option<usize>) -> Self {
+    pub fn new(label: Symbol, typ: InstructionType, parameters: Parameters) -> Self {
         Instruction {
             label,
             instruction_type: typ,
-            registers: regs,
-            constant
+            parameters,
         }
-    }
-
-    pub fn label(&self) -> &str {
-        &self.label
     }
 }
 
 #[derive(Clone, Debug)]
 pub enum OperationType {
-    Inc,
-    Dec,
-    AddConst,
-    SubConst,
-    AddRegs,
-    SubRegs,
+    BuiltIn(BuiltInOperation),
     Macro(Symbol)
 }
 
 #[derive(Clone, Debug)]
 pub enum TestType {
-    Zero,
-    CmpConst,
-    CmpRegs,
+    BuiltIn(BuiltInTest),
     Macro(Symbol)
 }
 
@@ -63,13 +50,15 @@ pub struct Test {
     next_false_label: Symbol,
 }
 
+#[derive(Clone, Debug)]
 pub struct Macro {
-    macro_type: MacroType,
-    name: Symbol,
-    parameters: Vec<Symbol>,
-    instr: IndexMap<String, Instruction>,
+    pub macro_type: MacroType,
+    pub name: Symbol,
+    pub parameters: Vec<Symbol>,
+    pub instr: IndexMap<String, Instruction>,
 }
 
+#[derive(Clone, Debug)]
 pub enum MacroType {
     Operation,
     Test,
@@ -77,58 +66,22 @@ pub enum MacroType {
 
 #[derive(Clone, Debug)]
 pub struct Symbol {
-    content: String,
-    span: Span,
+    pub content: String,
+    pub span: Span,
+}
+
+#[derive(Clone, Debug)]
+pub struct Parameters {
+    registers: Vec<String>,
+    constant: Option<BigUint>,
 }
 
 #[derive(Clone, Debug)]
 pub struct Main {
-    code: IndexMap<String, Instruction>,
+    pub code: IndexMap<String, Instruction>,
 }
 
 pub struct Program {
-    main: Main,
-    macros: HashMap<String, Macro>
+    pub main: Main,
+    pub macros: IndexMap<String, Macro>
 }
-
-
-// struct das macros
-// struct da main
-
-// main -> lesse uma macro ia la na struct das macros e ia fazer um append das linhas
-
-// 1. intrs.... index (0)
-// 2. instr index (1)
-
-// expansor
-// 1.macro1.1. asasushuas (2)
-// 1.macro1.2. ahsuahsuhahu (3)
-
-
-// parser pt1: expansao das macros com macros 
-
-// operation add(A,B) {
-//     intsr1: ...
-//     instr2: ...
-// }
-
-// parser pt2: expansao das instrucoes da main em indexmap
-
-// main {
-//     1: .... (1)
-//     2: .... (2)
-//     3. do add(A,B) ... 
-//     intsr1: ...
-//     instr2: ...
-// }
-
-// Instruction {
-//     InstructionType::Operation::OperationType::Macro
-//     name: 
-//     regs:
-//     ...
-// }
-
-// parser pt3: juntar tudo 
-
-// itera indexmap_main, cada vez q acha macro 
