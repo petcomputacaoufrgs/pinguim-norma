@@ -81,4 +81,11 @@ impl DataExporter {
     pub fn get_result(&mut self) -> String {
         String::from("2021")
     }
+
+    // Start machine
+    // #[wasm_bindgen(js_name = startMachine)]
+    // pub fn start_machine(&mut self, input: String) {
+    //     self.interpreter.reset();
+    //     self.interpreter.input(input);
+    // }
 }

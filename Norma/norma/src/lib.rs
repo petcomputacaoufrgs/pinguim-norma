@@ -26,16 +26,22 @@ pub fn compile(text: String) -> DataExporter {
     DataExporter::new(lines_mock(), Temp{a: 0})
 }
 
+//Chama a função run_all do interpretador
 #[wasm_bindgen]
 pub fn run_all() {
 
 }
 
+//Chama a função run_step do interpretador
 #[wasm_bindgen]
 pub fn run_step() {
 
 }
 
+/**
+ * TODO: Atualizar para o novo formato de instrução
+ * baseado no novo interpretador;
+ */
 fn lines_mock() -> Vec<IndexedLine> {
     let mut i = Instruction::new();
     i.set_type(InstructionType::Test(TestType::CmpConst));
