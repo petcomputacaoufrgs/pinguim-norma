@@ -1,4 +1,4 @@
-use super::token::{Span, BuiltInOperation, BuiltInTest};
+use super::token::{BuiltInOperation, BuiltInTest, Span};
 use indexmap::IndexMap;
 use num_bigint::BigUint;
 
@@ -6,35 +6,30 @@ use num_bigint::BigUint;
 pub struct Instruction {
     pub label: Symbol,
     pub instruction_type: InstructionType,
-    pub parameters: Parameters,
 }
 
 impl Instruction {
-    pub fn new(label: Symbol, typ: InstructionType, parameters: Parameters) -> Self {
-        Instruction {
-            label,
-            instruction_type: typ,
-            parameters,
-        }
+    pub fn new(label: Symbol, typ: InstructionType) -> Self {
+        Instruction { label, instruction_type: typ }
     }
 }
 
 #[derive(Clone, Debug)]
 pub enum OperationType {
-    BuiltIn(BuiltInOperation),
-    Macro(Symbol)
+    BuiltIn(BuiltInOperation, Symbol),
+    Macro(Symbol, Vec<MacroParam>),
 }
 
 #[derive(Clone, Debug)]
 pub enum TestType {
-    BuiltIn(BuiltInTest),
-    Macro(Symbol)
+    BuiltIn(BuiltInTest, Symbol),
+    Macro(Symbol, Vec<MacroParam>),
 }
 
 #[derive(Clone, Debug)]
 pub enum InstructionType {
     Operation(Operation),
-    Test(Test)
+    Test(Test),
 }
 
 #[derive(Clone, Debug)]
@@ -71,10 +66,9 @@ pub struct Symbol {
 }
 
 #[derive(Clone, Debug)]
-pub struct Parameters {
-    // adicionar algum tipo de enum para builtin X macro??
-    pub registers: Vec<String>,
-    pub constant: Option<BigUint>,
+pub enum MacroParam {
+    Register(Symbol),
+    Number(BigUint),
 }
 
 #[derive(Clone, Debug)]
@@ -84,5 +78,5 @@ pub struct Main {
 
 pub struct Program {
     pub main: Main,
-    pub macros: IndexMap<String, Macro>
+    pub macros: IndexMap<String, Macro>,
 }

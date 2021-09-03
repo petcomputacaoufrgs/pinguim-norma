@@ -3,7 +3,7 @@ mod test;
 
 use super::{
     error::{BadCommentStart, Diagnostics, Error, InvalidChar},
-    token::{Span, Token, TokenType, BuiltInOperation, BuiltInTest},
+    token::{BuiltInOperation, BuiltInTest, Span, Token, TokenType},
 };
 use std::{error::Error as StdError, iter::Peekable, str};
 
@@ -232,8 +232,6 @@ impl<'src> Lexer<'src> {
 
     fn match_builtin_oper(&self) -> Option<BuiltInOperation> {
         match self.token_content.as_str() {
-            "add" => Some(BuiltInOperation::Add),
-            "sub" => Some(BuiltInOperation::Sub),
             "inc" => Some(BuiltInOperation::Inc),
             "dec" => Some(BuiltInOperation::Dec),
             _ => None,
@@ -242,11 +240,8 @@ impl<'src> Lexer<'src> {
 
     fn match_builtin_test(&self) -> Option<BuiltInTest> {
         match self.token_content.as_str() {
-            "cmp" => Some(BuiltInTest::Cmp),
             "zero" => Some(BuiltInTest::Zero),
             _ => None,
         }
     }
-
-    
 }

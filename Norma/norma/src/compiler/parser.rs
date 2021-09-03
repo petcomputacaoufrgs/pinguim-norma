@@ -1,7 +1,4 @@
-use crate::compiler::token::*;
-use crate::compiler::ast::*;
-use std::ops::Range;
-use std::collections::HashMap;
+use crate::compiler::{ast::*, token::*};
 use indexmap::IndexMap;
 
 #[derive(Clone, Debug)]
@@ -12,19 +9,16 @@ pub struct Parser {
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        Parser {
-            tokens,
-            curr_token: 0
-        }
+        Parser { tokens, curr_token: 0 }
     }
 
     pub fn current(&self) -> Option<&Token> {
         self.tokens.get(self.curr_token)
-    } 
+    }
 
     pub fn next(&mut self) {
         self.curr_token += 1;
-    } 
+    }
 
     pub fn parse_program(&mut self) -> Option<Program> {
         let mut macros = IndexMap::<String, Macro>::new();
@@ -38,33 +32,35 @@ impl Parser {
                 },
 
                 TokenType::Operation => {
-                    if let Some(macro_aux) = self.parse_macro(MacroType::Operation) {
+                    if let Some(macro_aux) =
+                        self.parse_macro(MacroType::Operation)
+                    {
                         // conferir se ja nao esta no indexmap
-                        macros.insert(macro_aux.name.content.clone(), macro_aux);
+                        macros
+                            .insert(macro_aux.name.content.clone(), macro_aux);
                     }
                 },
 
                 TokenType::Test => {
                     if let Some(macro_aux) = self.parse_macro(MacroType::Test) {
                         // conferir se ja nao esta no indexmap
-                        macros.insert(macro_aux.name.content.clone(), macro_aux);
+                        macros
+                            .insert(macro_aux.name.content.clone(), macro_aux);
                     }
                 },
 
-                _ => panic!("Whatever")
+                _ => panic!("Whatever"),
             }
         }
 
-        let program = Program {
-            main: main_option?,
-            macros,
-        };
+        let program = Program { main: main_option?, macros };
 
         Some(program)
     }
 
     pub fn parse_main(&mut self) -> Option<Main> {
-        // ler todos os tokens da main e construir uma estrutura Main a partir disso
+        // ler todos os tokens da main e construir uma estrutura Main a partir
+        // disso
         self.next();
         self.expect(TokenType::OpenCurly);
         let mut code = IndexMap::<String, Instruction>::new();
@@ -79,8 +75,8 @@ impl Parser {
                         // fazer a verificação de label duplicado
                         code.insert(instr.label.content.clone(), instr);
                     }
-                }, 
-                None => panic!("Whatever")
+                },
+                None => panic!("Whatever"),
             }
         }
 
@@ -96,84 +92,75 @@ impl Parser {
         self.expect(TokenType::Colon);
 
         let type_option = self.parse_instr_type();
-        let (instruction_type, parameters) = type_option?;
+        let instruction_type = type_option?;
 
-        let instr = Instruction {
-            label: instr_label?,
-            instruction_type,
-            parameters,
-        };
+        let instr = Instruction { label: instr_label?, instruction_type };
 
         Some(instr)
     }
 
-    pub fn parse_instr_type(&mut self) -> Option<(InstructionType, Parameters)> {
+    pub fn parse_instr_type(&mut self) -> Option<InstructionType> {
         match self.current() {
             Some(token) => {
                 if token.token_type == TokenType::Do {
                     let op_option = self.parse_instr_op();
-                    let (operation, parameters) = op_option?;
-                    Some((InstructionType::Operation(operation), parameters))
-
+                    let operation = op_option?;
+                    Some(InstructionType::Operation(operation))
                 } else if token.token_type == TokenType::If {
                     let test_option = self.parse_instr_test();
-                    let (test, parameters) = test_option?;
-                    Some((InstructionType::Test(test), parameters))
-
+                    let test = test_option?;
+                    Some(InstructionType::Test(test))
                 } else {
                     panic!("Whatever")
                 }
             },
-            None => panic!("Whatever")
+            None => panic!("Whatever"),
         }
     }
 
-    pub fn parse_instr_op(&mut self) -> Option<(Operation, Parameters)> {
+    pub fn parse_instr_op(&mut self) -> Option<Operation> {
         self.next();
         let oper_type = self.parse_operation_type();
-        let parameters = self.parse_parameters();
 
         self.expect(TokenType::Goto);
         let next_label = self.parse_label();
 
-        let operation = Operation {
-            oper_type: oper_type?,
-            next_label: next_label?
-        };
+        let operation =
+            Operation { oper_type: oper_type?, next_label: next_label? };
 
-        Some((operation, parameters?))
+        Some(operation)
     }
 
     pub fn parse_operation_type(&mut self) -> Option<OperationType> {
         match self.current() {
-            Some(token) => {
-                match token.token_type {
-                    TokenType::Identifier => {
-                        let macro_name = Symbol {
-                            content: token.content.clone(),
-                            span: token.span,
-                        };
+            Some(token) => match token.token_type {
+                TokenType::Identifier => {
+                    let macro_name = Symbol {
+                        content: token.content.clone(),
+                        span: token.span,
+                    };
 
-                        self.next();
-                        Some(OperationType::Macro(macro_name))
-                    },
+                    self.next();
 
-                    TokenType::BuiltInOper(oper) => {
-                        self.next();
-                        Some(OperationType::BuiltIn(oper))
-                    },
+                    let parameters = self.parse_macro_params();
+                    Some(OperationType::Macro(macro_name, parameters?))
+                },
 
-                    _ => panic!("Erro")
-                }
-            }, 
-            None => panic!("AAAA")           
+                TokenType::BuiltInOper(oper) => {
+                    self.next();
+                    let parameter = self.parse_builtin_param();
+                    Some(OperationType::BuiltIn(oper, parameter?))
+                },
+
+                _ => panic!("Erro"),
+            },
+            None => panic!("AAAA"),
         }
     }
 
-    pub fn parse_instr_test(&mut self) -> Option<(Test, Parameters)> {
+    pub fn parse_instr_test(&mut self) -> Option<Test> {
         self.next();
         let test_type = self.parse_test_type();
-        let parameters = self.parse_parameters();
 
         self.expect(TokenType::Then);
         self.expect(TokenType::Goto);
@@ -189,37 +176,57 @@ impl Parser {
             next_false_label: else_label?,
         };
 
-        Some((test, parameters?))
+        Some(test)
     }
 
     pub fn parse_test_type(&mut self) -> Option<TestType> {
         match self.current() {
-            Some(token) => {
-                match token.token_type {
-                    TokenType::Identifier => {
-                        let macro_name = Symbol {
-                            content: token.content.clone(),
-                            span: token.span,
-                        };
+            Some(token) => match token.token_type {
+                TokenType::Identifier => {
+                    let macro_name = Symbol {
+                        content: token.content.clone(),
+                        span: token.span,
+                    };
 
-                        self.next();
-                        Some(TestType::Macro(macro_name))
-                    },
+                    self.next();
 
-                    TokenType::BuiltInTest(test) => {
-                        self.next();
-                        Some(TestType::BuiltIn(test))
-                    },
+                    let parameters = self.parse_macro_params();
+                    Some(TestType::Macro(macro_name, parameters?))
+                },
 
-                    _ => panic!("Erro")
-                }
-            }, 
-            None => panic!("AAAA")           
+                TokenType::BuiltInTest(test) => {
+                    self.next();
+                    let parameter = self.parse_builtin_param();
+                    Some(TestType::BuiltIn(test, parameter?))
+                },
+
+                _ => panic!("Erro"),
+            },
+            None => panic!("AAAA"),
         }
-    } 
+    }
 
-    pub fn parse_parameters(&mut self) -> Option<Parameters> {
-        // passar como parametro um bool ou um enum que diga se eh builtin ou macro
+    pub fn parse_builtin_param(&mut self) -> Option<Symbol> {
+        // ver se o token é ( ou identificador
+        //
+        // se é (, pegar idenitificador, experar ), retornar identificador
+        //
+        // senão, só pega identificador e retorna
+        todo!()
+    }
+
+    pub fn parse_macro_param(&mut self) -> Option<MacroParam> {
+        // ver se é identificador ou número e construir o tipo de parâmetro
+        // adequado
+        todo!()
+    }
+
+    pub fn parse_macro_params(&mut self) -> Option<Vec<MacroParam>> {
+        // esperar (
+        // ler identificador
+        // ver se é )
+        // senão esperar ,
+        // ler identificador de novo e repete
         todo!()
     }
 
@@ -230,10 +237,10 @@ impl Parser {
                 if token.token_type == expected_type {
                     self.next();
                 } else {
-                    panic!("Whatever") 
+                    panic!("Whatever")
                 }
             },
-            None => panic!("Whatever") 
+            None => panic!("Whatever"),
         }
     }
 
@@ -250,12 +257,10 @@ impl Parser {
                     Some(label)
                 },
 
-                _ => panic!("Whaaaatever")
+                _ => panic!("Whaaaatever"),
             },
 
-            None => panic!("Whaaaatever")
+            None => panic!("Whaaaatever"),
         }
-    } 
+    }
 }
-
-

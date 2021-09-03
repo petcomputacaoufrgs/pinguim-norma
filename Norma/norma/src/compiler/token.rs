@@ -120,12 +120,9 @@ pub struct Token {
 pub enum BuiltInOperation {
     Inc,
     Dec,
-    Add,
-    Sub,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum BuiltInTest {
     Zero,
-    Cmp,
 }
