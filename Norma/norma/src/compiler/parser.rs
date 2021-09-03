@@ -1,5 +1,7 @@
 use crate::compiler::{ast::*, token::*};
 use indexmap::IndexMap;
+use num_bigint::BigUint;
+use std::str::FromStr;
 
 #[derive(Clone, Debug)]
 pub struct Parser {
@@ -33,7 +35,7 @@ impl Parser {
 
                 TokenType::Operation => {
                     if let Some(macro_aux) =
-                        self.parse_macro(MacroType::Operation)
+                        self.parse_macro_def(MacroType::Operation)
                     {
                         // conferir se ja nao esta no indexmap
                         macros
@@ -42,7 +44,9 @@ impl Parser {
                 },
 
                 TokenType::Test => {
-                    if let Some(macro_aux) = self.parse_macro(MacroType::Test) {
+                    if let Some(macro_aux) =
+                        self.parse_macro_def(MacroType::Test)
+                    {
                         // conferir se ja nao esta no indexmap
                         macros
                             .insert(macro_aux.name.content.clone(), macro_aux);
@@ -83,7 +87,13 @@ impl Parser {
         Some(Main { code })
     }
 
-    pub fn parse_macro(&mut self, macro_type: MacroType) -> Option<Macro> {
+    pub fn parse_macro_def(&mut self, macro_type: MacroType) -> Option<Macro> {
+        // ler definição do macro
+        todo!()
+    }
+
+    pub fn parse_macro_def_params(&mut self) -> Vec<Symbol> {
+        // ler (A, B, C, D) em operation foo (A, B, C, D) { ... }
         todo!()
     }
 
@@ -207,27 +217,76 @@ impl Parser {
     }
 
     pub fn parse_builtin_param(&mut self) -> Option<Symbol> {
-        // ver se o token é ( ou identificador
-        //
-        // se é (, pegar idenitificador, experar ), retornar identificador
-        //
-        // senão, só pega identificador e retorna
-        todo!()
+        let has_parens = self.check_expect(TokenType::OpenParen);
+        let parameter = self.parse_register();
+        if has_parens {
+            self.expect(TokenType::CloseParen);
+        }
+        parameter
     }
 
     pub fn parse_macro_param(&mut self) -> Option<MacroParam> {
-        // ver se é identificador ou número e construir o tipo de parâmetro
-        // adequado
-        todo!()
+        match self.current() {
+            Some(token) => match token.token_type {
+                TokenType::Identifier => {
+                    let symbol = Symbol {
+                        content: token.content.clone(),
+                        span: token.span,
+                    };
+                    self.next();
+                    Some(MacroParam::Register(symbol))
+                },
+
+                TokenType::Number => {
+                    let constant = BigUint::from_str(&token.content).expect(
+                        "Lexer só deve permitir tokens Number só com dígitos",
+                    );
+                    self.next();
+                    Some(MacroParam::Number(constant))
+                },
+
+                _ => panic!("erro dps"),
+            },
+            None => panic!("erro dps"),
+        }
     }
 
     pub fn parse_macro_params(&mut self) -> Option<Vec<MacroParam>> {
-        // esperar (
-        // ler identificador
-        // ver se é )
-        // senão esperar ,
-        // ler identificador de novo e repete
-        todo!()
+        self.expect(TokenType::OpenParen);
+
+        let mut parameters = Vec::new();
+        let mut needs_comma = false;
+
+        while self.check_expect(TokenType::CloseParen) {
+            if needs_comma {
+                panic!("errooooo")
+            }
+
+            if let Some(parameter) = self.parse_macro_param() {
+                parameters.push(parameter);
+                needs_comma = !self.check_expect(TokenType::Comma);
+            }
+        }
+
+        Some(parameters)
+    }
+
+    pub fn parse_register(&mut self) -> Option<Symbol> {
+        match self.current() {
+            Some(token) => {
+                if token.token_type == TokenType::Identifier {
+                    let symbol = Symbol {
+                        content: token.content.clone(),
+                        span: token.span,
+                    };
+                    self.next();
+                    Some(symbol)
+                } else {
+                    panic!("erro dps")
+                }
+            },
+            None => panic!("erro dps"),
+        }
     }
 
     pub fn expect(&mut self, expected_type: TokenType) {
@@ -241,6 +300,20 @@ impl Parser {
                 }
             },
             None => panic!("Whatever"),
+        }
+    }
+
+    pub fn check_expect(&mut self, expected_type: TokenType) -> bool {
+        match self.current() {
+            Some(token) => {
+                if token.token_type == expected_type {
+                    self.next();
+                    true
+                } else {
+                    false
+                }
+            },
+            None => false,
         }
     }
 
