@@ -1,5 +1,6 @@
 use indexmap::IndexMap;
 use num_bigint::BigUint;
+use std::fmt;
 
 /// Um programa da Norma.
 #[derive(Debug, Clone)]
@@ -30,6 +31,22 @@ impl Program {
     pub fn get_instruction(&self, label: &str) -> Option<Instruction> {
         self.instructions.get(label).cloned()
     }
+
+    /// Exports all program instructions to be used with JS, in
+    /// `(label, instruction-data)` format. TODO: replace tuple by a proper
+    /// communication struct.
+    pub fn export(&self) -> Vec<(String, String)> {
+        self.instructions.values().map(Instruction::export).collect()
+    }
+}
+
+impl fmt::Display for Program {
+    fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
+        for instruction in self.instructions.values() {
+            write!(fmtr, "{}", instruction)?;
+        }
+        Ok(())
+    }
 }
 
 /// Uma instrução genérica da Norma.
@@ -41,6 +58,21 @@ pub struct Instruction {
     pub kind: InstructionKind,
 }
 
+impl Instruction {
+    /// Exports this instruction to be used with JS, in
+    /// `(label, instruction-data)` format. TODO: replace tuple by a proper
+    /// communication struct.
+    pub fn export(&self) -> (String, String) {
+        (self.label.clone(), self.kind.to_string())
+    }
+}
+
+impl fmt::Display for Instruction {
+    fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmtr, "{}: {}", self.label, self.kind)
+    }
+}
+
 /// Um tipo específico de instrução.
 #[derive(Debug, Clone)]
 pub enum InstructionKind {
@@ -50,6 +82,15 @@ pub enum InstructionKind {
     Test(Test),
 }
 
+impl fmt::Display for InstructionKind {
+    fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            InstructionKind::Operation(oper) => write!(fmtr, "{}", oper),
+            InstructionKind::Test(test) => write!(fmtr, "{}", test),
+        }
+    }
+}
+
 /// Dados de uma instrução de operação.
 #[derive(Debug, Clone)]
 pub struct Operation {
@@ -57,6 +98,12 @@ pub struct Operation {
     pub kind: OperationKind,
     /// O rótulo da pŕoxima instrução.
     pub next: String,
+}
+
+impl fmt::Display for Operation {
+    fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmtr, "do {} goto {}", self.kind, self.next)
+    }
 }
 
 /// O tipo específico do "core" da operação.
@@ -82,6 +129,30 @@ pub enum OperationKind {
     Sub(String, String, String),
 }
 
+impl fmt::Display for OperationKind {
+    fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            OperationKind::Inc(register) => write!(fmtr, "inc {}", register),
+            OperationKind::Dec(register) => write!(fmtr, "dec {}", register),
+            OperationKind::Clear(register) => {
+                write!(fmtr, "clear ({})", register)
+            },
+            OperationKind::AddConst(register, constant) => {
+                write!(fmtr, "add ({}, {})", register, constant)
+            },
+            OperationKind::Add(reg_src, reg_dest, reg_tmp) => {
+                write!(fmtr, "add ({}, {}, {})", reg_src, reg_dest, reg_tmp)
+            },
+            OperationKind::SubConst(register, constant) => {
+                write!(fmtr, "sub ({}, {})", register, constant)
+            },
+            OperationKind::Sub(reg_src, reg_dest, reg_tmp) => {
+                write!(fmtr, "sub ({}, {}, {})", reg_src, reg_dest, reg_tmp)
+            },
+        }
+    }
+}
+
 /// Dados de uma instrução de teste.
 #[derive(Debug, Clone)]
 pub struct Test {
@@ -91,6 +162,16 @@ pub struct Test {
     pub next_then: String,
     /// O rótulo da próxima instrução caso seja falso.
     pub next_else: String,
+}
+
+impl fmt::Display for Test {
+    fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            fmtr,
+            "if {} then goto {} else goto {}",
+            self.kind, self.next_then, self.next_else
+        )
+    }
 }
 
 /// O tipo específico do "core" do teste.
@@ -110,4 +191,32 @@ pub enum TestKind {
     /// Teste se o primeiro registrador é menor que o segundo, usando o
     /// terceiro registrador como temporário, que será zerado.
     LessThan(String, String, String),
+}
+
+impl fmt::Display for TestKind {
+    fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            TestKind::Zero(register) => write!(fmtr, "zero {}", register),
+            TestKind::EqualsConst(register, constant) => {
+                write!(fmtr, "equals ({}, {})", register, constant)
+            },
+            TestKind::Equals(reg_left, reg_right, reg_tmp) => {
+                write!(
+                    fmtr,
+                    "equals ({}, {}, {})",
+                    reg_left, reg_right, reg_tmp
+                )
+            },
+            TestKind::LessThanConst(register, constant) => {
+                write!(fmtr, "lessThan ({}, {})", register, constant)
+            },
+            TestKind::LessThan(reg_left, reg_right, reg_tmp) => {
+                write!(
+                    fmtr,
+                    "lessThan ({}, {}, {})",
+                    reg_left, reg_right, reg_tmp
+                )
+            },
+        }
+    }
 }
