@@ -1,28 +1,68 @@
+#[cfg(test)]
+mod test;
+
 use crate::compiler::{ast::*, token::*};
 use indexmap::IndexMap;
 use num_bigint::BigUint;
 use std::str::FromStr;
 
+pub fn parse(tokens: Vec<Token>) -> Option<Program> {
+    Parser::new(tokens).parse_program()
+}
+
+pub struct Abort;
+
 #[derive(Clone, Debug)]
-pub struct Parser {
+struct Parser {
     tokens: Vec<Token>,
     curr_token: usize,
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Self {
+    fn new(tokens: Vec<Token>) -> Self {
         Parser { tokens, curr_token: 0 }
     }
 
-    pub fn current(&self) -> Option<&Token> {
+    fn current(&self) -> Option<&Token> {
         self.tokens.get(self.curr_token)
     }
 
-    pub fn next(&mut self) {
+    fn next(&mut self) {
         self.curr_token += 1;
     }
 
-    pub fn parse_program(&mut self) -> Option<Program> {
+    fn expect(&mut self, expected_type: TokenType) {
+        // falta passar o diagnostics para cá depois
+        match self.current() {
+            Some(token) => {
+                if token.token_type == expected_type {
+                    self.next();
+                } else {
+                    panic!("Whatever")
+                }
+            },
+            None => panic!("Whatever"),
+        }
+    }
+
+    fn check_expect(&mut self, expected_type: TokenType) -> bool {
+        match self.current() {
+            Some(token) => {
+                if token.token_type == expected_type {
+                    self.next();
+                    true
+                } else {
+                    false
+                }
+            },
+            None => {
+                panic!("ver dps");
+                true
+            },
+        }
+    }
+
+    fn parse_program(&mut self) -> Option<Program> {
         let mut macros = IndexMap::<String, Macro>::new();
         let mut main_option: Option<Main> = None;
 
@@ -62,10 +102,14 @@ impl Parser {
         Some(program)
     }
 
-    pub fn parse_main(&mut self) -> Option<Main> {
-        // ler todos os tokens da main e construir uma estrutura Main a partir
-        // disso
+    fn parse_main(&mut self) -> Option<Main> {
         self.next();
+        let instructions = self.parse_func_body();
+
+        Some(Main { code: instructions? })
+    }
+
+    fn parse_func_body(&mut self) -> Option<IndexMap<String, Instruction>> {
         self.expect(TokenType::OpenCurly);
         let mut code = IndexMap::<String, Instruction>::new();
 
@@ -84,20 +128,49 @@ impl Parser {
             }
         }
 
-        Some(Main { code })
+        Some(code)
     }
 
-    pub fn parse_macro_def(&mut self, macro_type: MacroType) -> Option<Macro> {
-        // ler definição do macro
-        todo!()
+    fn parse_macro_def(&mut self, macro_type: MacroType) -> Option<Macro> {
+        self.next();
+        let name = self.parse_macro_name();
+        let parameters = self.parse_macro_def_params();
+        let instructions = self.parse_func_body();
+
+        let macro_def = Macro {
+            macro_type,
+            name: name?,
+            parameters: parameters?,
+            instr: instructions?,
+        };
+
+        Some(macro_def)
     }
 
-    pub fn parse_macro_def_params(&mut self) -> Vec<Symbol> {
-        // ler (A, B, C, D) em operation foo (A, B, C, D) { ... }
-        todo!()
+    fn parse_macro_name(&mut self) -> Option<Symbol> {
+        match self.current() {
+            Some(token) => {
+                if token.token_type == TokenType::Identifier {
+                    let macro_name = Symbol {
+                        content: token.content.clone(),
+                        span: token.span,
+                    };
+
+                    self.next();
+                    Some(macro_name)
+                } else {
+                    panic!("erro")
+                }
+            }, 
+            None => panic!("erro dps")
+        }
     }
 
-    pub fn parse_instr(&mut self) -> Option<Instruction> {
+    fn parse_macro_def_params(&mut self) -> Option<Vec<Symbol>> {
+        self.parse_list_params(Self::parse_register)
+    }
+
+    fn parse_instr(&mut self) -> Option<Instruction> {
         let instr_label = self.parse_label();
         self.expect(TokenType::Colon);
 
@@ -109,7 +182,7 @@ impl Parser {
         Some(instr)
     }
 
-    pub fn parse_instr_type(&mut self) -> Option<InstructionType> {
+    fn parse_instr_type(&mut self) -> Option<InstructionType> {
         match self.current() {
             Some(token) => {
                 if token.token_type == TokenType::Do {
@@ -128,7 +201,7 @@ impl Parser {
         }
     }
 
-    pub fn parse_instr_op(&mut self) -> Option<Operation> {
+    fn parse_instr_op(&mut self) -> Option<Operation> {
         self.next();
         let oper_type = self.parse_operation_type();
 
@@ -141,7 +214,7 @@ impl Parser {
         Some(operation)
     }
 
-    pub fn parse_operation_type(&mut self) -> Option<OperationType> {
+    fn parse_operation_type(&mut self) -> Option<OperationType> {
         match self.current() {
             Some(token) => match token.token_type {
                 TokenType::Identifier => {
@@ -168,7 +241,7 @@ impl Parser {
         }
     }
 
-    pub fn parse_instr_test(&mut self) -> Option<Test> {
+    fn parse_instr_test(&mut self) -> Option<Test> {
         self.next();
         let test_type = self.parse_test_type();
 
@@ -189,7 +262,7 @@ impl Parser {
         Some(test)
     }
 
-    pub fn parse_test_type(&mut self) -> Option<TestType> {
+    fn parse_test_type(&mut self) -> Option<TestType> {
         match self.current() {
             Some(token) => match token.token_type {
                 TokenType::Identifier => {
@@ -216,7 +289,7 @@ impl Parser {
         }
     }
 
-    pub fn parse_builtin_param(&mut self) -> Option<Symbol> {
+    fn parse_builtin_param(&mut self) -> Option<Symbol> {
         let has_parens = self.check_expect(TokenType::OpenParen);
         let parameter = self.parse_register();
         if has_parens {
@@ -225,7 +298,34 @@ impl Parser {
         parameter
     }
 
-    pub fn parse_macro_param(&mut self) -> Option<MacroParam> {
+    fn parse_list_params<F, T>(&mut self, mut parse_param: F) -> Option<Vec<T>> 
+    where 
+        F: FnMut(&mut Self) -> Option<T>
+    {
+        self.expect(TokenType::OpenParen);
+
+        let mut parameters = Vec::new();
+        let mut needs_comma = false;
+
+        while !self.check_expect(TokenType::CloseParen) {
+            if needs_comma {
+                panic!("errooooou")
+            }
+
+            if let Some(parameter) = parse_param(self) {
+                parameters.push(parameter);
+                needs_comma = !self.check_expect(TokenType::Comma);
+            }
+        }
+
+        Some(parameters)
+    }
+
+    fn parse_macro_params(&mut self) -> Option<Vec<MacroParam>> {
+        self.parse_list_params(Self::parse_macro_param)
+    }
+
+    fn parse_macro_param(&mut self) -> Option<MacroParam> {
         match self.current() {
             Some(token) => match token.token_type {
                 TokenType::Identifier => {
@@ -251,27 +351,7 @@ impl Parser {
         }
     }
 
-    pub fn parse_macro_params(&mut self) -> Option<Vec<MacroParam>> {
-        self.expect(TokenType::OpenParen);
-
-        let mut parameters = Vec::new();
-        let mut needs_comma = false;
-
-        while self.check_expect(TokenType::CloseParen) {
-            if needs_comma {
-                panic!("errooooo")
-            }
-
-            if let Some(parameter) = self.parse_macro_param() {
-                parameters.push(parameter);
-                needs_comma = !self.check_expect(TokenType::Comma);
-            }
-        }
-
-        Some(parameters)
-    }
-
-    pub fn parse_register(&mut self) -> Option<Symbol> {
+    fn parse_register(&mut self) -> Option<Symbol> {
         match self.current() {
             Some(token) => {
                 if token.token_type == TokenType::Identifier {
@@ -289,35 +369,7 @@ impl Parser {
         }
     }
 
-    pub fn expect(&mut self, expected_type: TokenType) {
-        // falta passar o diagnostics para cá depois
-        match self.current() {
-            Some(token) => {
-                if token.token_type == expected_type {
-                    self.next();
-                } else {
-                    panic!("Whatever")
-                }
-            },
-            None => panic!("Whatever"),
-        }
-    }
-
-    pub fn check_expect(&mut self, expected_type: TokenType) -> bool {
-        match self.current() {
-            Some(token) => {
-                if token.token_type == expected_type {
-                    self.next();
-                    true
-                } else {
-                    false
-                }
-            },
-            None => false,
-        }
-    }
-
-    pub fn parse_label(&mut self) -> Option<Symbol> {
+    fn parse_label(&mut self) -> Option<Symbol> {
         match self.current() {
             Some(token) => match token.token_type {
                 TokenType::Number | TokenType::Identifier => {
