@@ -70,6 +70,7 @@ pub struct Main {
     pub code: IndexMap<String, Instruction>,
 }
 
+#[derive(Debug, Clone)]
 pub struct Program {
     pub main: Main,
     pub macros: IndexMap<String, Macro>,
