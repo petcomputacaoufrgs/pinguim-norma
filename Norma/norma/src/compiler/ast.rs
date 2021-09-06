@@ -8,12 +8,6 @@ pub struct Instruction {
     pub instruction_type: InstructionType,
 }
 
-impl Instruction {
-    pub fn new(label: Symbol, typ: InstructionType) -> Self {
-        Instruction { label, instruction_type: typ }
-    }
-}
-
 #[derive(Clone, Debug)]
 pub enum OperationType {
     BuiltIn(BuiltInOperation, Symbol),
