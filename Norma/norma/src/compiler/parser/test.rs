@@ -9,7 +9,7 @@ use indexmap::IndexMap;
 
 #[test]
 fn greater_than_one() {
-    let source_code = "test isNotZero (A) {
+    let source_code = "test notZero (A) {
         1: if zero A then goto false else goto true
     }
     
@@ -31,10 +31,10 @@ fn greater_than_one() {
     let expected_mac = gt_one_macros();
     let expected_result = Program { main: expected_main, macros: expected_mac };
 
-    let diagnostics = Diagnostics::new();
+    let mut diagnostics = Diagnostics::new();
     let result = parse(generate_tokens(source_code, &mut diagnostics));
 
-    eprintln!("{:#?}", result);
+    assert_eq!(result, Some(expected_result));
 }
 
 /// dec_x: do dec X goto inc_y
@@ -44,16 +44,16 @@ fn gt_one_main_dec_x() -> Instruction {
             content: String::from("dec_x"),
             span: Span {
                 start: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 301,
+                    utf16_index: 301,
+                    line: 15,
+                    column: 9,
                 },
                 end: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 306,
+                    utf16_index: 306,
+                    line: 15,
+                    column: 14,
                 },
             },
         },
@@ -64,16 +64,16 @@ fn gt_one_main_dec_x() -> Instruction {
                     content: String::from("X"),
                     span: Span {
                         start: Position {
-                            utf8_index: 0,
-                            utf16_index: 0,
-                            line: 0,
-                            column: 0,
+                            utf8_index: 315,
+                            utf16_index: 315,
+                            line: 15,
+                            column: 23,
                         },
                         end: Position {
-                            utf8_index: 0,
-                            utf16_index: 0,
-                            line: 0,
-                            column: 0,
+                            utf8_index: 316,
+                            utf16_index: 316,
+                            line: 15,
+                            column: 24,
                         },
                     },
                 },
@@ -82,16 +82,16 @@ fn gt_one_main_dec_x() -> Instruction {
                 content: String::from("inc_y"),
                 span: Span {
                     start: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 322,
+                        utf16_index: 322,
+                        line: 15,
+                        column: 30,
                     },
                     end: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 327,
+                        utf16_index: 327,
+                        line: 15,
+                        column: 35,
                     },
                 },
             },
@@ -106,16 +106,16 @@ fn gt_one_main_inc_y_params() -> Vec<MacroParam> {
             content: String::from("Y"),
             span: Span {
                 start: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 360,
+                    utf16_index: 360,
+                    line: 16,
+                    column: 33,
                 },
                 end: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 361,
+                    utf16_index: 361,
+                    line: 16,
+                    column: 34,
                 },
             },
         }),
@@ -123,16 +123,16 @@ fn gt_one_main_inc_y_params() -> Vec<MacroParam> {
             content: String::from("X"),
             span: Span {
                 start: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 363,
+                    utf16_index: 363,
+                    line: 16,
+                    column: 36,
                 },
                 end: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 364,
+                    utf16_index: 364,
+                    line: 16,
+                    column: 37,
                 },
             },
         }),
@@ -148,16 +148,16 @@ fn gt_one_main_inc_y() -> Instruction {
             content: String::from("inc_y"),
             span: Span {
                 start: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 336,
+                    utf16_index: 336,
+                    line: 16,
+                    column: 9,
                 },
                 end: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 341,
+                    utf16_index: 341,
+                    line: 16,
+                    column: 14,
                 },
             },
         },
@@ -167,16 +167,16 @@ fn gt_one_main_inc_y() -> Instruction {
                     content: String::from("incIfNotZero"),
                     span: Span {
                         start: Position {
-                            utf8_index: 0,
-                            utf16_index: 0,
-                            line: 0,
-                            column: 0,
+                            utf8_index: 346,
+                            utf16_index: 346,
+                            line: 16,
+                            column: 19,
                         },
                         end: Position {
-                            utf8_index: 0,
-                            utf16_index: 0,
-                            line: 0,
-                            column: 0,
+                            utf8_index: 358,
+                            utf16_index: 358,
+                            line: 16,
+                            column: 31,
                         },
                     },
                 },
@@ -186,16 +186,16 @@ fn gt_one_main_inc_y() -> Instruction {
                 content: String::from("0"),
                 span: Span {
                     start: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 372,
+                        utf16_index: 372,
+                        line: 16,
+                        column: 45,
                     },
                     end: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 373,
+                        utf16_index: 373,
+                        line: 16,
+                        column: 46,
                     },
                 },
             },
@@ -203,14 +203,14 @@ fn gt_one_main_inc_y() -> Instruction {
     }
 }
 
-/// test isNotZero (A) {
+/// test notZero (A) {
 ///     1: if zero A then goto false else goto true
 /// }
 fn gt_one_main() -> Main {
     let instr_dec_x = gt_one_main_dec_x();
     let instr_inc_y = gt_one_main_inc_y();
 
-    let main_code = IndexMap::new();
+    let mut main_code = IndexMap::new();
     main_code.insert(instr_dec_x.label.content.clone(), instr_dec_x);
     main_code.insert(instr_inc_y.label.content.clone(), instr_inc_y);
 
@@ -218,22 +218,22 @@ fn gt_one_main() -> Main {
 }
 
 /// 1: if zero A then goto false else goto true
-fn gt_one_is_not_zero_1() -> Instruction {
+fn gt_one_not_zero_1() -> Instruction {
     Instruction {
         label: Symbol {
             content: String::from("1"),
             span: Span {
                 start: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 27,
+                    utf16_index: 27,
+                    line: 2,
+                    column: 9,
                 },
                 end: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 28,
+                    utf16_index: 28,
+                    line: 2,
+                    column: 10,
                 },
             },
         },
@@ -241,19 +241,19 @@ fn gt_one_is_not_zero_1() -> Instruction {
             test_type: TestType::BuiltIn(
                 BuiltInTest::Zero,
                 Symbol {
-                    content: String::from("1"),
+                    content: String::from("A"),
                     span: Span {
                         start: Position {
-                            utf8_index: 0,
-                            utf16_index: 0,
-                            line: 0,
-                            column: 0,
+                            utf8_index: 38,
+                            utf16_index: 38,
+                            line: 2,
+                            column: 20,
                         },
                         end: Position {
-                            utf8_index: 0,
-                            utf16_index: 0,
-                            line: 0,
-                            column: 0,
+                            utf8_index: 39,
+                            utf16_index: 39,
+                            line: 2,
+                            column: 21,
                         },
                     },
                 },
@@ -262,16 +262,16 @@ fn gt_one_is_not_zero_1() -> Instruction {
                 content: String::from("false"),
                 span: Span {
                     start: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 50,
+                        utf16_index: 50,
+                        line: 2,
+                        column: 32,
                     },
                     end: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 55,
+                        utf16_index: 55,
+                        line: 2,
+                        column: 37,
                     },
                 },
             },
@@ -279,16 +279,16 @@ fn gt_one_is_not_zero_1() -> Instruction {
                 content: String::from("true"),
                 span: Span {
                     start: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 66,
+                        utf16_index: 66,
+                        line: 2,
+                        column: 48,
                     },
                     end: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 70,
+                        utf16_index: 70,
+                        line: 2,
+                        column: 52,
                     },
                 },
             },
@@ -296,27 +296,30 @@ fn gt_one_is_not_zero_1() -> Instruction {
     }
 }
 
-fn gt_one_is_not_zero() -> Macro {
+/// test notZero (A) {
+///    1: if zero A then goto false else goto true
+/// }
+fn gt_one_not_zero() -> Macro {
     let mut code = IndexMap::new();
-    let instr_1 = gt_one_is_not_zero_1();
+    let instr_1 = gt_one_not_zero_1();
     code.insert(instr_1.label.content.clone(), instr_1);
 
     Macro {
         macro_type: MacroType::Test,
         name: Symbol {
-            content: String::from("isNotZero"),
+            content: String::from("notZero"),
             span: Span {
                 start: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 5,
+                    utf16_index: 5,
+                    line: 1,
+                    column: 6,
                 },
                 end: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 12,
+                    utf16_index: 12,
+                    line: 1,
+                    column: 13,
                 },
             },
         },
@@ -324,21 +327,42 @@ fn gt_one_is_not_zero() -> Macro {
             content: String::from("A"),
             span: Span {
                 start: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 14,
+                    utf16_index: 14,
+                    line: 1,
+                    column: 15,
                 },
                 end: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 15,
+                    utf16_index: 15,
+                    line: 1,
+                    column: 16,
                 },
             },
         }],
         instr: code,
     }
+}
+
+/// (B)
+fn gt_one_inc_if_nz_1_params() -> Vec<MacroParam> {
+    vec![MacroParam::Register(Symbol {
+        content: String::from("B"),
+        span: Span {
+            start: Position {
+                utf8_index: 141,
+                utf16_index: 141,
+                line: 6,
+                column: 24,
+            },
+            end: Position {
+                utf8_index: 142,
+                utf16_index: 142,
+                line: 6,
+                column: 25,
+            },
+        },
+    })]
 }
 
 /// 1: if notZero (B) then goto 2 else goto 0
@@ -348,54 +372,54 @@ fn gt_one_inc_if_nz_1() -> Instruction {
             content: String::from("1"),
             span: Span {
                 start: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 126,
+                    utf16_index: 126,
+                    line: 6,
+                    column: 9,
                 },
                 end: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 127,
+                    utf16_index: 127,
+                    line: 6,
+                    column: 10,
                 },
             },
         },
         instruction_type: InstructionType::Test(Test {
-            test_type: TestType::BuiltIn(
-                BuiltInTest::Zero,
+            test_type: TestType::Macro(
                 Symbol {
-                    content: String::from("1"),
+                    content: String::from("notZero"),
                     span: Span {
                         start: Position {
-                            utf8_index: 0,
-                            utf16_index: 0,
-                            line: 0,
-                            column: 0,
+                            utf8_index: 132,
+                            utf16_index: 132,
+                            line: 6,
+                            column: 15,
                         },
                         end: Position {
-                            utf8_index: 0,
-                            utf16_index: 0,
-                            line: 0,
-                            column: 0,
+                            utf8_index: 139,
+                            utf16_index: 139,
+                            line: 6,
+                            column: 22,
                         },
                     },
                 },
+                gt_one_inc_if_nz_1_params(),
             ),
             next_true_label: Symbol {
                 content: String::from("2"),
                 span: Span {
                     start: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 154,
+                        utf16_index: 154,
+                        line: 6,
+                        column: 37,
                     },
                     end: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 155,
+                        utf16_index: 155,
+                        line: 6,
+                        column: 38,
                     },
                 },
             },
@@ -403,16 +427,16 @@ fn gt_one_inc_if_nz_1() -> Instruction {
                 content: String::from("0"),
                 span: Span {
                     start: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 166,
+                        utf16_index: 166,
+                        line: 6,
+                        column: 49,
                     },
                     end: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 167,
+                        utf16_index: 167,
+                        line: 6,
+                        column: 50,
                     },
                 },
             },
@@ -427,16 +451,16 @@ fn gt_one_inc_if_nz_2() -> Instruction {
             content: String::from("2"),
             span: Span {
                 start: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 176,
+                    utf16_index: 176,
+                    line: 7,
+                    column: 9,
                 },
                 end: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 177,
+                    utf16_index: 177,
+                    line: 7,
+                    column: 10,
                 },
             },
         },
@@ -447,16 +471,16 @@ fn gt_one_inc_if_nz_2() -> Instruction {
                     content: String::from("A"),
                     span: Span {
                         start: Position {
-                            utf8_index: 0,
-                            utf16_index: 0,
-                            line: 0,
-                            column: 0,
+                            utf8_index: 187,
+                            utf16_index: 187,
+                            line: 7,
+                            column: 20,
                         },
                         end: Position {
-                            utf8_index: 0,
-                            utf16_index: 0,
-                            line: 0,
-                            column: 0,
+                            utf8_index: 188,
+                            utf16_index: 188,
+                            line: 7,
+                            column: 21,
                         },
                     },
                 },
@@ -465,16 +489,16 @@ fn gt_one_inc_if_nz_2() -> Instruction {
                 content: String::from("0"),
                 span: Span {
                     start: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 195,
+                        utf16_index: 195,
+                        line: 7,
+                        column: 28,
                     },
                     end: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 196,
+                        utf16_index: 196,
+                        line: 7,
+                        column: 29,
                     },
                 },
             },
@@ -499,16 +523,16 @@ fn gt_one_inc_if_nz() -> Macro {
             content: String::from("incIfNotZero"),
             span: Span {
                 start: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 96,
+                    utf16_index: 96,
+                    line: 5,
+                    column: 15,
                 },
                 end: Position {
-                    utf8_index: 0,
-                    utf16_index: 0,
-                    line: 0,
-                    column: 0,
+                    utf8_index: 108,
+                    utf16_index: 108,
+                    line: 5,
+                    column: 27,
                 },
             },
         },
@@ -517,16 +541,16 @@ fn gt_one_inc_if_nz() -> Macro {
                 content: String::from("A"),
                 span: Span {
                     start: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 110,
+                        utf16_index: 110,
+                        line: 5,
+                        column: 29,
                     },
                     end: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 111,
+                        utf16_index: 111,
+                        line: 5,
+                        column: 30,
                     },
                 },
             },
@@ -534,16 +558,16 @@ fn gt_one_inc_if_nz() -> Macro {
                 content: String::from("B"),
                 span: Span {
                     start: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 113,
+                        utf16_index: 113,
+                        line: 5,
+                        column: 32,
                     },
                     end: Position {
-                        utf8_index: 0,
-                        utf16_index: 0,
-                        line: 0,
-                        column: 0,
+                        utf8_index: 114,
+                        utf16_index: 114,
+                        line: 5,
+                        column: 33,
                     },
                 },
             },
@@ -555,8 +579,8 @@ fn gt_one_inc_if_nz() -> Macro {
 fn gt_one_macros() -> IndexMap<String, Macro> {
     let mut macros = IndexMap::<String, Macro>::new();
 
-    let is_not_zero = gt_one_is_not_zero();
-    macros.insert(is_not_zero.name.content.clone(), is_not_zero);
+    let not_zero = gt_one_not_zero();
+    macros.insert(not_zero.name.content.clone(), not_zero);
 
     let inc_if_nz = gt_one_inc_if_nz();
     macros.insert(inc_if_nz.name.content.clone(), inc_if_nz);
