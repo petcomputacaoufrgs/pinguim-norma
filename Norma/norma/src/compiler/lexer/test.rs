@@ -1,7 +1,14 @@
 use super::{
     super::{
         error::Diagnostics,
-        token::{Position, Span, Token, TokenType},
+        token::{
+            BuiltInOperation,
+            BuiltInTest,
+            Position,
+            Span,
+            Token,
+            TokenType,
+        },
     },
     generate_tokens,
 };
@@ -192,7 +199,7 @@ fn single_add_many_spaces_around() {
     assert_eq!(
         tokens,
         &[Token {
-            token_type: TokenType::Add,
+            token_type: TokenType::Identifier,
             content: "add".to_owned(),
             span: Span {
                 start: Position {
@@ -345,7 +352,7 @@ fn comments() {
                 },
             },
             Token {
-                token_type: TokenType::Zero,
+                token_type: TokenType::BuiltInTest(BuiltInTest::Zero),
                 content: "zero".to_owned(),
                 span: Span {
                     start: Position {
@@ -381,7 +388,7 @@ fn comments() {
                 },
             },
             Token {
-                token_type: TokenType::Inc,
+                token_type: TokenType::BuiltInOper(BuiltInOperation::Inc),
                 content: "inc".to_owned(),
                 span: Span {
                     start: Position {
@@ -507,7 +514,7 @@ fn id_program() {
                 },
             },
             Token {
-                token_type: TokenType::Zero,
+                token_type: TokenType::BuiltInTest(BuiltInTest::Zero),
                 content: "zero".to_owned(),
                 span: Span {
                     start: Position {
@@ -705,7 +712,7 @@ fn id_program() {
                 },
             },
             Token {
-                token_type: TokenType::Inc,
+                token_type: TokenType::BuiltInOper(BuiltInOperation::Inc),
                 content: "inc".to_owned(),
                 span: Span {
                     start: Position {
@@ -831,7 +838,7 @@ fn id_program() {
                 },
             },
             Token {
-                token_type: TokenType::Dec,
+                token_type: TokenType::BuiltInOper(BuiltInOperation::Dec),
                 content: "dec".to_owned(),
                 span: Span {
                     start: Position {
