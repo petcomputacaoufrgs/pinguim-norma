@@ -3,7 +3,7 @@ mod test;
 
 use num_bigint::BigUint;
 use num_traits::identities::Zero;
-use std::{cmp::Ordering, collections::HashMap, ops::AddAssign};
+use std::{cmp::Ordering, collections::HashMap};
 
 /// Um registrador da norma (sendo um  número natural arbitrário).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -40,14 +40,19 @@ impl Register {
         self.value.is_zero()
     }
 
+    /// Limpa o valor do registrador (define-o para zero).
+    fn clear(&mut self) {
+        self.value.set_zero();
+    }
+
     /// Adiciona uma constante ao registrador.
-    fn add_const(&mut self, constant: &BigUint) {
+    fn add(&mut self, constant: &BigUint) {
         self.value += constant;
     }
 
     /// Subtrai uma constante do registrador. A subtração satura no zero, caso a
     /// constante seja maior que o valor armazenado.
-    fn sub_const(&mut self, constant: &BigUint) {
+    fn sub(&mut self, constant: &BigUint) {
         if self.value <= *constant {
             self.value.set_zero();
         } else {
@@ -57,7 +62,7 @@ impl Register {
 
     /// Compara o registrador a uma constante e retorna se o valor armazenado é
     /// menor, igual ou maior à ela.
-    fn cmp_const(&self, constant: &BigUint) -> Ordering {
+    fn cmp(&self, constant: &BigUint) -> Ordering {
         self.value.cmp(constant)
     }
 
@@ -66,19 +71,24 @@ impl Register {
         self.value.clone()
     }
 
-    /// Atualiza valor do registrador.
-    fn update_value(&mut self, new_value: BigUint) {
-        self.value = new_value
+    /// Define o valor do registrador.
+    fn set_value(&mut self, value: BigUint) {
+        self.value = value;
     }
 }
 
 /// Banco de registradores da Norma.
+#[derive(Debug, Clone)]
 pub struct Machine {
     /// Mapa de nomes de registradores para seus valores.
     registers: HashMap<String, Register>,
-    /// Contador de passos.
-    /// (LEMBRETE: rever se isso fica aqui ou vai pro interpretador).
-    steps_counter: BigUint,
+}
+
+impl Default for Machine {
+    /// Inicia com ambos X e Y zerados.
+    fn default() -> Self {
+        Self::new(BigUint::zero())
+    }
 }
 
 impl Machine {
@@ -87,103 +97,161 @@ impl Machine {
     /// desejado Y: Registrador de saída, armazenará o valor retornado ao fim
     /// da execução
     pub fn new(input: BigUint) -> Machine {
-        let mut register_bank: HashMap<String, Register> = HashMap::new();
-        register_bank.insert("X".to_string(), Register::new(input));
-        register_bank.insert("Y".to_string(), Register::new_empty());
-        Machine { registers: register_bank, steps_counter: BigUint::zero() }
+        let mut this = Self { registers: HashMap::new() };
+        this.insert_with_value("X", input);
+        this.insert("Y");
+        this
     }
 
-    /// Insere um novo registrador no banco de nome `key`.
-    pub fn insert(&mut self, key: &str) {
-        self.registers.insert(key.to_string(), Register::new_empty());
+    /// Define o valor de entrada (AKA valor do registrador X).
+    pub fn input(&mut self, data: BigUint) {
+        self.get_register_mut("X").set_value(data);
+    }
+
+    /// Pega o valor de saída (AKA valor do registrador Y).
+    pub fn output(&self) -> BigUint {
+        self.get_value("Y")
+    }
+
+    /// Insere um novo registrador no banco de nome `reg_name`.
+    pub fn insert(&mut self, reg_name: &str) {
+        self.registers.insert(reg_name.to_string(), Register::new_empty());
     }
 
     /// Insere um novo registrador com valor arbitrário (i.e. possibilita
-    /// valores diferentes de zero), onde `key` é o nome do registrador e
+    /// valores diferentes de zero), onde `reg_name` é o nome do registrador e
     /// `value` é o valor inicial do registrador.
-    pub fn insert_with_value(&mut self, key: &str, value: BigUint) {
-        self.registers.insert(key.to_string(), Register::new(value));
+    pub fn insert_with_value(&mut self, reg_name: &str, value: BigUint) {
+        self.registers.insert(reg_name.to_string(), Register::new(value));
     }
 
-    /// Incrementa o valor de um registrador existente com nome `key`.
+    /// Limpa todos registradores (define-os para zero).
+    pub fn clear_all(&mut self) {
+        for register in self.registers.values_mut() {
+            register.clear();
+        }
+    }
+
+    /// Limpa o valor do dado registrador (define-o para zero).
     ///
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
-    pub fn inc(&mut self, key: &str) {
-        self.count_steps(1u8);
-        self.get_register_mut(key).inc();
+    pub fn clear(&mut self, reg_name: &str) {
+        self.get_register_mut(reg_name).clear();
     }
 
-    /// Decrementa o valor de um registrador existente com nome `key`. Satura em
-    /// zero.
+    /// Incrementa o valor de um registrador existente com nome `reg_name`.
     ///
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
-    pub fn dec(&mut self, key: &str) {
-        self.count_steps(1u8);
-        self.get_register_mut(key).dec();
+    pub fn inc(&mut self, reg_name: &str) {
+        self.get_register_mut(reg_name).inc();
+    }
+
+    /// Decrementa o valor de um registrador existente com nome `reg_name`.
+    /// Satura em zero.
+    ///
+    /// # Panics
+    /// Invoca `panic!` se o registrador não existir.
+    pub fn dec(&mut self, reg_name: &str) {
+        self.get_register_mut(reg_name).dec();
+    }
+
+    /// Performa uma adição entre registradores.
+    ///
+    /// É colocado em `dest` o resultado da adição `dest + src`, emulando o
+    /// uso do registrador `tmp` como temporário/auxiliar, que será atualizado
+    /// para zero.
+    ///
+    /// # Panics
+    /// Invoca `panic!` se qualquer um dos registradores `dest`, `src` ou `tmp`
+    /// não existir.
+    pub fn add(&mut self, dest: &str, src: &str, tmp: &str) {
+        let operand = self.get_value(src);
+        self.get_register_mut(dest).add(&operand);
+        self.get_register_mut(tmp).clear();
     }
 
     /// Soma uma constante `constant` ao valor de um registrador existente com
-    /// nome `key`. Satura em zero.
+    /// nome `reg_name`. Satura em zero.
     ///
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
-    pub fn add_const(&mut self, key: &str, constant: &BigUint) {
-        self.count_steps(constant);
-        self.get_register_mut(key).add_const(constant);
+    pub fn add_const(&mut self, reg_name: &str, constant: &BigUint) {
+        self.get_register_mut(reg_name).add(constant);
+    }
+
+    /// Performa uma subtração entre registradores.
+    ///
+    /// É colocado em `dest` o resultado da subtração `dest - src`, emulando o
+    /// uso do registrador `tmp` como temporário/auxiliar, que será atualizado
+    /// para zero.
+    ///
+    /// # Panics
+    /// Invoca `panic!` se qualquer um dos registradores `dest`, `src` ou `tmp`
+    /// não existir.
+    pub fn sub(&mut self, dest: &str, src: &str, tmp: &str) {
+        let operand = self.get_value(src);
+        self.get_register_mut(dest).sub(&operand);
+        self.get_register_mut(tmp).clear();
     }
 
     /// Subtrai uma constante `constant` do valor de um registrador existente
-    /// com nome `key`. Satura em zero.
+    /// com nome `reg_name`. Satura em zero.
     ///
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
-    pub fn sub_const(&mut self, key: &str, constant: &BigUint) {
-        self.count_steps(constant);
-        self.get_register_mut(key).sub_const(constant);
+    pub fn sub_const(&mut self, reg_name: &str, constant: &BigUint) {
+        self.get_register_mut(reg_name).sub(constant);
     }
 
-    /// Compara o valor do registrador existente de nome `key` a uma constante
-    /// `constant` com nome `key`. Retorna se é menor, igual ou maior à
-    /// constante.
+    /// Performa uma comparação entre registradores.
+    ///
+    /// Retorna a ordem (menor/igual/maior) entre `left` e `right`, emulando
+    /// o uso do registrador `tmp` como temporário/auxiliar, que será
+    /// atualizado para zero.
     ///
     /// # Panics
-    /// Invoca `panic!` se o registrador não existir.
-    pub fn eq_const(&mut self, key: &str, constant: &BigUint) -> bool {
-        let register = self.get_register(key);
-        let cmp_result = register.cmp_const(constant);
-
-        let steps = if cmp_result <= Ordering::Equal {
-            constant * 3u8 + 1u8
-        } else {
-            register.get_value() * 3u8 + 1u8
-        };
-        self.count_steps(steps);
-
-        cmp_result == Ordering::Equal
+    /// Invoca `panic!` se qualquer um dos registradores `left`, `right` ou
+    /// `tmp` não existir.
+    pub fn cmp(
+        &mut self,
+        reg_left: &str,
+        reg_right: &str,
+        reg_tmp: &str,
+    ) -> Ordering {
+        self.get_register_mut(reg_tmp).clear();
+        self.get_register(reg_left).cmp(&self.get_register(&reg_right).value)
     }
 
-    /// Testa se o valor do registrador existente de nome `key` é zero.
+    /// Compara o valor do registrador existente de nome `reg_name` a uma
+    /// constante `constant` com nome `reg_name`. Retorna se é menor, igual
+    /// ou maior à constante.
     ///
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
-    pub fn is_zero(&mut self, key: &str) -> bool {
-        self.count_steps(1u8);
-        self.get_register_mut(key).is_zero()
+    pub fn cmp_const(
+        &mut self,
+        reg_name: &str,
+        constant: &BigUint,
+    ) -> Ordering {
+        self.get_register(reg_name).cmp(constant)
+    }
+
+    /// Testa se o valor do registrador existente de nome `reg_name` é zero.
+    ///
+    /// # Panics
+    /// Invoca `panic!` se o registrador não existir.
+    pub fn is_zero(&self, reg_name: &str) -> bool {
+        self.get_register(reg_name).is_zero()
     }
 
     /// Retorna o valor de um registrador existente pela sua chave.
     ///
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
-    pub fn get_value(&self, key: &str) -> BigUint {
-        self.get_register(key).get_value()
-    }
-
-    /// Retorna valor do contador de passos.
-    pub fn get_counted_steps(&self) -> BigUint {
-        self.steps_counter.clone()
+    pub fn get_value(&self, reg_name: &str) -> BigUint {
+        self.get_register(reg_name).get_value()
     }
 
     /// Exporta os registradores em um mapa de
@@ -198,48 +266,27 @@ impl Machine {
         exported
     }
 
-    /// Conta a quantidade informada de passos dados, tal que a quantidade seja
-    /// de qualquer tipo somável a um `BigUint`, tal como `u8`, `u64`,
-    /// `BigUint`, `&BigUint`, etc.
-    fn count_steps<T>(&mut self, value: T)
-    where
-        BigUint: AddAssign<T>,
-    {
-        self.steps_counter += value;
-    }
-
-    /// Pesquisa um registrador existente de nome `key` e retorna uma referência
-    /// imutável a ele.
+    /// Pesquisa um registrador existente de nome `reg_name` e retorna uma
+    /// referência imutável a ele.
     ///
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
-    fn get_register(&self, key: &str) -> &Register {
-        match self.registers.get(key) {
+    fn get_register(&self, reg_name: &str) -> &Register {
+        match self.registers.get(reg_name) {
             Some(register) => register,
-            None => panic!("Register {} does not exist", key),
+            None => panic!("Register {} does not exist", reg_name),
         }
     }
 
-    /// Pesquisa um registrador existente de nome `key` e retorna uma referência
-    /// Mutável a ele, ou seja, possibilita modificação.
+    /// Pesquisa um registrador existente de nome `reg_name` e retorna uma
+    /// referência Mutável a ele, ou seja, possibilita modificação.
     ///
     /// # Panics
     /// Invoca `panic!` se o registrador não existir.
-    fn get_register_mut(&mut self, key: &str) -> &mut Register {
-        match self.registers.get_mut(key) {
+    fn get_register_mut(&mut self, reg_name: &str) -> &mut Register {
+        match self.registers.get_mut(reg_name) {
             Some(register) => register,
-            None => panic!("Register {} does not exist", key),
+            None => panic!("Register {} does not exist", reg_name),
         }
-    }
-
-    /// Atualiza o valor de um registrador existente.
-    ///
-    /// # Panics
-    /// Invoca `panic!` se o registrador não existir.
-    ///
-    /// LEMBRETE: ver se vamos acabar usando, é um método interno de Machine e
-    /// agora isso não tá sendo usado pra nada.
-    fn update_register(&mut self, key: &str, new_value: BigUint) {
-        self.get_register_mut(key).update_value(new_value)
     }
 }
