@@ -43,7 +43,7 @@ impl Program {
 impl fmt::Display for Program {
     fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
         for instruction in self.instructions.values() {
-            write!(fmtr, "{}", instruction)?;
+            write!(fmtr, "{}\n", instruction)?;
         }
         Ok(())
     }
