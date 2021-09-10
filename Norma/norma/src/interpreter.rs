@@ -103,6 +103,7 @@ impl Interpreter {
             .program
             .first_label()
             .expect("No mínimo uma instrução esperada");
+        self.steps.set_zero();
     }
 
     /// Roda a instrução atual, mas somente essa, caso o rótulo da instrução
