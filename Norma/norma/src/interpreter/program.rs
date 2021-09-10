@@ -115,6 +115,9 @@ pub enum OperationKind {
     Dec(String),
     /// Limpa o registrador do primeiro parâmetro.
     Clear(String),
+    /// Carrega uma constante (segundo parâmetro) no registrador do primeiro
+    /// parâmetro.
+    Load(String, BigUint),
     /// Adiciona uma constante (segundo parâmetro) ao registrador do primeiro
     /// parâmetro.
     AddConst(String, BigUint),
@@ -136,6 +139,9 @@ impl fmt::Display for OperationKind {
             OperationKind::Dec(register) => write!(fmtr, "dec {}", register),
             OperationKind::Clear(register) => {
                 write!(fmtr, "clear ({})", register)
+            },
+            OperationKind::Load(register, constant) => {
+                write!(fmtr, "load ({}, {})", register, constant)
             },
             OperationKind::AddConst(register, constant) => {
                 write!(fmtr, "add ({}, {})", register, constant)
