@@ -32,9 +32,11 @@ fn greater_than_one() {
     let expected_result = Program { main: expected_main, macros: expected_mac };
 
     let mut diagnostics = Diagnostics::new();
-    let result = parse(generate_tokens(source_code, &mut diagnostics));
+    let result = parse(generate_tokens(source_code, &mut diagnostics), &mut diagnostics);
 
-    assert_eq!(result, Some(expected_result));
+    let final_result = if result.is_ok() { result.unwrap() } else { None };
+
+    assert_eq!(final_result, Some(expected_result));
 }
 
 /// dec_x: do dec X goto inc_y

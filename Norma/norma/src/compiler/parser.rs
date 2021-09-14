@@ -12,6 +12,7 @@ pub fn parse(tokens: Vec<Token>, diagnostics: &mut Diagnostics) -> Result<Option
     Parser::new(tokens).parse_program(diagnostics)
 }
 
+#[derive(Debug)]
 pub struct Abort;
 
 #[derive(Debug)]
