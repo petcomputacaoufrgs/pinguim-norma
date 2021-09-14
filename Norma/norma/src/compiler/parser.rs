@@ -71,21 +71,40 @@ impl Parser {
     fn parse_program(&mut self, diagnostics: &mut Diagnostics) -> Result<Option<Program>, Abort> {
         let mut macros = IndexMap::<String, Macro>::new();
         let mut main_option: Option<Main> = None;
+        let mut main_declared = false;
 
         while let Some(token) = self.current() {
+
+            let token_span = token.span;
+
             match token.token_type {
                 TokenType::Main => {
-                    // conferir se existe mais de uma main
-                    main_option = self.parse_main(diagnostics)?;
+                    // se main não declarada ainda, fazer parse
+                    if !main_declared {
+                        main_option = self.parse_main(diagnostics)?;
+                        main_declared = true;
+                    
+                    // se main já declarada, jogar erro
+                    } else {
+                        diagnostics.raise(Error::new(MainAlreadyDeclared, token_span));
+                    } 
                 },
 
                 TokenType::Operation => {
                     if let Some(macro_aux) =
                         self.parse_macro_def(MacroType::Operation, diagnostics)?
                     {
-                        // conferir se ja nao esta no indexmap
-                        macros
-                            .insert(macro_aux.name.content.clone(), macro_aux);
+                        let macro_name = macro_aux.name.content.clone();
+
+                        // se ainda não existe uma macro com tal nome, insere no indexmap
+                        if !macros.contains_key(macro_name.as_str()){
+                            macros
+                                .insert(macro_name, macro_aux);
+
+                        // se já existe, adicionar erro
+                        } else {
+                            diagnostics.raise(Error::new(MacroAlreadyDeclared { macro_name }, token_span));
+                        }
                     }
                 },
 
@@ -93,9 +112,17 @@ impl Parser {
                     if let Some(macro_aux) =
                         self.parse_macro_def(MacroType::Test, diagnostics)?
                     {
-                        // conferir se ja nao esta no indexmap
-                        macros
-                            .insert(macro_aux.name.content.clone(), macro_aux);
+                        let macro_name = macro_aux.name.content.clone();
+
+                        // se ainda não existe uma macro com tal nome, insere no indexmap
+                        if !macros.contains_key(macro_name.as_str()){
+                            macros
+                                .insert(macro_name, macro_aux);
+
+                        // se já existe, adicionar erro
+                        } else {
+                            diagnostics.raise(Error::new(MacroAlreadyDeclared { macro_name }, token_span));
+                        }
                     }
                 },
 
@@ -105,8 +132,11 @@ impl Parser {
                 }
             }
         }
-        
-        // ver se a main é vazia e colocar erro no diagnostics
+
+        // se depois de parsar todas as macros, não foi declarada nenhuma main
+        if !main_declared {
+            diagnostics.raise(Error::with_no_span(MainNotDeclared));
+        }
 
         Ok(main_option.map(|main| Program { main, macros }))
     }
@@ -124,13 +154,25 @@ impl Parser {
 
         loop {
             let token = self.require_current(diagnostics)?;
+            let token_span = token.span;
+
             if token.token_type == TokenType::CloseCurly {
                 self.next();
                 break;
             } else if let Some(instr) = self.parse_instr(diagnostics)? {
 
-                // fazer a verificação de label duplicado
-                code.insert(instr.label.content.clone(), instr);
+                let label_name = instr.label.content.clone();
+
+                    // se ainda não existe uma instrução com tal label, insere no indexmap
+                    if !code.contains_key(label_name.as_str()){
+
+                        code
+                            .insert(label_name, instr);
+
+                    // se já existe, adicionar erro
+                    } else {
+                        diagnostics.raise(Error::new(LabelAlreadyDeclared { label_name }, token_span));
+                    }
             }
         }
 
