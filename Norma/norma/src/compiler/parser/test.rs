@@ -34,9 +34,8 @@ fn greater_than_one() {
     let mut diagnostics = Diagnostics::new();
     let result = parse(generate_tokens(source_code, &mut diagnostics), &mut diagnostics);
 
-    let final_result = if result.is_ok() { result.unwrap() } else { None };
-
-    assert_eq!(final_result, Some(expected_result));
+    assert_eq!(result.unwrap(), Some(expected_result));
+    assert!(diagnostics.is_ok());
 }
 
 /// dec_x: do dec X goto inc_y
