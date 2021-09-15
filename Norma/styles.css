@@ -9,12 +9,11 @@ body {
     padding-top: 0;
 }
 
-
 /* TEXTAREA FOR CODE */
 .code-textarea {
     margin: 0 2vw;
+    background: transparent;
 }
-
 
 /* REGISTERS */
 .register_section {
