@@ -94,17 +94,7 @@ impl Parser {
                     if let Some(macro_aux) =
                         self.parse_macro_def(MacroType::Operation, diagnostics)?
                     {
-                        let macro_name = macro_aux.name.content.clone();
-
-                        // se ainda não existe uma macro com tal nome, insere no indexmap
-                        if !macros.contains_key(macro_name.as_str()){
-                            macros
-                                .insert(macro_name, macro_aux);
-
-                        // se já existe, adicionar erro
-                        } else {
-                            diagnostics.raise(Error::new(MacroAlreadyDeclared { macro_name }, token_span));
-                        }
+                        self.insert_macro_def(&mut macros, macro_aux, diagnostics);
                     }
                 },
 
@@ -112,17 +102,7 @@ impl Parser {
                     if let Some(macro_aux) =
                         self.parse_macro_def(MacroType::Test, diagnostics)?
                     {
-                        let macro_name = macro_aux.name.content.clone();
-
-                        // se ainda não existe uma macro com tal nome, insere no indexmap
-                        if !macros.contains_key(macro_name.as_str()){
-                            macros
-                                .insert(macro_name, macro_aux);
-
-                        // se já existe, adicionar erro
-                        } else {
-                            diagnostics.raise(Error::new(MacroAlreadyDeclared { macro_name }, token_span));
-                        }
+                        self.insert_macro_def(&mut macros, macro_aux, diagnostics);
                     }
                 },
 
@@ -141,6 +121,20 @@ impl Parser {
         Ok(main_option.map(|main| Program { main, macros }))
     }
 
+    fn insert_macro_def(&mut self, macros: &mut IndexMap<String, Macro>, macro_def: Macro, diagnostics: &mut Diagnostics) {
+        let macro_name = macro_def.name.content.clone();
+
+        // se ainda não existe uma macro com tal nome, insere no indexmap
+        if !macros.contains_key(macro_name.as_str()){
+            macros
+                .insert(macro_name, macro_def);
+
+        // se já existe, adicionar erro
+        } else {
+            diagnostics.raise(Error::new(MacroAlreadyDeclared { macro_name }, macro_def.name.span));
+        }
+    } 
+
     fn parse_main(&mut self, diagnostics: &mut Diagnostics) -> Result<Option<Main>, Abort> {
         self.next();
         let instructions = self.parse_func_body(diagnostics)?;
@@ -149,7 +143,7 @@ impl Parser {
     }
 
     fn parse_func_body(&mut self, diagnostics: &mut Diagnostics) -> Result<IndexMap<String, Instruction>, Abort> {
-        self.expect(TokenType::OpenCurly, diagnostics);
+        self.expect(TokenType::OpenCurly, diagnostics)?;
         let mut code = IndexMap::<String, Instruction>::new();
 
         loop {
@@ -218,7 +212,7 @@ impl Parser {
 
     fn parse_instr(&mut self, diagnostics: &mut Diagnostics) -> Result<Option<Instruction>, Abort> {
         let instr_label_option = self.parse_label(diagnostics)?;
-        self.expect(TokenType::Colon, diagnostics);
+        self.expect(TokenType::Colon, diagnostics)?;
 
         let type_option = self.parse_instr_type(diagnostics)?;
 
@@ -253,7 +247,7 @@ impl Parser {
         self.next();
         let oper_type = self.parse_operation_type(diagnostics)?;
 
-        self.expect(TokenType::Goto, diagnostics);
+        self.expect(TokenType::Goto, diagnostics)?;
         let oper_label = self.parse_label(diagnostics)?;
 
         let zipped = oper_type.zip(oper_label);
@@ -300,12 +294,12 @@ impl Parser {
         self.next();
         let test_type = self.parse_test_type(diagnostics)?;
 
-        self.expect(TokenType::Then, diagnostics);
-        self.expect(TokenType::Goto, diagnostics);
+        self.expect(TokenType::Then, diagnostics)?;
+        self.expect(TokenType::Goto, diagnostics)?;
         let then_label = self.parse_label(diagnostics)?;
 
-        self.expect(TokenType::Else, diagnostics);
-        self.expect(TokenType::Goto, diagnostics);
+        self.expect(TokenType::Else, diagnostics)?;
+        self.expect(TokenType::Goto, diagnostics)?;
         let else_label = self.parse_label(diagnostics)?;
 
         let zipped = test_type.zip(then_label).zip(else_label);
@@ -361,14 +355,16 @@ impl Parser {
     where 
         F: FnMut(&mut Self, &mut Diagnostics) -> Result<Option<T>, Abort>
     {
-        self.expect(TokenType::OpenParen, diagnostics);
+        self.expect(TokenType::OpenParen, diagnostics)?;
 
         let mut parameters = Vec::new();
         let mut needs_comma = false;
 
         while !self.check_expect(TokenType::CloseParen, diagnostics)? {
             if needs_comma {
-                panic!("errooooou")
+                let expected_types = vec![TokenType::Comma, TokenType::CloseParen];
+                let span = self.require_current(diagnostics)?.span;
+                diagnostics.raise(Error::new(UnexpectedToken { expected_types }, span));
             }
 
             if let Some(parameter) = parse_param(self, diagnostics)? {
