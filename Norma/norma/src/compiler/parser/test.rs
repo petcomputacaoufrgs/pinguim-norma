@@ -34,7 +34,7 @@ fn greater_than_one() {
     let mut diagnostics = Diagnostics::new();
     let result = parse(generate_tokens(source_code, &mut diagnostics), &mut diagnostics);
 
-    assert_eq!(result.unwrap(), Some(expected_result));
+    assert_eq!(result, Some(expected_result));
     assert!(diagnostics.is_ok());
 }
 

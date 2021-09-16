@@ -8,12 +8,12 @@ use std::str::FromStr;
 use crate::compiler::error::*;
 use std::error::Error as StdError;
 
-pub fn parse(tokens: Vec<Token>, diagnostics: &mut Diagnostics) -> Result<Option<Program>, Abort> {
-    Parser::new(tokens).parse_program(diagnostics)
+pub fn parse(tokens: Vec<Token>, diagnostics: &mut Diagnostics) -> Option<Program> {
+    Parser::new(tokens).parse_program(diagnostics).ok().flatten()
 }
 
 #[derive(Debug)]
-pub struct Abort;
+struct Abort;
 
 #[derive(Debug)]
 struct Parser {
