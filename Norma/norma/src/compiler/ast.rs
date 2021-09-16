@@ -47,7 +47,7 @@ pub struct Macro {
     pub instr: IndexMap<String, Instruction>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MacroType {
     Operation,
     Test,
