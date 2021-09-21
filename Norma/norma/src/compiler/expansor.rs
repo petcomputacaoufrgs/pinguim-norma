@@ -2,6 +2,7 @@ use crate::compiler::ast;
 use std::collections::HashMap;
 use indexmap::IndexSet;
 use crate::interpreter::program::{Program, Instruction, InstructionKind, Operation, OperationKind, Test, TestKind};
+use crate::compiler::token::{BuiltInOperation, BuiltInTest};
 use crate::compiler::error::Diagnostics;
 
 pub fn expand(ast: &ast::Program, diagnostics: &mut Diagnostics) -> Option<Program> {
@@ -79,15 +80,11 @@ impl<'ast> Expansor<'ast> {
         let macro_def = self.ast.macros.get(&working_macro.precompiled.name.content).expect("Macro deve existir");
 
         while let Some((_, instr)) = macro_def.instr.get_index(working_macro.instr_index) {
-            match self.expand_instruction(instr) {
-                Ok(resulting_instr) => {
-                    working_macro.precompiled.program.insert(resulting_instr);
-                    working_macro.instr_index += 1;
-                },
+            match self.expand_instruction(instr, &mut working_macro) {
+                Ok(()) => working_macro.instr_index += 1,
                 Err(request) => {
                     self.push_working_macro(working_macro);
-                    self.target_macros.remove(&request.macro_name);     // mover para expanding_instruction????
-                    self.expand_target(request.macro_name);
+                    self.push_working_macro(request.working_macro);
                     break;
                 } 
             }
@@ -104,33 +101,67 @@ impl<'ast> Expansor<'ast> {
         self.working_macros.pop()
     }
 
-    fn expand_instruction(&mut self, instr: &'ast ast::Instruction) -> Result<Instruction, ExpansionRequired> {
-        let instr_kind = match &instr.instruction_type {
+    fn expand_instruction(&mut self, instr: &'ast ast::Instruction, working_macro: &mut WorkingMacro) -> Result<(), ExpansionRequired> {
+        match &instr.instruction_type {
             ast::InstructionType::Operation(operation) => {
-                InstructionKind::Operation(self.expand_operation(operation)?)
+                self.expand_operation(&instr.label, operation, working_macro)?;
             },
             ast::InstructionType::Test(test) => {
-                InstructionKind::Test(self.expand_test(test)?)
+                self.expand_test(&instr.label, test, working_macro)?;
             }
-        };
+        }
 
-        Ok(Instruction {
-            label: instr.label.content.clone(),
-            kind: instr_kind,
-        })
+        Ok(())
     }
     
-    fn expand_operation(&mut self, operation: &'ast ast::Operation) -> Result<Operation, ExpansionRequired> {
+    fn expand_operation(&mut self, label: &'ast ast::Symbol, operation: &'ast ast::Operation, working_macro: &mut WorkingMacro) -> Result<(), ExpansionRequired> {
+        match &operation.oper_type {
+            ast::OperationType::BuiltIn(builtin_oper, param) => {
+                let oper_kind = self.expand_builtin_oper(builtin_oper, param);
+                let runtime_oper = Operation {
+                    kind: oper_kind,
+                    next: operation.next_label.content.clone(),
+                };
+
+                let instruction = Instruction {
+                    kind: InstructionKind::Operation(runtime_oper),
+                    label: label.content.clone(),
+                };
+
+                working_macro.insert_instruction(instruction);
+
+                Ok(())
+            },
+            ast::OperationType::Macro(macro_name, params) => {
+                todo!()
+            }
+        }
+    }
+
+    fn expand_builtin_oper(&mut self, builtin_oper: BuiltInOperation, param: &'ast ast::Symbol) -> OperationKind {
+        match builtin_oper {
+            BuiltInOperation::Inc => OperationKind::Inc(param.content.clone()),
+            BuiltInOperation::Dec => OperationKind::Dec(param.content.clone()),
+        }
+    }
+
+    fn expand_oper_macro_call(&mut self, macro_name: &'ast ast::Symbol, params: &'ast [ast::MacroParam], working_macro: &mut WorkingMacro) -> Result<(), ExpansionRequired> {
         todo!()
     }
 
-    fn expand_test(&mut self, test: &'ast ast::Test) -> Result<Test, ExpansionRequired> {
+    fn expand_test(&mut self, label: &'ast ast::Symbol, test: &'ast ast::Test, working_macro: &mut WorkingMacro) -> Result<(), ExpansionRequired> {
         todo!()
+    }
+
+    fn expand_builtin_test(&mut self, builtin_test: BuiltInTest, param: &'ast ast::Symbol) -> TestKind {
+        match builtin_test {
+            BuiltInTest::Zero => TestKind::Zero(param.content.clone()),
+        }
     }
 }
 
 struct ExpansionRequired {
-    macro_name: String,
+    working_macro: WorkingMacro,
 }
 
 struct PreCompiled {
@@ -160,6 +191,10 @@ impl WorkingMacro {
             precompiled,
             instr_index: 0,
         }
+    }
+
+    fn insert_instruction(&mut self, instruction: Instruction) {
+        self.precompiled.program.insert(instruction);
     }
 }
 
