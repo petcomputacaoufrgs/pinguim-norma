@@ -59,6 +59,10 @@ table, tr, td {
     border-collapse: collapse;
 }
 
+.step_speed {
+    width: 60%;
+}
+
 .line_selected td {
     background-color: var(--highlight-color);
 }

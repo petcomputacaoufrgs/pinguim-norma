@@ -31,22 +31,24 @@
 
                 <!-- Code input -->
                 <div class="input-code">
-                    <label for="input" class='input_label'>Entrada</label>
+                    <label for="input" class='input_label'>Entrada: </label>
                     <input type="text" id="input" name="norma_input" class='input_box'>
                 </div>
 
                 <!-- Control buttons -->
                 <div class='control_buttons'>
-                    <button class='button'>Resetar</button>
-                    <button class='button'>Passo</button>
-                    <button class='button'>Rodar</button>
-                    <button class='button'>Parar</button>
+                    <button id="btn_reset" class='button'>Resetar</button>
+                    <button id="btn_step" class='button'>Passo</button>
+                    <button id="btn_run" class='button'>Rodar</button>
+                    <button id="btn_stop" class='button'>Parar</button>
                 </div>
             
                 <!-- Steps control -->
-                <h2>Espera entre passos (em ms): 0</h2> 
-                <input type="range" min="0" max="500" step="10">
-                <b>Passo: 0</b>
+                <h2 id="display_wait_time">Espera entre passos (em ms): 0</h2> 
+                <input id="step_speed" class="step_speed" type="range" min="0" max="500" step="10" value="0">
+                <div>
+                    <b>Passo: 0</b>
+                </div>
             
                 <!-- Registers -->
                 <div class='register_section'>
@@ -81,6 +83,7 @@
                 </table>
             </div>
         </div>
+        <script src="script.js"></script>
         <script src="scripts/execution.js"></script>
     </body>
 </html>
