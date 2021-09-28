@@ -38,6 +38,10 @@ impl Program {
     pub fn export(&self) -> Vec<(String, String)> {
         self.instructions.values().map(Instruction::export).collect()
     }
+
+    pub fn instructions(&self) -> impl Iterator<Item = &Instruction> {
+        self.instructions.values()
+    }
 }
 
 impl fmt::Display for Program {

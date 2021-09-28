@@ -11,9 +11,9 @@ pub fn expand(ast: &ast::Program, diagnostics: &mut Diagnostics) -> Option<Progr
 }
 
 struct Expansor<'ast> {
-    precompileds: HashMap<String, PreCompiled>,     // macros prontas
-    target_macros: IndexSet<String>,                // macros untouched
-    working_macros: Vec<WorkingMacro>,              // macros em progresso
+    precompileds: HashMap<String, PreCompiled<'ast>>,     // macros prontas
+    target_macros: IndexSet<String>,                      // macros untouched
+    working_macros: Vec<WorkingMacro<'ast>>,              // macros em progresso
     ast: &'ast ast::Program,
 }
 
@@ -29,58 +29,53 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
+    // compila o programa todo
     fn expand_program(&mut self) -> Option<Program> {
-        self.expand_macros();
+        self.precompile_macros();
         self.expand_main()
     }
 
+    // compila a main depois de precompilar os macros
     fn expand_main(&mut self) -> Option<Program> {
         todo!()
     }
 
-    fn expand_macros(&mut self) {
-        while let Some(macro_name) = self.pop_target() {
-            self.expand_target(macro_name);
-            self.expand_working_macros();  
+    // precompila todas as macros
+    fn precompile_macros(&mut self) {
+        while let Some(macro_name) = self.pop_target_macro() {
+            let working_macro = self.make_working_macro(&macro_name);
+            self.push_working_macro(working_macro);
+            self.precompile_working_macros();  
         }    
     }
 
-    fn expand_target(&mut self, macro_name: String) {
-        if let Some(macro_def) = self.get_macro(&macro_name) {
-            let precompiled = PreCompiled::new(macro_def.name.clone(), macro_def.macro_type);
-            let working_macro = WorkingMacro::new(precompiled);
-
-            self.push_working_macro(working_macro);       
-        }
+    // pega uma nova macro target e coloca na pilha de macros a serem trabalhadas
+    fn make_working_macro(&mut self, macro_name: &str) -> WorkingMacro<'ast> {
+        let macro_def = self.get_macro(macro_name);
+        let precompiled = PreCompiled::new(macro_def);
+        WorkingMacro::new(precompiled)
     }
 
     // pega o nome da próxima macro a ser expandida
-    fn pop_target(&mut self) -> Option<String> {
+    fn pop_target_macro(&mut self) -> Option<String> {
         self.target_macros.pop()
     }
 
     // pega uma macro da ast através do seu nome e retorna-a
-    fn get_macro(&mut self, macro_name: &str) -> Option<&ast::Macro> {
-        match self.ast.macros.get(macro_name) {
-            Some(macro_def) => {
-                Some(macro_def)
-            },
-            None => {
-                panic!("Erro");
-                None
-            }
-        }
+    fn get_macro(&mut self, macro_name: &str) -> &'ast ast::Macro {
+        self.ast.macros.get(macro_name).expect("Macro em target macros deveria existir na ast")
     }
 
-    fn push_working_macro(&mut self, working_macro: WorkingMacro) {
+    // coloca um macro a ser trabalhado na pilha
+    fn push_working_macro(&mut self, working_macro: WorkingMacro<'ast>) {
         self.working_macros.push(working_macro);
     }
 
-    fn expand_working_macro(&mut self, mut working_macro: WorkingMacro) {
-        let macro_def = self.ast.macros.get(&working_macro.precompiled.name.content).expect("Macro deve existir");
-
+    // expande o macro a ser trabalhado até que ele termine ou que precise ser pausado
+    fn precompile_working_macro(&mut self, mut working_macro: WorkingMacro<'ast>) {
+        let macro_def = self.get_macro(&working_macro.precompiled.macro_data.name.content);
         while let Some((_, instr)) = macro_def.instr.get_index(working_macro.instr_index) {
-            match self.expand_instruction(instr, &mut working_macro) {
+            match self.precompile_instruction(instr, &mut working_macro) {
                 Ok(()) => working_macro.instr_index += 1,
                 Err(request) => {
                     self.push_working_macro(working_macro);
@@ -91,33 +86,37 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
-    fn expand_working_macros(&mut self) {
+    // expande todas as macros na pilha de macros a serem trabalhadas
+    fn precompile_working_macros(&mut self) {
         while let Some(working_macro) = self.pop_working_macro() {
-            self.expand_working_macro(working_macro);
+            self.precompile_working_macro(working_macro);
         } 
     }
 
-    fn pop_working_macro(&mut self) -> Option<WorkingMacro> {
+    // tira uma macro da pilha de macros a serem trabalhadas
+    fn pop_working_macro(&mut self) -> Option<WorkingMacro<'ast>> {
         self.working_macros.pop()
     }
 
-    fn expand_instruction(&mut self, instr: &'ast ast::Instruction, working_macro: &mut WorkingMacro) -> Result<(), ExpansionRequired> {
+    // expande uma instrução colocando o resultado na working macro
+    fn precompile_instruction(&mut self, instr: &'ast ast::Instruction, working_macro: &mut WorkingMacro<'ast>) -> Result<(), ExpansionRequired<'ast>> {
         match &instr.instruction_type {
             ast::InstructionType::Operation(operation) => {
-                self.expand_operation(&instr.label, operation, working_macro)?;
+                self.precompile_operation(&instr.label, operation, working_macro)?;
             },
             ast::InstructionType::Test(test) => {
-                self.expand_test(&instr.label, test, working_macro)?;
+                self.precompile_test(&instr.label, test, working_macro)?;
             }
         }
 
         Ok(())
     }
     
-    fn expand_operation(&mut self, label: &'ast ast::Symbol, operation: &'ast ast::Operation, working_macro: &mut WorkingMacro) -> Result<(), ExpansionRequired> {
+    // expande uma instrução do tipo operação
+    fn precompile_operation(&mut self, label: &'ast ast::Symbol, operation: &'ast ast::Operation, working_macro: &mut WorkingMacro<'ast>) -> Result<(), ExpansionRequired<'ast>> {
         match &operation.oper_type {
             ast::OperationType::BuiltIn(builtin_oper, param) => {
-                let oper_kind = self.expand_builtin_oper(builtin_oper, param);
+                let oper_kind = self.precompile_builtin_oper(*builtin_oper, param);
                 let runtime_oper = Operation {
                     kind: oper_kind,
                     next: operation.next_label.content.clone(),
@@ -138,55 +137,85 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
-    fn expand_builtin_oper(&mut self, builtin_oper: BuiltInOperation, param: &'ast ast::Symbol) -> OperationKind {
+    // expande uma operação builtin
+    fn precompile_builtin_oper(&mut self, builtin_oper: BuiltInOperation, param: &'ast ast::Symbol) -> OperationKind {
         match builtin_oper {
             BuiltInOperation::Inc => OperationKind::Inc(param.content.clone()),
             BuiltInOperation::Dec => OperationKind::Dec(param.content.clone()),
         }
     }
 
-    fn expand_oper_macro_call(&mut self, macro_name: &'ast ast::Symbol, params: &'ast [ast::MacroParam], working_macro: &mut WorkingMacro) -> Result<(), ExpansionRequired> {
+    // expande uma operação que é outra chamada de macro
+    fn precompile_oper_macro_call(&mut self, macro_name: &'ast ast::Symbol, params: &'ast [ast::MacroParam], working_macro: &mut WorkingMacro<'ast>) -> Result<(), ExpansionRequired<'ast>> {
+        if let Some(precompiled_macro) = self.precompileds.get(&macro_name.content).cloned() {
+            self.expand_oper_macro(precompiled_macro, params, working_macro)
+
+        } else if self.target_macros.remove(&macro_name.content) {
+            let working_macro = self.make_working_macro(&macro_name.content);  
+            Err(ExpansionRequired { working_macro })    
+<
+        } else if self.ast.macros.contains_key(&macro_name.content) {
+            panic!("Recusãaaaaaaaaaaaao /o\\")
+        } else {
+            panic!("Macro não existe")
+        }
+    }
+
+    fn expand_oper_macro(&mut self, precompiled_macro: PreCompiled<'ast>, params: &'ast [ast::MacroParam], working_macro: &mut WorkingMacro<'ast>) -> Result<(), ExpansionRequired<'ast>> {
+        for instr in precompiled_macro.program.instructions() {
+            working_macro.insert_instruction(self.expand_instruction(instr, label_outer, label_next_outer, inner_precomp));
+        }
+
         todo!()
     }
 
-    fn expand_test(&mut self, label: &'ast ast::Symbol, test: &'ast ast::Test, working_macro: &mut WorkingMacro) -> Result<(), ExpansionRequired> {
+    fn expand_instruction(&mut self, instr: &Instruction, outer_label: &'ast ast::Symbol, outer_next_label: &'ast ast::Symbol, inner_precomp: &PreCompiled<'ast>) -> Instruction {
+        todo!()
+    }  
+
+    fn make_parameters(&mut self, call_params: &'ast [ast::MacroParam], def_params: &'ast [ast::Symbol]) -> HashMap<&'ast ast::Symbol, &'ast ast::Symbol> {
         todo!()
     }
 
-    fn expand_builtin_test(&mut self, builtin_test: BuiltInTest, param: &'ast ast::Symbol) -> TestKind {
+    fn precompile_test(&mut self, label: &'ast ast::Symbol, test: &'ast ast::Test, working_macro: &mut WorkingMacro<'ast>) -> Result<(), ExpansionRequired<'ast>> {
+        todo!()
+    }
+
+    fn precompile_builtin_test(&mut self, builtin_test: BuiltInTest, param: &'ast ast::Symbol) -> TestKind {
         match builtin_test {
             BuiltInTest::Zero => TestKind::Zero(param.content.clone()),
         }
     }
 }
 
-struct ExpansionRequired {
-    working_macro: WorkingMacro,
+#[derive(Clone, Debug)]
+struct ExpansionRequired<'ast> {
+    working_macro: WorkingMacro<'ast>,
 }
 
-struct PreCompiled {
-    name: ast::Symbol,
-    macro_type: ast::MacroType,
+#[derive(Clone, Debug)]
+struct PreCompiled<'ast> {
+    macro_data: &'ast ast::Macro,
     program: Program,  // Program do interpretador
 }
 
-impl PreCompiled {
-    fn new(name: ast::Symbol, macro_type: ast::MacroType) -> Self {
+impl<'ast> PreCompiled<'ast> {
+    fn new(macro_data: &'ast ast::Macro) -> Self {
         PreCompiled {
-            name,
-            macro_type,
+            macro_data,
             program: Program::empty(),
         }
     }
 }
 
-struct WorkingMacro {
-    precompiled: PreCompiled,
+#[derive(Clone, Debug)]
+struct WorkingMacro<'ast> {
+    precompiled: PreCompiled<'ast>,
     instr_index: usize,
 }
 
-impl WorkingMacro {
-    fn new(precompiled: PreCompiled) -> Self {
+impl<'ast> WorkingMacro<'ast> {
+    fn new(precompiled: PreCompiled<'ast>) -> Self {
         WorkingMacro {
             precompiled,
             instr_index: 0,
