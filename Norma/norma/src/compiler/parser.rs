@@ -207,7 +207,7 @@ impl Parser {
     }
 
     fn parse_macro_def_params(&mut self, diagnostics: &mut Diagnostics) -> Result<Vec<Symbol>, Abort> {
-        self.parse_list_params(Self::parse_register, diagnostics)
+        self.parse_param_list(Self::parse_register, diagnostics)
     }
 
     fn parse_instr(&mut self, diagnostics: &mut Diagnostics) -> Result<Option<Instruction>, Abort> {
@@ -271,14 +271,14 @@ impl Parser {
 
                 self.next();
 
-                let parameters = self.parse_macro_params(diagnostics)?;
-                Ok(Some(OperationType::Macro(macro_name, parameters)))
+                let arguments = self.parse_macro_args(diagnostics)?;
+                Ok(Some(OperationType::Macro(macro_name, arguments)))
             },
 
             TokenType::BuiltInOper(oper) => {
                 self.next();
-                let parameter_option = self.parse_builtin_param(diagnostics)?;
-                Ok(parameter_option.map(|parameter| OperationType::BuiltIn(oper, parameter)))
+                let argument_option = self.parse_builtin_arg(diagnostics)?;
+                Ok(argument_option.map(|argument| OperationType::BuiltIn(oper, argument)))
             },
 
             _ => {
@@ -324,14 +324,14 @@ impl Parser {
 
                 self.next();
 
-                let parameters = self.parse_macro_params(diagnostics)?;
-                Ok(Some(TestType::Macro(macro_name, parameters)))
+                let argument = self.parse_macro_args(diagnostics)?;
+                Ok(Some(TestType::Macro(macro_name, argument)))
             },
 
             TokenType::BuiltInTest(test) => {
                 self.next();
-                let parameter_option = self.parse_builtin_param(diagnostics)?;
-                Ok(parameter_option.map(|parameter| TestType::BuiltIn(test, parameter)))
+                let argument_option = self.parse_builtin_arg(diagnostics)?;
+                Ok(argument_option.map(|argument| TestType::BuiltIn(test, argument)))
             },
 
             _ => {
@@ -342,7 +342,7 @@ impl Parser {
         }
     }
 
-    fn parse_builtin_param(&mut self, diagnostics: &mut Diagnostics) -> Result<Option<Symbol>, Abort> {
+    fn parse_builtin_arg(&mut self, diagnostics: &mut Diagnostics) -> Result<Option<Symbol>, Abort> {
         let has_parens = self.check_expect(TokenType::OpenParen, diagnostics)?;
         let parameter = self.parse_register(diagnostics)?;
         if has_parens {
@@ -351,7 +351,7 @@ impl Parser {
         Ok(parameter)
     }
 
-    fn parse_list_params<F, T>(&mut self, mut parse_param: F, diagnostics: &mut Diagnostics) -> Result<Vec<T>, Abort> 
+    fn parse_param_list<F, T>(&mut self, mut parse_param: F, diagnostics: &mut Diagnostics) -> Result<Vec<T>, Abort> 
     where 
         F: FnMut(&mut Self, &mut Diagnostics) -> Result<Option<T>, Abort>
     {
@@ -376,11 +376,11 @@ impl Parser {
         Ok(parameters)
     }
 
-    fn parse_macro_params(&mut self, diagnostics: &mut Diagnostics) -> Result<Vec<MacroParam>, Abort> {
-        self.parse_list_params(Self::parse_macro_param, diagnostics)
+    fn parse_macro_args(&mut self, diagnostics: &mut Diagnostics) -> Result<Vec<MacroArgument>, Abort> {
+        self.parse_param_list(Self::parse_macro_arg, diagnostics)
     }
 
-    fn parse_macro_param(&mut self, diagnostics: &mut Diagnostics) -> Result<Option<MacroParam>, Abort> {
+    fn parse_macro_arg(&mut self, diagnostics: &mut Diagnostics) -> Result<Option<MacroArgument>, Abort> {
         let token = self.require_current(diagnostics)?;
 
         match token.token_type {
@@ -390,7 +390,7 @@ impl Parser {
                     span: token.span,
                 };
                 self.next();
-                Ok(Some(MacroParam::Register(symbol)))
+                Ok(Some(MacroArgument::Register(symbol)))
             },
 
             TokenType::Number => {
@@ -398,7 +398,7 @@ impl Parser {
                     "Lexer só deve permitir tokens Number só com dígitos",
                 );
                 self.next();
-                Ok(Some(MacroParam::Number(constant)))
+                Ok(Some(MacroArgument::Number(constant)))
             },
 
             _ => {

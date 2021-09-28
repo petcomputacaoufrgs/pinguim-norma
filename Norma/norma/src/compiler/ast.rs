@@ -11,13 +11,13 @@ pub struct Instruction {
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum OperationType {
     BuiltIn(BuiltInOperation, Symbol),
-    Macro(Symbol, Vec<MacroParam>),
+    Macro(Symbol, Vec<MacroArgument>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TestType {
     BuiltIn(BuiltInTest, Symbol),
-    Macro(Symbol, Vec<MacroParam>),
+    Macro(Symbol, Vec<MacroArgument>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -60,7 +60,7 @@ pub struct Symbol {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum MacroParam {
+pub enum MacroArgument {
     Register(Symbol),
     Number(BigUint),
 }

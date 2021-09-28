@@ -146,7 +146,7 @@ impl<'ast> Expansor<'ast> {
     }
 
     // expande uma operação que é outra chamada de macro
-    fn precompile_oper_macro_call(&mut self, macro_name: &'ast ast::Symbol, params: &'ast [ast::MacroParam], working_macro: &mut WorkingMacro<'ast>) -> Result<(), ExpansionRequired<'ast>> {
+    fn precompile_oper_macro_call(&mut self, macro_name: &'ast ast::Symbol, params: &'ast [ast::MacroArgument], working_macro: &mut WorkingMacro<'ast>) -> Result<(), ExpansionRequired<'ast>> {
         if let Some(precompiled_macro) = self.precompileds.get(&macro_name.content).cloned() {
             self.expand_oper_macro(precompiled_macro, params, working_macro)
 
@@ -161,7 +161,7 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
-    fn expand_oper_macro(&mut self, precompiled_macro: PreCompiled<'ast>, params: &'ast [ast::MacroParam], working_macro: &mut WorkingMacro<'ast>) -> Result<(), ExpansionRequired<'ast>> {
+    fn expand_oper_macro(&mut self, precompiled_macro: PreCompiled<'ast>, params: &'ast [ast::MacroArgument], working_macro: &mut WorkingMacro<'ast>) -> Result<(), ExpansionRequired<'ast>> {
         for instr in precompiled_macro.program.instructions() {
             working_macro.insert_instruction(self.expand_instruction(instr, label_outer, label_next_outer, inner_precomp));
         }
@@ -169,11 +169,11 @@ impl<'ast> Expansor<'ast> {
         todo!()
     }
 
-    fn expand_instruction(&mut self, instr: &Instruction, outer_label: &'ast ast::Symbol, outer_next_label: &'ast ast::Symbol, inner_precomp: &PreCompiled<'ast>) -> Instruction {
+    fn expand_instruction(&mut self, params_map: HashMap<&'ast ast::Symbol, &'ast ast::Symbol>, instr: &Instruction, outer_label: &'ast ast::Symbol, outer_next_label: &'ast ast::Symbol, inner_precomp: &PreCompiled<'ast>) -> Instruction {
         todo!()
     }  
 
-    fn make_parameters(&mut self, call_params: &'ast [ast::MacroParam], def_params: &'ast [ast::Symbol]) -> HashMap<&'ast ast::Symbol, &'ast ast::Symbol> {
+    fn make_parameters(&mut self, call_params: &'ast [ast::MacroArgument], def_params: &'ast [ast::Symbol]) -> HashMap<&'ast ast::Symbol, &'ast ast::Symbol> {
         todo!()
     }
 
