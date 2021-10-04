@@ -137,7 +137,7 @@ pub enum OperationKind {
 }
 
 impl OperationKind {
-    fn map_registers<F>(&self, mut mapper: F) -> Self
+    pub fn map_registers<F>(&self, mut mapper: F) -> Self
     where
         F: FnMut(&str) -> String,
     {
@@ -238,7 +238,7 @@ pub enum TestKind {
 }
 
 impl TestKind {
-    fn map_registers<F>(&self, mut mapper: F) -> Self
+    pub fn map_registers<F>(&self, mut mapper: F) -> Self
     where
         F: FnMut(&str) -> String,
     {
