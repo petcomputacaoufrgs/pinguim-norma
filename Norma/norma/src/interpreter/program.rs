@@ -26,6 +26,10 @@ impl Program {
         self.instructions.insert(instruction.label.clone(), instruction);
     }
 
+    pub fn is_label_valid(&self, label: &str) -> bool {
+        self.instructions.contains_key(label)
+    }
+
     /// Busca a instrução associada com o dado rótulo. Retorna `None` caso o
     /// rótulo seja inválido (fora do programa).
     pub fn get_instruction(&self, label: &str) -> Option<Instruction> {
