@@ -26,6 +26,8 @@ impl Program {
         self.instructions.insert(instruction.label.clone(), instruction);
     }
 
+    /// Testa se um dado rótulo é válido, i.e. existe uma instrução para o qual
+    /// esse rótulo mapeia.
     pub fn is_label_valid(&self, label: &str) -> bool {
         self.instructions.contains_key(label)
     }
@@ -137,6 +139,8 @@ pub enum OperationKind {
 }
 
 impl OperationKind {
+    /// Mapeia todos os registradores para novos registradores, usando a dada
+    /// função. Clona outros dados.
     pub fn map_registers<F>(&self, mut mapper: F) -> Self
     where
         F: FnMut(&str) -> String,
@@ -238,6 +242,8 @@ pub enum TestKind {
 }
 
 impl TestKind {
+    /// Mapeia todos os registradores para novos registradores, usando a dada
+    /// função. Clona outros dados.
     pub fn map_registers<F>(&self, mut mapper: F) -> Self
     where
         F: FnMut(&str) -> String,
