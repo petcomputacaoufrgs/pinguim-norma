@@ -1,4 +1,4 @@
-use indexmap::IndexMap;
+use indexmap::{map, IndexMap};
 use num_bigint::BigUint;
 use std::fmt;
 
@@ -38,6 +38,12 @@ impl Program {
         self.instructions.get(label).cloned()
     }
 
+    /// Constrói um iterador sobre referências de instruções. Pode ser usado no
+    /// `for`.
+    pub fn instructions(&self) -> Instructions {
+        Instructions { inner: self.instructions.values() }
+    }
+
     /// Exports all program instructions to be used with JS, in
     /// `(label, instruction-data)` format. TODO: replace tuple by a proper
     /// communication struct.
@@ -54,6 +60,32 @@ impl fmt::Display for Program {
         Ok(())
     }
 }
+
+/// Iterador sobre instruções de um programa.
+#[derive(Debug, Clone)]
+pub struct Instructions<'prog> {
+    inner: map::Values<'prog, String, Instruction>,
+}
+
+impl<'prog> Iterator for Instructions<'prog> {
+    type Item = &'prog Instruction;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl<'prog> DoubleEndedIterator for Instructions<'prog> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.inner.next_back()
+    }
+}
+
+impl<'prog> ExactSizeIterator for Instructions<'prog> {}
 
 /// Uma instrução genérica da Norma.
 #[derive(Debug, Clone)]
