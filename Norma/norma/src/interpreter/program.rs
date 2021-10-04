@@ -26,6 +26,12 @@ impl Program {
         self.instructions.insert(instruction.label.clone(), instruction);
     }
 
+    /// Testa se um dado rótulo é válido, i.e. existe uma instrução para o qual
+    /// esse rótulo mapeia.
+    pub fn is_label_valid(&self, label: &str) -> bool {
+        self.instructions.contains_key(label)
+    }
+
     /// Busca a instrução associada com o dado rótulo. Retorna `None` caso o
     /// rótulo seja inválido (fora do programa).
     pub fn get_instruction(&self, label: &str) -> Option<Instruction> {
@@ -137,6 +143,8 @@ pub enum OperationKind {
 }
 
 impl OperationKind {
+    /// Mapeia todos os registradores para novos registradores, usando a dada
+    /// função. Clona outros dados.
     pub fn map_registers<F>(&self, mut mapper: F) -> Self
     where
         F: FnMut(&str) -> String,
@@ -238,6 +246,8 @@ pub enum TestKind {
 }
 
 impl TestKind {
+    /// Mapeia todos os registradores para novos registradores, usando a dada
+    /// função. Clona outros dados.
     pub fn map_registers<F>(&self, mut mapper: F) -> Self
     where
         F: FnMut(&str) -> String,
