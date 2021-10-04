@@ -199,7 +199,7 @@ impl<'ast> Expansor<'ast> {
         label: &'ast ast::Symbol,
         operation: &'ast ast::Operation,
         macro_name: &'ast ast::Symbol,
-        params: &'ast [ast::MacroArgument],
+        arguments: &'ast [ast::MacroArgument],
         working_macro: &mut WorkingMacro<'ast>,
     ) -> Result<(), ExpansionRequired<'ast>> {
         if let Some(precompiled_macro) =
@@ -210,7 +210,7 @@ impl<'ast> Expansor<'ast> {
                     precompiled_macro,
                     label,
                     operation,
-                    params,
+                    arguments,
                     working_macro,
                 ),
                 ast::MacroType::Test => panic!("erro dps"),
@@ -267,7 +267,7 @@ impl<'ast> Expansor<'ast> {
     /// TODO: por enquanto só considera chamadas de macro operação.
     fn expand_oper_macro_instr(
         &mut self,
-        params_map: &HashMap<&'ast ast::Symbol, &'ast ast::Symbol>,
+        params_map: &HashMap<&'ast str, &'ast str>,
         instr: &Instruction,
         outer_label: &'ast ast::Symbol,
         outer_operation: &'ast ast::Operation,
@@ -292,13 +292,50 @@ impl<'ast> Expansor<'ast> {
 
     fn expand_oper_macro_oper_instr(
         &mut self,
-        params_map: &HashMap<&'ast ast::Symbol, &'ast ast::Symbol>,
+        params_map: &HashMap<&'ast str, &'ast str>,
         operation: &Operation,
         outer_label: &'ast ast::Symbol,
         outer_operation: &'ast ast::Operation,
         inner_precomp: &PreCompiled<'ast>,
     ) -> Operation {
-        todo!()
+
+        // 1. ver se o label existe na macro de dentro ou se sai
+        //  1.1. se ele existe, concatena com o label de quem chamou (outer) e o nome da macro de dentro
+        //  1.2. se nao existe, tem que trocar pelo next da operation que chamou essa
+
+        // 2. dar um match na operacao do interpretador e mapear cada argumento da instr de dentro
+
+        Operation {
+            next: if inner_precomp.program.get_instruction(&operation.next).is_some() {
+                format!("{}.{}.{}", outer_label.content, inner_precomp.macro_data.name.content, operation.next)
+            } else {
+                outer_operation.next_label.content.clone()
+            },
+            kind: self.expand_oper_macro_oper_kind()
+        }
+    }
+
+    fn expand_oper_macro_oper_kind(&self, operation_kind: &OperationKind, params_map: &HashMap<&'ast str, &'ast str>) -> OperationKind {
+        // TODO: mover match para interpretador!
+        match operation_kind {
+            OperationKind::Inc(register) => {
+                OperationKind::Inc(self.map_param_to_arg(params_map, register))
+            },
+            OperationKind::Dec(register) => {
+                OperationKind::Dec(self.map_param_to_arg(params_map, register))
+            },
+            _ => todo!()
+        }
+    }
+
+    fn map_param_to_arg(
+        &self, 
+        params_map: &HashMap<&'ast str, &'ast str>, 
+        register: &str
+    ) -> String {
+        
+        params_map.get(register).map_or_else(|| register.to_string(), |arg| arg.to_string())
+
     }
 
     /// Produz mapeamento de nomes de registradores em parâmetros formais
@@ -307,7 +344,7 @@ impl<'ast> Expansor<'ast> {
         &mut self,
         def_params: &'ast [ast::Symbol],
         args: &'ast [ast::MacroArgument],
-    ) -> HashMap<&'ast ast::Symbol, &'ast ast::Symbol> {
+    ) -> HashMap<&'ast str, &'ast str> {
         todo!()
     }
 
