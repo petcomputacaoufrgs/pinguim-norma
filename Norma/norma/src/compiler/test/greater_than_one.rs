@@ -1,6 +1,17 @@
-use crate::compiler::{
-    ast,
-    token::{BuiltInOperation, BuiltInTest, Position, Span},
+use crate::{
+    compiler::{
+        ast,
+        token::{BuiltInOperation, BuiltInTest, Position, Span},
+    },
+    interpreter::program::{
+        Instruction,
+        InstructionKind,
+        Operation,
+        OperationKind,
+        Program,
+        Test,
+        TestKind,
+    },
 };
 use indexmap::IndexMap;
 
@@ -25,13 +36,42 @@ pub fn source_code() -> &'static str {
 }
 
 pub fn ast() -> ast::Program {
-    let expected_main = main();
-    let expected_mac = macros();
+    let expected_main = ast_main();
+    let expected_mac = ast_macros();
     ast::Program { main: expected_main, macros: expected_mac }
 }
 
+pub fn runtime_program() -> Program {
+    let mut program = Program::empty();
+
+    program.insert(Instruction {
+        label: String::from("dec_x"),
+        kind: InstructionKind::Operation(Operation {
+            kind: OperationKind::Dec(String::from("X")),
+            next: String::from("inc_y.incIfNotZero.1.notZero.1"),
+        }),
+    });
+    program.insert(Instruction {
+        label: String::from("inc_y.incIfNotZero.1.notZero.1"),
+        kind: InstructionKind::Test(Test {
+            kind: TestKind::Zero(String::from("X")),
+            next_then: String::from("0"),
+            next_else: String::from("inc_y.incIfNotZero.2"),
+        }),
+    });
+    program.insert(Instruction {
+        label: String::from("inc_y.incIfNotZero.2"),
+        kind: InstructionKind::Operation(Operation {
+            kind: OperationKind::Inc(String::from("Y")),
+            next: String::from("0"),
+        }),
+    });
+
+    program
+}
+
 /// dec_x: do dec X goto inc_y
-fn main_dec_x() -> ast::Instruction {
+fn ast_main_dec_x() -> ast::Instruction {
     ast::Instruction {
         label: ast::Symbol {
             content: String::from("dec_x"),
@@ -93,7 +133,7 @@ fn main_dec_x() -> ast::Instruction {
 }
 
 /// (Y, X,)
-fn main_inc_y_params() -> Vec<ast::MacroArgument> {
+fn ast_main_inc_y_params() -> Vec<ast::MacroArgument> {
     vec![
         ast::MacroArgument::Register(ast::Symbol {
             content: String::from("Y"),
@@ -133,8 +173,8 @@ fn main_inc_y_params() -> Vec<ast::MacroArgument> {
 }
 
 /// inc_y: do incIfNotZero (Y, X,) goto 0
-fn main_inc_y() -> ast::Instruction {
-    let macro_params = main_inc_y_params();
+fn ast_main_inc_y() -> ast::Instruction {
+    let macro_params = ast_main_inc_y_params();
 
     ast::Instruction {
         label: ast::Symbol {
@@ -199,9 +239,9 @@ fn main_inc_y() -> ast::Instruction {
 /// test notZero (A) {
 ///     1: if zero A then goto false else goto true
 /// }
-fn main() -> ast::Main {
-    let instr_dec_x = main_dec_x();
-    let instr_inc_y = main_inc_y();
+fn ast_main() -> ast::Main {
+    let instr_dec_x = ast_main_dec_x();
+    let instr_inc_y = ast_main_inc_y();
 
     let mut main_code = IndexMap::new();
     main_code.insert(instr_dec_x.label.content.clone(), instr_dec_x);
@@ -211,7 +251,7 @@ fn main() -> ast::Main {
 }
 
 /// 1: if zero A then goto false else goto true
-fn not_zero_1() -> ast::Instruction {
+fn ast_not_zero_1() -> ast::Instruction {
     ast::Instruction {
         label: ast::Symbol {
             content: String::from("1"),
@@ -292,9 +332,9 @@ fn not_zero_1() -> ast::Instruction {
 /// test notZero (A) {
 ///    1: if zero A then goto false else goto true
 /// }
-fn not_zero() -> ast::Macro {
+fn ast_not_zero() -> ast::Macro {
     let mut code = IndexMap::new();
-    let instr_1 = not_zero_1();
+    let instr_1 = ast_not_zero_1();
     code.insert(instr_1.label.content.clone(), instr_1);
 
     ast::Macro {
@@ -338,7 +378,7 @@ fn not_zero() -> ast::Macro {
 }
 
 /// (B)
-fn inc_if_nz_1_params() -> Vec<ast::MacroArgument> {
+fn ast_inc_if_nz_1_params() -> Vec<ast::MacroArgument> {
     vec![ast::MacroArgument::Register(ast::Symbol {
         content: String::from("B"),
         span: Span {
@@ -359,7 +399,7 @@ fn inc_if_nz_1_params() -> Vec<ast::MacroArgument> {
 }
 
 /// 1: if notZero (B) then goto 2 else goto 0
-fn inc_if_nz_1() -> ast::Instruction {
+fn ast_inc_if_nz_1() -> ast::Instruction {
     ast::Instruction {
         label: ast::Symbol {
             content: String::from("1"),
@@ -397,7 +437,7 @@ fn inc_if_nz_1() -> ast::Instruction {
                         },
                     },
                 },
-                inc_if_nz_1_params(),
+                ast_inc_if_nz_1_params(),
             ),
             next_true_label: ast::Symbol {
                 content: String::from("2"),
@@ -438,7 +478,7 @@ fn inc_if_nz_1() -> ast::Instruction {
 }
 
 /// 2: do inc (A) goto 0
-fn inc_if_nz_2() -> ast::Instruction {
+fn ast_inc_if_nz_2() -> ast::Instruction {
     ast::Instruction {
         label: ast::Symbol {
             content: String::from("2"),
@@ -503,11 +543,11 @@ fn inc_if_nz_2() -> ast::Instruction {
 ///     1: if notZero (B) then goto 2 else goto 0
 ///     2: do inc (A) goto 0
 /// }
-fn inc_if_nz() -> ast::Macro {
+fn ast_inc_if_nz() -> ast::Macro {
     let mut code = IndexMap::new();
-    let instr_1 = inc_if_nz_1();
+    let instr_1 = ast_inc_if_nz_1();
     code.insert(instr_1.label.content.clone(), instr_1);
-    let instr_2 = inc_if_nz_2();
+    let instr_2 = ast_inc_if_nz_2();
     code.insert(instr_2.label.content.clone(), instr_2);
 
     ast::Macro {
@@ -569,14 +609,14 @@ fn inc_if_nz() -> ast::Macro {
     }
 }
 
-fn macros() -> IndexMap<String, ast::Macro> {
+fn ast_macros() -> IndexMap<String, ast::Macro> {
     let mut macros = IndexMap::<String, ast::Macro>::new();
 
-    let not_zero = not_zero();
+    let not_zero = ast_not_zero();
     macros.insert(not_zero.name.content.clone(), not_zero);
 
-    let inc_if_nz = inc_if_nz();
-    macros.insert(inc_if_nz.name.content.clone(), inc_if_nz);
+    let ast_inc_if_nz = ast_inc_if_nz();
+    macros.insert(ast_inc_if_nz.name.content.clone(), ast_inc_if_nz);
 
     macros
 }
