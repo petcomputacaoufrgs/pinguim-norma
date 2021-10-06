@@ -1,3 +1,5 @@
+mod macro_call;
+
 use crate::{
     compiler::{
         ast,
