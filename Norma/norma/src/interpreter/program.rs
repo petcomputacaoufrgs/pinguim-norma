@@ -80,6 +80,15 @@ impl fmt::Display for Program {
     }
 }
 
+impl<'prog> IntoIterator for &'prog Program {
+    type Item = &'prog Instruction;
+    type IntoIter = Instructions<'prog>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.instructions()
+    }
+}
+
 /// Iterador sobre instruções de um programa.
 #[derive(Debug, Clone)]
 pub struct Instructions<'prog> {
