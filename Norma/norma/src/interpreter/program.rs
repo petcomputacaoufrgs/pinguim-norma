@@ -52,8 +52,8 @@ impl Program {
 
     /// Busca a instrução associada com o dado rótulo. Retorna `None` caso o
     /// rótulo seja inválido (fora do programa).
-    pub fn get_instruction(&self, label: &str) -> Option<Instruction> {
-        self.instructions.get(label).cloned()
+    pub fn instruction(&self, label: &str) -> Option<&Instruction> {
+        self.instructions.get(label)
     }
 
     /// Constrói um iterador sobre referências de instruções. Pode ser usado no

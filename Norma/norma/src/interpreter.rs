@@ -108,7 +108,7 @@ impl Interpreter {
     /// específica. Retorna `true` se o rótulo é válido e a instrução foi de
     /// fato executada.
     pub fn run_step(&mut self) -> bool {
-        let entry = self.program.get_instruction(&self.current);
+        let entry = self.program.instruction(&self.current).cloned();
         match entry {
             Some(instruction) => {
                 self.run_instruction(instruction);
