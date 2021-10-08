@@ -61,8 +61,7 @@ impl Interpreter {
     where
         I: IntoIterator<Item = &'regs str>,
     {
-        let start =
-            program.first_label().expect("No mínimo uma instrução esperada");
+        let start = program.first_label().to_string();
 
         let mut machine = Machine::default();
         for register in aux_registers {
@@ -99,10 +98,7 @@ impl Interpreter {
     /// instrução do mapa de instruções.
     pub fn reset(&mut self) {
         self.machine.clear_all();
-        self.current = self
-            .program
-            .first_label()
-            .expect("No mínimo uma instrução esperada");
+        self.current = self.program.first_label().to_string();
         self.steps.set_zero();
     }
 

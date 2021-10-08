@@ -15,15 +15,33 @@ impl Program {
         Self { instructions: IndexMap::new() }
     }
 
-    /// Retorna o primeiro rótulo, se houver ao menos uma instrução no programa.
-    pub fn first_label(&self) -> Option<String> {
-        self.instructions.first().map(|(label, _)| label).cloned()
+    /// Retorna se o programa está vazio, isto é, não tem instrução alguma.
+    pub fn is_empty(&self) -> bool {
+        self.instructions.is_empty()
     }
 
-    /// Insere uma dada instrução no programa. Rótulos repetidos sobreescrevem o
-    /// antigo (TODO: vai ser assim mesmo?).
+    /// Retorna o primeiro rótulo, se houver ao menos uma instrução no programa.
+    pub fn first_label(&self) -> &str {
+        match self.instructions.first() {
+            Some((label, _)) => label,
+            None => "0",
+        }
+    }
+
+    /// Insere uma dada instrução no programa.
+    ///
+    /// # Panics
+    ///
+    /// Invoca `panic!()` caso o rótulo esteja duplicado.
     pub fn insert(&mut self, instruction: Instruction) {
-        self.instructions.insert(instruction.label.clone(), instruction);
+        match self.instructions.entry(instruction.label.clone()) {
+            map::Entry::Vacant(entry) => {
+                entry.insert(instruction);
+            },
+            map::Entry::Occupied(_) => {
+                panic!("Duplicated label {}", instruction.label)
+            },
+        }
     }
 
     /// Testa se um dado rótulo é válido, i.e. existe uma instrução para o qual
