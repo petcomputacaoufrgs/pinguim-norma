@@ -1,3 +1,5 @@
+//! Este módulo exporta itens necessários para construir um programa da norma.
+
 use indexmap::{map, IndexMap};
 use num_bigint::BigUint;
 use std::fmt;
@@ -9,8 +11,7 @@ pub struct Program {
 }
 
 impl Program {
-    /// Cria um programa vazio. TODO: vamos permitir mesmo criar programas
-    /// vazios? Ou vamos exigir uma instrução inicial na criação do programa?
+    /// Cria um programa vazio.
     pub fn empty() -> Self {
         Self { instructions: IndexMap::new() }
     }
@@ -62,11 +63,11 @@ impl Program {
         Instructions { inner: self.instructions.values() }
     }
 
-    /// Exports all program instructions to be used with JS, in
-    /// `(label, instruction-data)` format. TODO: replace tuple by a proper
-    /// communication struct.
+    /// Exporta todas as instruções do programa para serem usadas com JS, no
+    /// formato `(label, instruction-data)`. TODO: substituir tuplas por um tipo
+    /// próprio da comunicação.
     pub fn export(&self) -> Vec<(String, String)> {
-        self.instructions.values().map(Instruction::export).collect()
+        self.instructions().map(Instruction::export).collect()
     }
 }
 
@@ -115,9 +116,9 @@ pub struct Instruction {
 }
 
 impl Instruction {
-    /// Exports this instruction to be used with JS, in
-    /// `(label, instruction-data)` format. TODO: replace tuple by a proper
-    /// communication struct.
+    /// Exporta essa instrução para ser usada com JS, no formato `(label,
+    /// instruction-data)`. TODO: substituir tuplas por um tipo próprio da
+    /// comunicação.
     pub fn export(&self) -> (String, String) {
         (self.label.clone(), self.kind.to_string())
     }
