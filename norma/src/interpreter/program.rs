@@ -21,6 +21,11 @@ impl Program {
         self.instructions.is_empty()
     }
 
+    /// Retorna o tamanho do programa, ou seja, o número de instruções.
+    pub fn len(&self) -> usize {
+        self.instructions.len()
+    }
+
     /// Retorna o primeiro rótulo, se houver ao menos uma instrução no programa.
     pub fn first_label(&self) -> &str {
         match self.instructions.first() {
