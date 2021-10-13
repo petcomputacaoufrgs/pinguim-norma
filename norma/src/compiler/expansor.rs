@@ -127,13 +127,13 @@ impl<'ast> Expansor<'ast> {
 
     // compila a main depois de precompilar os macros
     fn expand_main(&mut self) -> Option<Program> {
-        let mut program = Program::empty();
+        let mut code = WorkingCode::new();
         for instruction in self.ast.main.code.values() {
-            self.precompile_instruction(instruction, &mut program).expect(
+            self.precompile_instruction(instruction, &mut code).expect(
                 "All existing macros should already have been precompiled",
             );
         }
-        Some(program)
+        Some(code.finish())
     }
 
     // precompila todas as macros
@@ -149,8 +149,7 @@ impl<'ast> Expansor<'ast> {
     // trabalhadas
     fn make_working_macro(&mut self, macro_name: &str) -> WorkingMacro<'ast> {
         let macro_def = self.get_macro(macro_name);
-        let precompiled = PreCompiled::new(macro_def);
-        WorkingMacro::new(precompiled)
+        WorkingMacro::new(macro_def)
     }
 
     // pega o nome da próxima macro a ser expandida
@@ -177,17 +176,14 @@ impl<'ast> Expansor<'ast> {
         &mut self,
         mut working_macro: WorkingMacro<'ast>,
     ) {
-        let macro_def =
-            self.get_macro(&working_macro.precompiled.macro_data.name.content);
+        let macro_def = self.get_macro(&working_macro.macro_data.name.content);
 
         loop {
             if let Some((_, instr)) =
                 macro_def.instr.get_index(working_macro.instr_index)
             {
-                let precomp_result = self.precompile_instruction(
-                    instr,
-                    &mut working_macro.precompiled.program,
-                );
+                let precomp_result =
+                    self.precompile_instruction(instr, &mut working_macro.code);
 
                 match precomp_result {
                     Ok(()) => working_macro.instr_index += 1,
@@ -207,10 +203,9 @@ impl<'ast> Expansor<'ast> {
     /// Acaba a pré-compilação de um macro, inserindo o trabalho feito por
     /// `WorkingMacro` no registro de macros pré-compilados.
     fn finish_working_macro(&mut self, working_macro: WorkingMacro<'ast>) {
-        self.precompileds.insert(
-            working_macro.precompiled.macro_data.name.content.clone(),
-            working_macro.precompiled,
-        );
+        let precompiled = working_macro.finish();
+        let name = precompiled.macro_data.name.content.clone();
+        self.precompileds.insert(name, precompiled);
     }
 
     // expande todas as macros na pilha de macros a serem trabalhadas
@@ -229,18 +224,18 @@ impl<'ast> Expansor<'ast> {
     fn precompile_instruction(
         &mut self,
         instr: &'ast ast::Instruction,
-        working_program: &mut Program,
+        working_code: &mut WorkingCode,
     ) -> Result<(), ExpansionRequired<'ast>> {
         match &instr.instruction_type {
             ast::InstructionType::Operation(operation) => {
                 self.precompile_operation(
                     &instr.label,
                     operation,
-                    working_program,
+                    working_code,
                 )?;
             },
             ast::InstructionType::Test(test) => {
-                self.precompile_test(&instr.label, test, working_program)?;
+                self.precompile_test(&instr.label, test, working_code)?;
             },
         }
 
@@ -252,7 +247,7 @@ impl<'ast> Expansor<'ast> {
         &mut self,
         label: &'ast ast::Symbol,
         operation: &'ast ast::Operation,
-        working_program: &mut Program,
+        working_code: &mut WorkingCode,
     ) -> Result<(), ExpansionRequired<'ast>> {
         match &operation.oper_type {
             ast::OperationType::BuiltIn(builtin_oper, param) => {
@@ -268,7 +263,7 @@ impl<'ast> Expansor<'ast> {
                     label: label.content.clone(),
                 };
 
-                working_program.insert(instruction);
+                working_code.program.insert(instruction);
 
                 Ok(())
             },
@@ -279,7 +274,7 @@ impl<'ast> Expansor<'ast> {
                     &OperMacroCallExpansor,
                     macro_name,
                     params,
-                    working_program,
+                    working_code,
                 ),
         }
     }
@@ -300,7 +295,7 @@ impl<'ast> Expansor<'ast> {
         &mut self,
         label: &'ast ast::Symbol,
         test: &'ast ast::Test,
-        working_program: &mut Program,
+        working_code: &mut WorkingCode,
     ) -> Result<(), ExpansionRequired<'ast>> {
         match &test.test_type {
             ast::TestType::BuiltIn(builtin_test, param) => {
@@ -317,7 +312,7 @@ impl<'ast> Expansor<'ast> {
                     label: label.content.clone(),
                 };
 
-                working_program.insert(instruction);
+                working_code.program.insert(instruction);
 
                 Ok(())
             },
@@ -328,7 +323,7 @@ impl<'ast> Expansor<'ast> {
                     &TestMacroCallExpansor,
                     macro_name,
                     params,
-                    working_program,
+                    working_code,
                 ),
         }
     }
@@ -351,7 +346,7 @@ impl<'ast> Expansor<'ast> {
         call_expansor: &E,
         macro_name: &'ast ast::Symbol,
         arguments: &'ast [ast::MacroArgument],
-        working_program: &mut Program,
+        working_code: &mut WorkingCode,
     ) -> Result<(), ExpansionRequired<'ast>>
     where
         E: MacroCallExpansor<'ast>,
@@ -368,7 +363,7 @@ impl<'ast> Expansor<'ast> {
                     instr_kind,
                     call_expansor,
                     arguments,
-                    working_program,
+                    working_code,
                 );
             } else {
                 panic!("Erro")
@@ -392,7 +387,7 @@ impl<'ast> Expansor<'ast> {
         outer_instr_kind: &'ast E::InstructionKind,
         call_expansor: &E,
         arguments: &'ast [ast::MacroArgument],
-        working_program: &mut Program,
+        working_code: &mut WorkingCode,
     ) where
         E: MacroCallExpansor<'ast>,
     {
@@ -402,7 +397,7 @@ impl<'ast> Expansor<'ast> {
         );
 
         for instr in inner_precomp.program.instructions() {
-            working_program.insert(self.expand_instr(
+            working_code.program.insert(self.expand_instr(
                 &params_map,
                 instr,
                 outer_label,
@@ -619,7 +614,7 @@ impl<'ast> Expansor<'ast> {
     ) -> &'ast str {
         match macro_argument {
             ast::MacroArgument::Register(register) => &register.content,
-            ast::MacroArgument::Number(constant) => panic!("aaaaaa"),
+            ast::MacroArgument::Number(_) => panic!("aaaaaa"),
         }
     }
 
@@ -656,8 +651,22 @@ struct WorkingCode {
 }
 
 impl WorkingCode {
+    fn new() -> Self {
+        Self { program: Program::empty(), expanded_labels: HashMap::new() }
+    }
+
     fn finish(self) -> Program {
-        todo!()
+        let mut program = self.program;
+        let expanded_labels = self.expanded_labels;
+
+        for instruction in &mut program {
+            instruction.kind.rename_labels(|label: &mut String| {
+                if let Some(new_label) = expanded_labels.get(label) {
+                    label.clone_from(new_label);
+                }
+            })
+        }
+        program
     }
 }
 
@@ -669,8 +678,8 @@ struct WorkingMacro<'ast> {
 }
 
 impl<'ast> WorkingMacro<'ast> {
-    fn new(code: WorkingCode, macro_data: &'ast ast::Macro) -> Self {
-        WorkingMacro { code, macro_data, instr_index: 0 }
+    fn new(macro_data: &'ast ast::Macro) -> Self {
+        WorkingMacro { code: WorkingCode::new(), macro_data, instr_index: 0 }
     }
 
     fn finish(self) -> PreCompiled<'ast> {
