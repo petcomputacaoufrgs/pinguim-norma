@@ -19,24 +19,25 @@
  *     2: do myMacro(B) goto 0
  * }
  * operation myMacro(A) {
- *     1: do dec A goto 0
+ *     1: do dec A goto 2
+ *     2: do dec A goto 0
  * }
  * ```
  *    Ela deveria ser compilada para:
  * ```
  * 1: do inc A goto 2.myMacro.1
- * 2.myMacro.1: do dec B goto 0
+ * 2.myMacro.1: do dec B goto 2.myMacro.2
+ * 2.myMacro.2: do dec B goto 0
  * ```
  *    Mas está sendo compilada para:
  * ```
  * 1: do inc A goto 2
- * 2.myMacro.1: do dec B goto 0
+ * 2.myMacro.1: do dec B goto 2.myMacro.2
+ * 2.myMacro.2: do dec B goto 0
  * ```
  *
- * Ideia para resolver bug do label: quando encontrar instrução com macro,
- * remapear todos rótulos de instruções précompiladas que vieram antes,
- * enquanto as instruções que vierem depois procuram por seus rótulos em um
- * registro de renomeamento (onde registraremos o renomeamento do macro).
+ * Ideia para resolver bug do label: mapear renomeamentos, e no final da
+ * (pré-)compilação, renomear todos labels necessários.
  *
  * Como?
  *
@@ -45,23 +46,22 @@
  *
  * 2. `WorkingCode` contém `Program` e `HashMap<String, String>`.
  *
- * 2. `WorkinMacro` não contém mais `PreCompiled`.
+ * 3. `WorkingMacro` não contém mais `PreCompiled`.
  *
- * 3. `WorkingMacro` contém um `WorkingCode`, um `&'ast ast::Macro`, um
+ * 4. `WorkingMacro` contém um `WorkingCode`, um `&'ast ast::Macro`, um
  *  . `usize`.
  *
- * 4. Quando o `WorkingMacro` acaba, ele produz um `PreCompiled` a partir de:
+ * 5. Quando o `WorkingMacro` acaba, ele produz um `PreCompiled` a partir de:
  *      - `Program` do `WorkingCode`
  *      - `&'ast ast::Macro` de si mesmo
  *
- * 5. Métodos de pré-compilação que recebiam um `&mut WorkingMacro<'ast>` (e
+ * 6. Métodos de pré-compilação que recebiam um `&mut WorkingMacro<'ast>` (e
  *  . que nessa versão passaram a receber `&mut Program`) vão receber um
  *      `&mut WorkingCode`.
  *
- * 6. `WorkingCode` poderia ter métodos para auxiliar no seguinte:
- *      - renomeamento de labels prévios a partir de novo caso
- *      - renomeamento de um label atual a partir de casos prévios
+ * 7. `WorkingCode` poderia ter métodos para auxiliar no seguinte:
  *      - registro de novo caso de renomeamento de labels
+ *      - método finish para renomear labels
  */
 
 #[cfg(test)]
@@ -179,6 +179,7 @@ impl<'ast> Expansor<'ast> {
     ) {
         let macro_def =
             self.get_macro(&working_macro.precompiled.macro_data.name.content);
+
         loop {
             if let Some((_, instr)) =
                 macro_def.instr.get_index(working_macro.instr_index)
@@ -187,6 +188,7 @@ impl<'ast> Expansor<'ast> {
                     instr,
                     &mut working_macro.precompiled.program,
                 );
+
                 match precomp_result {
                     Ok(()) => working_macro.instr_index += 1,
                     Err(request) => {
