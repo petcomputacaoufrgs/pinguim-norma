@@ -391,6 +391,19 @@ impl<'ast> Expansor<'ast> {
     ) where
         E: MacroCallExpansor<'ast>,
     {
+        let first_label = inner_precomp.program.first_label();
+        let expanded_first_label = self.expand_label(
+            &inner_precomp,
+            first_label,
+            outer_label,
+            outer_instr_kind,
+            call_expansor,
+        );
+        working_code.insert_expansion(
+            outer_label.content.clone(),
+            expanded_first_label,
+        );
+
         let params_map = self.map_params_to_args(
             &inner_precomp.macro_data.parameters,
             arguments,
@@ -655,6 +668,10 @@ impl WorkingCode {
         Self { program: Program::empty(), expanded_labels: HashMap::new() }
     }
 
+    fn insert_expansion(&mut self, old_label: String, new_label: String) {
+        self.expanded_labels.insert(old_label, new_label);
+    }
+
     fn finish(self) -> Program {
         let mut program = self.program;
         let expanded_labels = self.expanded_labels;
@@ -666,6 +683,7 @@ impl WorkingCode {
                 }
             })
         }
+
         program
     }
 }
