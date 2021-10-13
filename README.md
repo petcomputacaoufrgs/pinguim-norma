@@ -1,1 +1,1 @@
-# Pinguim
+# Pinguim Norma Machine Simulator

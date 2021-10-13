@@ -2,20 +2,24 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="preconnect" href="https://fonts.gstatic.com">
 		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
-        <title>Cálculo Lambda</title>
-        <link rel="stylesheet" href="styles.css">
-        <link rel = "stylesheet" href = "../common_styles.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <title>Máquina Norma</title>
+        <link rel= "stylesheet" href= "styles.css">
+        <link rel= "stylesheet" href= "common_styles.css">
     </head>
     <body>
-        <h1 class="simulator-title">Simulador de Cálculo Lambda</h1>
+        <h1 class="simulator-title">Simulador de Máquina Norma</h1>
 
         <!-- Theme switch -->
         <label class="theme-switch" for="checkbox">
-            <input type="checkbox" id="checkbox" hidden/>
-            <div class="slider round"></div>
-        </label>
+			<input type="checkbox" id="checkbox" hidden/>
+			<div class="slider round">
+				<span id="toggle-icon" class="material-icons">light_mode</span>
+			</div>
+		</label>
 
         <div class="execution-area">
             <div class="execution-settings">
@@ -45,17 +49,36 @@
                 <b>Passo: 0</b>
             
                 <!-- Registers -->
-                <div class='actual-term'>
-                    <h2>Termo atual</h2>
-                    <div>
-                        
+                <div class='register_section'>
+                    <h2>Registradores</h2>
+                    <div class='register_section__registers'>
+                        <div class='register'>
+                            <h3 class='register_name'> X</h3>
+                            <div class='register_value'> 0</div>
+                        </div>
+                        <div class='register'>
+                            <h3 class='register_name'> Y</h3>
+                            <div class='register_value'> 0</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Compiled code -->
             <div class="compiled-program">
-                <h2>Visão como árvore</h2>
+                <h2>Programa compilado</h2>
+                <table>
+                    <tr class='line_selected'>
+                        <td class='pointer_column'>→</td>
+                        <td class='step_column'>1.1.1</td>
+                        <td class='program_column'>if A = 0 then goto 1.2.1 else goto 1.1.2</td>
+                    </tr>
+                    <tr>
+                        <td class='pointer_column'></td>
+                        <td class='step_column'>1.1.2</td>
+                        <td class='program_column'>do A := A - 1 goto 1.1.1</td>
+                    </tr>
+                </table>
             </div>
         </div>
         <script src = "script.js"></script>

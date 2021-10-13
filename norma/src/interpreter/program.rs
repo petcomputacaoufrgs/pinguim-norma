@@ -1,4 +1,6 @@
-use indexmap::IndexMap;
+//! Este módulo exporta itens necessários para construir um programa da norma.
+
+use indexmap::{map, IndexMap};
 use num_bigint::BigUint;
 use std::fmt;
 
@@ -9,21 +11,43 @@ pub struct Program {
 }
 
 impl Program {
-    /// Cria um programa vazio. TODO: vamos permitir mesmo criar programas
-    /// vazios? Ou vamos exigir uma instrução inicial na criação do programa?
+    /// Cria um programa vazio.
     pub fn empty() -> Self {
         Self { instructions: IndexMap::new() }
     }
 
-    /// Retorna o primeiro rótulo, se houver ao menos uma instrução no programa.
-    pub fn first_label(&self) -> Option<String> {
-        self.instructions.first().map(|(label, _)| label).cloned()
+    /// Retorna se o programa está vazio, isto é, não tem instrução alguma.
+    pub fn is_empty(&self) -> bool {
+        self.instructions.is_empty()
     }
 
-    /// Insere uma dada instrução no programa. Rótulos repetidos sobreescrevem o
-    /// antigo (TODO: vai ser assim mesmo?).
+    /// Retorna o tamanho do programa, ou seja, o número de instruções.
+    pub fn len(&self) -> usize {
+        self.instructions.len()
+    }
+
+    /// Retorna o primeiro rótulo, se houver ao menos uma instrução no programa.
+    pub fn first_label(&self) -> &str {
+        match self.instructions.first() {
+            Some((label, _)) => label,
+            None => "0",
+        }
+    }
+
+    /// Insere uma dada instrução no programa.
+    ///
+    /// # Panics
+    ///
+    /// Invoca `panic!()` caso o rótulo esteja duplicado.
     pub fn insert(&mut self, instruction: Instruction) {
-        self.instructions.insert(instruction.label.clone(), instruction);
+        match self.instructions.entry(instruction.label.clone()) {
+            map::Entry::Vacant(entry) => {
+                entry.insert(instruction);
+            },
+            map::Entry::Occupied(_) => {
+                panic!("Duplicated label {}", instruction.label)
+            },
+        }
     }
 
     /// Testa se um dado rótulo é válido, i.e. existe uma instrução para o qual
@@ -34,19 +58,21 @@ impl Program {
 
     /// Busca a instrução associada com o dado rótulo. Retorna `None` caso o
     /// rótulo seja inválido (fora do programa).
-    pub fn get_instruction(&self, label: &str) -> Option<Instruction> {
-        self.instructions.get(label).cloned()
+    pub fn instruction(&self, label: &str) -> Option<&Instruction> {
+        self.instructions.get(label)
     }
 
-    /// Exports all program instructions to be used with JS, in
-    /// `(label, instruction-data)` format. TODO: replace tuple by a proper
-    /// communication struct.
+    /// Constrói um iterador sobre referências de instruções. Pode ser usado no
+    /// `for`.
+    pub fn instructions(&self) -> Instructions {
+        Instructions { inner: self.instructions.values() }
+    }
+
+    /// Exporta todas as instruções do programa para serem usadas com JS, no
+    /// formato `(label, instruction-data)`. TODO: substituir tuplas por um tipo
+    /// próprio da comunicação.
     pub fn export(&self) -> Vec<(String, String)> {
-        self.instructions.values().map(Instruction::export).collect()
-    }
-
-    pub fn instructions(&self) -> impl Iterator<Item = &Instruction> {
-        self.instructions.values()
+        self.instructions().map(Instruction::export).collect()
     }
 }
 
@@ -59,6 +85,41 @@ impl fmt::Display for Program {
     }
 }
 
+impl<'prog> IntoIterator for &'prog Program {
+    type Item = &'prog Instruction;
+    type IntoIter = Instructions<'prog>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.instructions()
+    }
+}
+
+/// Iterador sobre instruções de um programa.
+#[derive(Debug, Clone)]
+pub struct Instructions<'prog> {
+    inner: map::Values<'prog, String, Instruction>,
+}
+
+impl<'prog> Iterator for Instructions<'prog> {
+    type Item = &'prog Instruction;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl<'prog> DoubleEndedIterator for Instructions<'prog> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.inner.next_back()
+    }
+}
+
+impl<'prog> ExactSizeIterator for Instructions<'prog> {}
+
 /// Uma instrução genérica da Norma.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Instruction {
@@ -69,9 +130,9 @@ pub struct Instruction {
 }
 
 impl Instruction {
-    /// Exports this instruction to be used with JS, in
-    /// `(label, instruction-data)` format. TODO: replace tuple by a proper
-    /// communication struct.
+    /// Exporta essa instrução para ser usada com JS, no formato `(label,
+    /// instruction-data)`. TODO: substituir tuplas por um tipo próprio da
+    /// comunicação.
     pub fn export(&self) -> (String, String) {
         (self.label.clone(), self.kind.to_string())
     }
@@ -101,6 +162,22 @@ impl fmt::Display for InstructionKind {
     }
 }
 
+impl InstructionKind {
+    /// Renomeia todos os rótulos desse tipo de instrução a partir de uma função
+    /// de renomeamento. Pelo fato de aplicarmos a renomeação no tipo da
+    /// instrução e não na instrução toda, isso significa que o rótulo que
+    /// identifica a instrução em si não é renomeado.
+    pub fn rename_labels<F>(&mut self, renamer: F)
+    where
+        F: FnMut(&mut String),
+    {
+        match self {
+            InstructionKind::Operation(oper) => oper.rename_labels(renamer),
+            InstructionKind::Test(test) => test.rename_labels(renamer),
+        }
+    }
+}
+
 /// Dados de uma instrução de operação.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Operation {
@@ -113,6 +190,17 @@ pub struct Operation {
 impl fmt::Display for Operation {
     fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
         write!(fmtr, "do {} goto {}", self.kind, self.next)
+    }
+}
+
+impl Operation {
+    /// A partir de uma função de renomeamento, renomeia todos os rótulos da
+    /// operação, que na verdade é simplesmente o rótulo de `next`.
+    pub fn rename_labels<F>(&mut self, mut renamer: F)
+    where
+        F: FnMut(&mut String),
+    {
+        renamer(&mut self.next);
     }
 }
 
@@ -223,6 +311,18 @@ impl fmt::Display for Test {
             "if {} then goto {} else goto {}",
             self.kind, self.next_then, self.next_else
         )
+    }
+}
+
+impl Test {
+    /// A partir de uma função de renomeamento, renomeia todos os rótulos do
+    /// teste, que na verdade são os rótulo de `then` e de `else`.
+    pub fn rename_labels<F>(&mut self, mut renamer: F)
+    where
+        F: FnMut(&mut String),
+    {
+        renamer(&mut self.next_then);
+        renamer(&mut self.next_else);
     }
 }
 
