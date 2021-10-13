@@ -1,3 +1,69 @@
+/* TODO: bug do label, erros
+ *
+ * Mudanças:
+ *  - mudando parâmetros de `&mut WorkingMacro<'ast>` para `&mut Program`
+ *  - `expand_main` implementada com `for` simples
+ *  - `expand` implementada criando o `Expansor` e pedindo expansão do
+ *    programa.
+ *  - `precompile_working_macro` salva o macro pré-compilado quando ele
+ *    acaba.
+ *
+ *  Bugs:
+ *  - Macros não eram salvos (FIXED).
+ *  - Bug do label: labels para instruções com chamadas de macro não
+ *    compilando corretamente pois devem ser renomeados. Considere a seguinte
+ *    macro `foo` junto a macro que chama (`myMacro`):
+ * ```
+ * operation foo(A, B) {
+ *     1: do inc A goto 2
+ *     2: do myMacro(B) goto 0
+ * }
+ * operation myMacro(A) {
+ *     1: do dec A goto 0
+ * }
+ * ```
+ *    Ela deveria ser compilada para:
+ * ```
+ * 1: do inc A goto 2.myMacro.1
+ * 2.myMacro.1: do dec B goto 0
+ * ```
+ *    Mas está sendo compilada para:
+ * ```
+ * 1: do inc A goto 2
+ * 2.myMacro.1: do dec B goto 0
+ * ```
+ *
+ * Ideia para resolver bug do label: quando encontrar instrução com macro,
+ * remapear todos rótulos de instruções précompiladas que vieram antes,
+ * enquanto as instruções que vierem depois procuram por seus rótulos em um
+ * registro de renomeamento (onde registraremos o renomeamento do macro).
+ *
+ * Como?
+ *
+ * 1. Introduzir estrutura `WorkingCode` mas que é diferente de
+ * `WorkingMacro`.
+ *
+ * 2. `WorkingCode` contém `Program` e `HashMap<String, String>`.
+ *
+ * 2. `WorkinMacro` não contém mais `PreCompiled`.
+ *
+ * 3. `WorkingMacro` contém um `WorkingCode`, um `&'ast ast::Macro`, um
+ *  . `usize`.
+ *
+ * 4. Quando o `WorkingMacro` acaba, ele produz um `PreCompiled` a partir de:
+ *      - `Program` do `WorkingCode`
+ *      - `&'ast ast::Macro` de si mesmo
+ *
+ * 5. Métodos de pré-compilação que recebiam um `&mut WorkingMacro<'ast>` (e
+ *  . que nessa versão passaram a receber `&mut Program`) vão receber um
+ *      `&mut WorkingCode`.
+ *
+ * 6. `WorkingCode` poderia ter métodos para auxiliar no seguinte:
+ *      - renomeamento de labels prévios a partir de novo caso
+ *      - renomeamento de um label atual a partir de casos prévios
+ *      - registro de novo caso de renomeamento de labels
+ */
+
 #[cfg(test)]
 mod test;
 
