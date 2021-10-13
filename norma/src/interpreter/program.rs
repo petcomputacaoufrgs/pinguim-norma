@@ -62,10 +62,23 @@ impl Program {
         self.instructions.get(label)
     }
 
+    /// Busca a instrução associada com o dado rótulo, e retorna uma referência
+    /// mutável para ela. Retorna `None` caso o rótulo seja inválido (fora
+    /// do programa).
+    pub fn instruction_mut(&mut self, label: &str) -> Option<&mut Instruction> {
+        self.instructions.get_mut(label)
+    }
+
     /// Constrói um iterador sobre referências de instruções. Pode ser usado no
     /// `for`.
     pub fn instructions(&self) -> Instructions {
         Instructions { inner: self.instructions.values() }
+    }
+
+    /// Constrói um iterador sobre referências mutáveis de instruções. Pode ser
+    /// usado no `for`.
+    pub fn instructions_mut(&mut self) -> InstructionsMut {
+        InstructionsMut { inner: self.instructions.values_mut() }
     }
 
     /// Exporta todas as instruções do programa para serem usadas com JS, no
@@ -94,6 +107,15 @@ impl<'prog> IntoIterator for &'prog Program {
     }
 }
 
+impl<'prog> IntoIterator for &'prog mut Program {
+    type Item = &'prog mut Instruction;
+    type IntoIter = InstructionsMut<'prog>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.instructions_mut()
+    }
+}
+
 /// Iterador sobre instruções de um programa.
 #[derive(Debug, Clone)]
 pub struct Instructions<'prog> {
@@ -119,6 +141,31 @@ impl<'prog> DoubleEndedIterator for Instructions<'prog> {
 }
 
 impl<'prog> ExactSizeIterator for Instructions<'prog> {}
+
+/// Iterador sobre instruções mutáveis de um programa.
+pub struct InstructionsMut<'prog> {
+    inner: map::ValuesMut<'prog, String, Instruction>,
+}
+
+impl<'prog> Iterator for InstructionsMut<'prog> {
+    type Item = &'prog mut Instruction;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl<'prog> DoubleEndedIterator for InstructionsMut<'prog> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.inner.next_back()
+    }
+}
+
+impl<'prog> ExactSizeIterator for InstructionsMut<'prog> {}
 
 /// Uma instrução genérica da Norma.
 #[derive(Debug, Clone, PartialEq, Eq)]
