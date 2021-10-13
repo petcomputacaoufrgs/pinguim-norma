@@ -1,79 +1,14 @@
-/* TODO: bug do label, erros
- *
- * Mudanças:
- *  - mudando parâmetros de `&mut WorkingMacro<'ast>` para `&mut Program`
- *  - `expand_main` implementada com `for` simples
- *  - `expand` implementada criando o `Expansor` e pedindo expansão do
- *    programa.
- *  - `precompile_working_macro` salva o macro pré-compilado quando ele
- *    acaba.
- *
- *  Bugs:
- *  - Macros não eram salvos (FIXED).
- *  - Bug do label: labels para instruções com chamadas de macro não
- *    compilando corretamente pois devem ser renomeados. Considere a seguinte
- *    macro `foo` junto a macro que chama (`myMacro`):
- * ```
- * operation foo(A, B) {
- *     1: do inc A goto 2
- *     2: do myMacro(B) goto 0
- * }
- * operation myMacro(A) {
- *     1: do dec A goto 2
- *     2: do dec A goto 0
- * }
- * ```
- *    Ela deveria ser compilada para:
- * ```
- * 1: do inc A goto 2.myMacro.1
- * 2.myMacro.1: do dec B goto 2.myMacro.2
- * 2.myMacro.2: do dec B goto 0
- * ```
- *    Mas está sendo compilada para:
- * ```
- * 1: do inc A goto 2
- * 2.myMacro.1: do dec B goto 2.myMacro.2
- * 2.myMacro.2: do dec B goto 0
- * ```
- *
- * Ideia para resolver bug do label: mapear renomeamentos, e no final da
- * (pré-)compilação, renomear todos labels necessários.
- *
- * Como?
- *
- * 1. Introduzir estrutura `WorkingCode` mas que é diferente de
- * `WorkingMacro`.
- *
- * 2. `WorkingCode` contém `Program` e `HashMap<String, String>`.
- *
- * 3. `WorkingMacro` não contém mais `PreCompiled`.
- *
- * 4. `WorkingMacro` contém um `WorkingCode`, um `&'ast ast::Macro`, um
- *  . `usize`.
- *
- * 5. Quando o `WorkingMacro` acaba, ele produz um `PreCompiled` a partir de:
- *      - `Program` do `WorkingCode`
- *      - `&'ast ast::Macro` de si mesmo
- *
- * 6. Métodos de pré-compilação que recebiam um `&mut WorkingMacro<'ast>` (e
- *  . que nessa versão passaram a receber `&mut Program`) vão receber um
- *      `&mut WorkingCode`.
- *
- * 7. `WorkingCode` poderia ter métodos para auxiliar no seguinte:
- *      - registro de novo caso de renomeamento de labels
- *      - método finish para renomear labels
- */
-
 #[cfg(test)]
 mod test;
 
+mod artifacts;
 mod macro_call;
 
 use crate::{
     compiler::{
-        ast,
         error::Diagnostics,
-        token::{BuiltInOperation, BuiltInTest},
+        lexer::token::{BuiltInOperation, BuiltInTest},
+        parser::ast,
     },
     interpreter::program::{
         Instruction,
@@ -85,6 +20,7 @@ use crate::{
         TestKind,
     },
 };
+use artifacts::{ExpansionRequired, PreCompiled, WorkingCode, WorkingMacro};
 use indexmap::IndexSet;
 use macro_call::{
     MacroCallExpansor,
@@ -639,87 +575,3 @@ impl<'ast> Expansor<'ast> {
         label == "false"
     }
 }
-
-#[derive(Clone, Debug)]
-struct ExpansionRequired<'ast> {
-    working_macro: WorkingMacro<'ast>,
-}
-
-#[derive(Clone, Debug)]
-struct PreCompiled<'ast> {
-    macro_data: &'ast ast::Macro,
-    program: Program, // Program do interpretador
-}
-
-impl<'ast> PreCompiled<'ast> {
-    fn new(macro_data: &'ast ast::Macro) -> Self {
-        PreCompiled { macro_data, program: Program::empty() }
-    }
-}
-
-#[derive(Clone, Debug)]
-struct WorkingCode {
-    program: Program,
-    expanded_labels: HashMap<String, String>,
-}
-
-impl WorkingCode {
-    fn new() -> Self {
-        Self { program: Program::empty(), expanded_labels: HashMap::new() }
-    }
-
-    fn insert_expansion(&mut self, old_label: String, new_label: String) {
-        self.expanded_labels.insert(old_label, new_label);
-    }
-
-    fn finish(self) -> Program {
-        let mut program = self.program;
-        let expanded_labels = self.expanded_labels;
-
-        for instruction in &mut program {
-            instruction.kind.rename_labels(|label: &mut String| {
-                if let Some(new_label) = expanded_labels.get(label) {
-                    label.clone_from(new_label);
-                }
-            })
-        }
-
-        program
-    }
-}
-
-#[derive(Clone, Debug)]
-struct WorkingMacro<'ast> {
-    code: WorkingCode,
-    macro_data: &'ast ast::Macro,
-    instr_index: usize,
-}
-
-impl<'ast> WorkingMacro<'ast> {
-    fn new(macro_data: &'ast ast::Macro) -> Self {
-        WorkingMacro { code: WorkingCode::new(), macro_data, instr_index: 0 }
-    }
-
-    fn finish(self) -> PreCompiled<'ast> {
-        let program = self.code.finish();
-        PreCompiled { program, macro_data: self.macro_data }
-    }
-}
-
-// se for outra chamada de macro, ve sem tem ela no precompiled
-// se já tiver la faz a expansao direto
-// se nao estiver, monta o expanding_macro com a macro atual e coloca na pilha
-// tenta fazer a expansao do macro que dependemos (retira da do target_macros)
-// quando chegar no final, coloca-o no precompiled
-// enquanto tiver macros no expanding_macros e a medida que precisa compila os
-// macros que são dependencias quando nao tiver mais nada no expanding_macros,
-// tenta tirar outra do target_macros quando não tiver mais nada no
-// target_macro, faz a expansão da main que é o mesmo algoritmo porém:
-
-// se uma macro nao tiver precompilada, é por que nao existe aquela macro (por
-// que todas ja foram precompiladas)
-
-// expansao:
-// 1- traduzir instruções
-// 2- prefixar os rótulos dos macros aninhados (internos)
-// 3- mapear rótulos de saída (true, false, invalidos) para rótulos externos

@@ -1,7 +1,8 @@
 use crate::{
     compiler::{
-        ast,
-        token::{BuiltInOperation, BuiltInTest, Position, Span},
+        lexer::token::{BuiltInOperation, BuiltInTest},
+        parser::ast,
+        position::{Position, Span},
     },
     interpreter::program::{
         Instruction,

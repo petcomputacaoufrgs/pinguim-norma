@@ -1,10 +1,8 @@
 use crate::compiler::{
-    ast::*,
     error::Diagnostics,
     lexer::generate_tokens,
     parser::parse,
     test::greater_than_one,
-    token::*,
 };
 
 #[test]

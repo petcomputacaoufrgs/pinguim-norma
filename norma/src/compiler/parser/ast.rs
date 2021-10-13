@@ -1,4 +1,7 @@
-use super::token::{BuiltInOperation, BuiltInTest, Span};
+use crate::compiler::{
+    lexer::token::{BuiltInOperation, BuiltInTest},
+    position::Span,
+};
 use indexmap::IndexMap;
 use num_bigint::BigUint;
 

@@ -1,16 +1,10 @@
 use super::{
     super::{
         error::Diagnostics,
-        token::{
-            BuiltInOperation,
-            BuiltInTest,
-            Position,
-            Span,
-            Token,
-            TokenType,
-        },
+        position::{Position, Span},
     },
     generate_tokens,
+    token::{BuiltInOperation, BuiltInTest, Token, TokenType},
 };
 
 #[test]

@@ -1,4 +1,4 @@
-use crate::compiler::token::{Span, TokenType};
+use crate::compiler::{lexer::token::TokenType, position::Span};
 use std::{error::Error as StdError, fmt, slice, vec};
 
 #[derive(Debug)]
@@ -182,12 +182,16 @@ impl StdError for MainNotDeclared {}
 
 #[derive(Clone, Debug)]
 pub struct MacroAlreadyDeclared {
-    pub macro_name: String
+    pub macro_name: String,
 }
 
 impl fmt::Display for MacroAlreadyDeclared {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "Macro \"{}\" já foi declarada neste programa", self.macro_name)
+        write!(
+            formatter,
+            "Macro \"{}\" já foi declarada neste programa",
+            self.macro_name
+        )
     }
 }
 
@@ -195,12 +199,16 @@ impl StdError for MacroAlreadyDeclared {}
 
 #[derive(Clone, Debug)]
 pub struct LabelAlreadyDeclared {
-    pub label_name: String
+    pub label_name: String,
 }
 
 impl fmt::Display for LabelAlreadyDeclared {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "Macro \"{}\" já foi declarada neste programa", self.label_name)
+        write!(
+            formatter,
+            "Macro \"{}\" já foi declarada neste programa",
+            self.label_name
+        )
     }
 }
 
@@ -208,7 +216,7 @@ impl StdError for LabelAlreadyDeclared {}
 
 #[derive(Clone, Debug)]
 pub struct UnexpectedToken {
-    pub expected_types: Vec<TokenType>
+    pub expected_types: Vec<TokenType>,
 }
 
 impl fmt::Display for UnexpectedToken {
@@ -218,15 +226,15 @@ impl fmt::Display for UnexpectedToken {
         let count = self.expected_types.len();
 
         if count > 1 {
-            for expected_type in &self.expected_types[..count - 2] {
+            for expected_type in &self.expected_types[.. count - 2] {
                 write!(formatter, "\"{}\", ", expected_type)?;
             }
 
-            write!(formatter, "\"{}\" ou ", self.expected_types[count-2])?;
+            write!(formatter, "\"{}\" ou ", self.expected_types[count - 2])?;
         }
 
         if count > 0 {
-            write!(formatter, "\"{}\"", self.expected_types[count-1])?;
+            write!(formatter, "\"{}\"", self.expected_types[count - 1])?;
         }
 
         Ok(())
@@ -245,3 +253,4 @@ impl fmt::Display for UnexpectedEndOfInput {
 }
 
 impl StdError for UnexpectedEndOfInput {}
+

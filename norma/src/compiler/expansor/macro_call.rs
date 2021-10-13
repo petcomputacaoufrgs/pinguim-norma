@@ -1,4 +1,4 @@
-use crate::compiler::ast;
+use crate::compiler::parser::ast;
 
 pub trait MacroCallExpansor<'ast> {
     type InstructionKind;
@@ -77,10 +77,11 @@ impl<'ast> MacroCallExpansor<'ast> for TestMacroCallExpansor {
         &self,
         outer_instr_kind: &'ast Self::InstructionKind,
     ) -> String {
-        panic!("Erro de compilação");    
+        panic!("Erro de compilação");
     }
 
     fn macro_type(&self) -> ast::MacroType {
         ast::MacroType::Test
     }
 }
+
