@@ -1,3 +1,5 @@
+mod macro_call;
+
 use crate::{
     compiler::{
         ast,
@@ -15,13 +17,18 @@ use crate::{
     },
 };
 use indexmap::IndexSet;
+use macro_call::{
+    MacroCallExpansor,
+    OperMacroCallExpansor,
+    TestMacroCallExpansor,
+};
 use std::collections::HashMap;
 
 pub fn expand(
     ast: &ast::Program,
     diagnostics: &mut Diagnostics,
 ) -> Option<Program> {
-    todo!()
+    Expansor::new(ast).expand_program()
 }
 
 struct Expansor<'ast> {
@@ -51,7 +58,13 @@ impl<'ast> Expansor<'ast> {
 
     // compila a main depois de precompilar os macros
     fn expand_main(&mut self) -> Option<Program> {
-        todo!()
+        let mut program = Program::empty();
+        for instruction in self.ast.main.code.values() {
+            self.precompile_instruction(instruction, &mut program).expect(
+                "All existing macros should already have been precompiled",
+            );
+        }
+        Some(program)
     }
 
     // precompila todas as macros
@@ -100,7 +113,11 @@ impl<'ast> Expansor<'ast> {
         while let Some((_, instr)) =
             macro_def.instr.get_index(working_macro.instr_index)
         {
-            match self.precompile_instruction(instr, &mut working_macro) {
+            let precomp_result = self.precompile_instruction(
+                instr,
+                &mut working_macro.precompiled.program,
+            );
+            match precomp_result {
                 Ok(()) => working_macro.instr_index += 1,
                 Err(request) => {
                     self.push_working_macro(working_macro);
@@ -127,18 +144,18 @@ impl<'ast> Expansor<'ast> {
     fn precompile_instruction(
         &mut self,
         instr: &'ast ast::Instruction,
-        working_macro: &mut WorkingMacro<'ast>,
+        working_program: &mut Program,
     ) -> Result<(), ExpansionRequired<'ast>> {
         match &instr.instruction_type {
             ast::InstructionType::Operation(operation) => {
                 self.precompile_operation(
                     &instr.label,
                     operation,
-                    working_macro,
+                    working_program,
                 )?;
             },
             ast::InstructionType::Test(test) => {
-                self.precompile_test(&instr.label, test, working_macro)?;
+                self.precompile_test(&instr.label, test, working_program)?;
             },
         }
 
@@ -150,7 +167,7 @@ impl<'ast> Expansor<'ast> {
         &mut self,
         label: &'ast ast::Symbol,
         operation: &'ast ast::Operation,
-        working_macro: &mut WorkingMacro<'ast>,
+        working_program: &mut Program,
     ) -> Result<(), ExpansionRequired<'ast>> {
         match &operation.oper_type {
             ast::OperationType::BuiltIn(builtin_oper, param) => {
@@ -166,17 +183,18 @@ impl<'ast> Expansor<'ast> {
                     label: label.content.clone(),
                 };
 
-                working_macro.insert_instruction(instruction);
+                working_program.insert(instruction);
 
                 Ok(())
             },
             ast::OperationType::Macro(macro_name, params) => self
-                .precompile_oper_macro_call(
+                .precompile_macro_call(
                     label,
                     operation,
+                    &OperMacroCallExpansor,
                     macro_name,
                     params,
-                    working_macro,
+                    working_program,
                 ),
         }
     }
@@ -193,62 +211,121 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
-    // expande uma operação que é outra chamada de macro
-    fn precompile_oper_macro_call(
+    fn precompile_test(
         &mut self,
         label: &'ast ast::Symbol,
-        operation: &'ast ast::Operation,
+        test: &'ast ast::Test,
+        working_program: &mut Program,
+    ) -> Result<(), ExpansionRequired<'ast>> {
+        match &test.test_type {
+            ast::TestType::BuiltIn(builtin_test, param) => {
+                let test_kind =
+                    self.precompile_builtin_test(*builtin_test, param);
+                let runtime_test = Test {
+                    kind: test_kind,
+                    next_then: test.next_true_label.content.clone(),
+                    next_else: test.next_false_label.content.clone(),
+                };
+
+                let instruction = Instruction {
+                    kind: InstructionKind::Test(runtime_test),
+                    label: label.content.clone(),
+                };
+
+                working_program.insert(instruction);
+
+                Ok(())
+            },
+            ast::TestType::Macro(macro_name, params) => self
+                .precompile_macro_call(
+                    label,
+                    test,
+                    &TestMacroCallExpansor,
+                    macro_name,
+                    params,
+                    working_program,
+                ),
+        }
+    }
+
+    fn precompile_builtin_test(
+        &mut self,
+        builtin_test: BuiltInTest,
+        param: &'ast ast::Symbol,
+    ) -> TestKind {
+        match builtin_test {
+            BuiltInTest::Zero => TestKind::Zero(param.content.clone()),
+        }
+    }
+
+    // expande uma operação que é outra chamada de macro
+    fn precompile_macro_call<E>(
+        &mut self,
+        label: &'ast ast::Symbol,
+        instr_kind: &'ast E::InstructionKind,
+        call_expansor: &E,
         macro_name: &'ast ast::Symbol,
         arguments: &'ast [ast::MacroArgument],
-        working_macro: &mut WorkingMacro<'ast>,
-    ) -> Result<(), ExpansionRequired<'ast>> {
+        working_program: &mut Program,
+    ) -> Result<(), ExpansionRequired<'ast>>
+    where
+        E: MacroCallExpansor<'ast>,
+    {
         if let Some(precompiled_macro) =
             self.precompileds.get(&macro_name.content).cloned()
         {
-            match precompiled_macro.macro_data.macro_type {
-                ast::MacroType::Operation => self.expand_oper_macro(
+            if call_expansor.macro_type()
+                == precompiled_macro.macro_data.macro_type
+            {
+                self.expand_macro(
                     precompiled_macro,
                     label,
-                    operation,
+                    instr_kind,
+                    call_expansor,
                     arguments,
-                    working_macro,
-                ),
-                ast::MacroType::Test => panic!("erro dps"),
+                    working_program,
+                );
+            } else {
+                panic!("Erro")
             }
+
+            Ok(())
         } else if self.target_macros.remove(&macro_name.content) {
             let working_macro = self.make_working_macro(&macro_name.content);
             Err(ExpansionRequired { working_macro })
         } else if self.ast.macros.contains_key(&macro_name.content) {
-            panic!("Recusãaaaaaaaaaaaao /o\\")
+            panic!("Recursãaaaaaaaaaaaao /o\\")
         } else {
             panic!("Macro não existe")
         }
     }
 
-    fn expand_oper_macro(
+    fn expand_macro<E>(
         &mut self,
         inner_precomp: PreCompiled<'ast>,
         outer_label: &'ast ast::Symbol,
-        outer_operation: &'ast ast::Operation,
+        outer_instr_kind: &'ast E::InstructionKind,
+        call_expansor: &E,
         arguments: &'ast [ast::MacroArgument],
-        working_macro: &mut WorkingMacro<'ast>,
-    ) -> Result<(), ExpansionRequired<'ast>> {
+        working_program: &mut Program,
+    ) where
+        E: MacroCallExpansor<'ast>,
+    {
         let params_map = self.map_params_to_args(
             &inner_precomp.macro_data.parameters,
             arguments,
         );
 
         for instr in inner_precomp.program.instructions() {
-            working_macro.insert_instruction(self.expand_oper_macro_instr(
+            working_program.insert(self.expand_instr(
                 &params_map,
                 instr,
                 outer_label,
-                outer_operation,
+                outer_instr_kind,
+                call_expansor,
                 &inner_precomp,
             ));
         }
-
-        todo!()
     }
 
     /// Expande uma instrução de um macro pré-compilado para dentro de um macro
@@ -265,106 +342,208 @@ impl<'ast> Expansor<'ast> {
     /// - `inner_precomp` é a precompilação da macro interna.
     ///
     /// TODO: por enquanto só considera chamadas de macro operação.
-    fn expand_oper_macro_instr(
+    fn expand_instr<E>(
         &mut self,
         params_map: &HashMap<&'ast str, &'ast str>,
         instr: &Instruction,
         outer_label: &'ast ast::Symbol,
-        outer_operation: &'ast ast::Operation,
+        outer_instr_kind: &'ast E::InstructionKind,
+        call_expansor: &E,
         inner_precomp: &PreCompiled<'ast>,
-    ) -> Instruction {
-        match &instr.kind {
+    ) -> Instruction
+    where
+        E: MacroCallExpansor<'ast>,
+    {
+        let instr_kind = match &instr.kind {
             InstructionKind::Operation(operation) => {
-                let expanded_operation = self.expand_oper_macro_oper_instr(
+                let expanded_operation = self.expand_oper_instr(
                     params_map,
                     operation,
                     outer_label,
-                    outer_operation,
+                    outer_instr_kind,
+                    call_expansor,
                     inner_precomp,
                 );
 
-                todo!()
+                InstructionKind::Operation(expanded_operation)
             },
 
-            InstructionKind::Test(test) => todo!(),
+            InstructionKind::Test(test) => {
+                let expanded_test = self.expand_test_instr(
+                    params_map,
+                    test,
+                    outer_label,
+                    outer_instr_kind,
+                    call_expansor,
+                    inner_precomp,
+                );
+
+                InstructionKind::Test(expanded_test)
+            },
+        };
+
+        Instruction {
+            label: self.expand_label(
+                inner_precomp,
+                &instr.label,
+                outer_label,
+                outer_instr_kind,
+                call_expansor,
+            ),
+            kind: instr_kind,
         }
     }
 
-    fn expand_oper_macro_oper_instr(
+    fn expand_oper_instr<E>(
         &mut self,
         params_map: &HashMap<&'ast str, &'ast str>,
         operation: &Operation,
         outer_label: &'ast ast::Symbol,
-        outer_operation: &'ast ast::Operation,
+        outer_instr_kind: &'ast E::InstructionKind,
+        call_expansor: &E,
         inner_precomp: &PreCompiled<'ast>,
-    ) -> Operation {
-
-        // 1. ver se o label existe na macro de dentro ou se sai
-        //  1.1. se ele existe, concatena com o label de quem chamou (outer) e o nome da macro de dentro
-        //  1.2. se nao existe, tem que trocar pelo next da operation que chamou essa
-
-        // 2. dar um match na operacao do interpretador e mapear cada argumento da instr de dentro
-
+    ) -> Operation
+    where
+        E: MacroCallExpansor<'ast>,
+    {
         Operation {
-            next: if inner_precomp.program.get_instruction(&operation.next).is_some() {
-                format!("{}.{}.{}", outer_label.content, inner_precomp.macro_data.name.content, operation.next)
-            } else {
-                outer_operation.next_label.content.clone()
-            },
-            kind: self.expand_oper_macro_oper_kind()
+            kind: self.expand_oper_kind(&operation.kind, params_map),
+            next: self.expand_label(
+                inner_precomp,
+                &operation.next,
+                outer_label,
+                outer_instr_kind,
+                call_expansor,
+            ),
         }
     }
 
-    fn expand_oper_macro_oper_kind(&self, operation_kind: &OperationKind, params_map: &HashMap<&'ast str, &'ast str>) -> OperationKind {
-        // TODO: mover match para interpretador!
-        match operation_kind {
-            OperationKind::Inc(register) => {
-                OperationKind::Inc(self.map_param_to_arg(params_map, register))
-            },
-            OperationKind::Dec(register) => {
-                OperationKind::Dec(self.map_param_to_arg(params_map, register))
-            },
-            _ => todo!()
+    fn expand_test_instr<E>(
+        &mut self,
+        params_map: &HashMap<&'ast str, &'ast str>,
+        test: &Test,
+        outer_label: &'ast ast::Symbol,
+        outer_instr_kind: &'ast E::InstructionKind,
+        call_expansor: &E,
+        inner_precomp: &PreCompiled<'ast>,
+    ) -> Test
+    where
+        E: MacroCallExpansor<'ast>,
+    {
+        Test {
+            kind: self.expand_test_kind(&test.kind, params_map),
+            next_then: self.expand_label(
+                inner_precomp,
+                &test.next_then,
+                outer_label,
+                outer_instr_kind,
+                call_expansor,
+            ),
+            next_else: self.expand_label(
+                inner_precomp,
+                &test.next_else,
+                outer_label,
+                outer_instr_kind,
+                call_expansor,
+            ),
         }
+    }
+
+    fn expand_label<E>(
+        &self,
+        inner_precomp: &PreCompiled<'ast>,
+        inner_next_label: &str,
+        outer_label: &'ast ast::Symbol,
+        outer_instr_kind: &'ast E::InstructionKind,
+        call_expansor: &E,
+    ) -> String
+    where
+        E: MacroCallExpansor<'ast>,
+    {
+        if inner_precomp.program.is_label_valid(inner_next_label) {
+            format!(
+                "{}.{}.{}",
+                outer_label.content,
+                inner_precomp.macro_data.name.content,
+                inner_next_label
+            )
+        } else if self.is_true_label(inner_next_label) {
+            call_expansor.expand_true_label(outer_instr_kind)
+        } else if self.is_false_label(inner_next_label) {
+            call_expansor.expand_false_label(outer_instr_kind)
+        } else {
+            call_expansor.expand_invalid_label(outer_instr_kind)
+        }
+    }
+
+    fn expand_oper_kind(
+        &self,
+        operation_kind: &OperationKind,
+        params_map: &HashMap<&'ast str, &'ast str>,
+    ) -> OperationKind {
+        operation_kind.map_registers(|register| {
+            self.map_param_to_arg(params_map, register)
+        })
+    }
+
+    fn expand_test_kind(
+        &self,
+        test_kind: &TestKind,
+        params_map: &HashMap<&'ast str, &'ast str>,
+    ) -> TestKind {
+        test_kind.map_registers(|register| {
+            self.map_param_to_arg(params_map, register)
+        })
     }
 
     fn map_param_to_arg(
-        &self, 
-        params_map: &HashMap<&'ast str, &'ast str>, 
-        register: &str
+        &self,
+        params_map: &HashMap<&'ast str, &'ast str>,
+        register: &str,
     ) -> String {
-        
-        params_map.get(register).map_or_else(|| register.to_string(), |arg| arg.to_string())
-
+        params_map
+            .get(register)
+            .map_or_else(|| register.to_string(), |arg| arg.to_string())
     }
 
     /// Produz mapeamento de nomes de registradores em parâmetros formais
     /// (chave) para registradores passados como argumentos (valor).
     fn map_params_to_args(
-        &mut self,
+        &self,
         def_params: &'ast [ast::Symbol],
         args: &'ast [ast::MacroArgument],
     ) -> HashMap<&'ast str, &'ast str> {
-        todo!()
-    }
-
-    fn precompile_test(
-        &mut self,
-        label: &'ast ast::Symbol,
-        test: &'ast ast::Test,
-        working_macro: &mut WorkingMacro<'ast>,
-    ) -> Result<(), ExpansionRequired<'ast>> {
-        todo!()
-    }
-
-    fn precompile_builtin_test(
-        &mut self,
-        builtin_test: BuiltInTest,
-        param: &'ast ast::Symbol,
-    ) -> TestKind {
-        match builtin_test {
-            BuiltInTest::Zero => TestKind::Zero(param.content.clone()),
+        if def_params.len() > args.len() {
+            panic!("Missing arguments")
+        } else if def_params.len() < args.len() {
+            panic!("Too much arguments")
+        } else {
+            def_params
+                .iter()
+                .zip(args)
+                .map(|(param, arg)| {
+                    (param.content.as_str(), self.expect_register_arg(arg))
+                })
+                .collect()
         }
+    }
+
+    fn expect_register_arg(
+        &self,
+        macro_argument: &'ast ast::MacroArgument,
+    ) -> &'ast str {
+        match macro_argument {
+            ast::MacroArgument::Register(register) => &register.content,
+            ast::MacroArgument::Number(constant) => panic!("aaaaaa"),
+        }
+    }
+
+    fn is_true_label(&self, label: &str) -> bool {
+        label == "true"
+    }
+
+    fn is_false_label(&self, label: &str) -> bool {
+        label == "false"
     }
 }
 
@@ -394,10 +573,6 @@ struct WorkingMacro<'ast> {
 impl<'ast> WorkingMacro<'ast> {
     fn new(precompiled: PreCompiled<'ast>) -> Self {
         WorkingMacro { precompiled, instr_index: 0 }
-    }
-
-    fn insert_instruction(&mut self, instruction: Instruction) {
-        self.precompiled.program.insert(instruction);
     }
 }
 

@@ -26,6 +26,12 @@ impl Program {
         self.instructions.insert(instruction.label.clone(), instruction);
     }
 
+    /// Testa se um dado rótulo é válido, i.e. existe uma instrução para o qual
+    /// esse rótulo mapeia.
+    pub fn is_label_valid(&self, label: &str) -> bool {
+        self.instructions.contains_key(label)
+    }
+
     /// Busca a instrução associada com o dado rótulo. Retorna `None` caso o
     /// rótulo seja inválido (fora do programa).
     pub fn get_instruction(&self, label: &str) -> Option<Instruction> {
@@ -136,6 +142,42 @@ pub enum OperationKind {
     Sub(String, String, String),
 }
 
+impl OperationKind {
+    /// Mapeia todos os registradores para novos registradores, usando a dada
+    /// função. Clona outros dados.
+    pub fn map_registers<F>(&self, mut mapper: F) -> Self
+    where
+        F: FnMut(&str) -> String,
+    {
+        match self {
+            OperationKind::Inc(register) => {
+                OperationKind::Inc(mapper(register))
+            },
+            OperationKind::Dec(register) => {
+                OperationKind::Dec(mapper(register))
+            },
+            OperationKind::Clear(register) => {
+                OperationKind::Clear(mapper(register))
+            },
+            OperationKind::Load(register, constant) => {
+                OperationKind::Load(mapper(register), constant.clone())
+            },
+            OperationKind::AddConst(register, constant) => {
+                OperationKind::AddConst(mapper(register), constant.clone())
+            },
+            OperationKind::Add(left, right, temp) => {
+                OperationKind::Add(mapper(left), mapper(right), mapper(temp))
+            },
+            OperationKind::SubConst(register, constant) => {
+                OperationKind::SubConst(mapper(register), constant.clone())
+            },
+            OperationKind::Sub(left, right, temp) => {
+                OperationKind::Sub(mapper(left), mapper(right), mapper(temp))
+            },
+        }
+    }
+}
+
 impl fmt::Display for OperationKind {
     fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -201,6 +243,31 @@ pub enum TestKind {
     /// Teste se o primeiro registrador é menor que o segundo, usando o
     /// terceiro registrador como temporário, que será zerado.
     LessThan(String, String, String),
+}
+
+impl TestKind {
+    /// Mapeia todos os registradores para novos registradores, usando a dada
+    /// função. Clona outros dados.
+    pub fn map_registers<F>(&self, mut mapper: F) -> Self
+    where
+        F: FnMut(&str) -> String,
+    {
+        match self {
+            TestKind::Zero(register) => TestKind::Zero(mapper(register)),
+            TestKind::EqualsConst(register, constant) => {
+                TestKind::EqualsConst(mapper(register), constant.clone())
+            },
+            TestKind::Equals(left, right, temp) => {
+                TestKind::Equals(mapper(left), mapper(right), mapper(temp))
+            },
+            TestKind::LessThanConst(register, constant) => {
+                TestKind::LessThanConst(mapper(register), constant.clone())
+            },
+            TestKind::LessThan(left, right, temp) => {
+                TestKind::LessThan(mapper(left), mapper(right), mapper(temp))
+            },
+        }
+    }
 }
 
 impl fmt::Display for TestKind {
