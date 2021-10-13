@@ -1,4 +1,7 @@
-use crate::{compiler::parser::ast, interpreter::program::Program};
+use crate::{
+    compiler::parser::ast,
+    interpreter::program::{Instruction, Program},
+};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
@@ -8,25 +11,37 @@ pub struct ExpansionRequired<'ast> {
 
 #[derive(Clone, Debug)]
 pub struct PreCompiled<'ast> {
-    pub macro_data: &'ast ast::Macro,
-    pub program: Program, // Program do interpretador
+    macro_data: &'ast ast::Macro,
+    program: Program, // Program do interpretador
 }
 
 impl<'ast> PreCompiled<'ast> {
     pub fn new(macro_data: &'ast ast::Macro) -> Self {
         PreCompiled { macro_data, program: Program::empty() }
     }
+
+    pub fn macro_data(&self) -> &'ast ast::Macro {
+        self.macro_data
+    }
+
+    pub fn program(&self) -> &Program {
+        &self.program
+    }
 }
 
 #[derive(Clone, Debug)]
 pub struct WorkingCode {
-    pub program: Program,
-    pub expanded_labels: HashMap<String, String>,
+    program: Program,
+    expanded_labels: HashMap<String, String>,
 }
 
 impl WorkingCode {
     pub fn new() -> Self {
         Self { program: Program::empty(), expanded_labels: HashMap::new() }
+    }
+
+    pub fn insert_instr(&mut self, instruction: Instruction) {
+        self.program.insert(instruction)
     }
 
     pub fn insert_expansion(&mut self, old_label: String, new_label: String) {
@@ -51,14 +66,37 @@ impl WorkingCode {
 
 #[derive(Clone, Debug)]
 pub struct WorkingMacro<'ast> {
-    pub code: WorkingCode,
-    pub macro_data: &'ast ast::Macro,
-    pub instr_index: usize,
+    code: WorkingCode,
+    macro_data: &'ast ast::Macro,
+    instr_index: usize,
 }
 
 impl<'ast> WorkingMacro<'ast> {
     pub fn new(macro_data: &'ast ast::Macro) -> Self {
         WorkingMacro { code: WorkingCode::new(), macro_data, instr_index: 0 }
+    }
+
+    pub fn code(&self) -> &WorkingCode {
+        &self.code
+    }
+
+    pub fn code_mut(&mut self) -> &mut WorkingCode {
+        &mut self.code
+    }
+
+    pub fn macro_data(&self) -> &'ast ast::Macro {
+        self.macro_data
+    }
+
+    pub fn curr_instr(&self) -> Option<&'ast ast::Instruction> {
+        self.macro_data
+            .instr
+            .get_index(self.instr_index)
+            .map(|(_, instr)| instr)
+    }
+
+    pub fn next_instr(&mut self) {
+        self.instr_index += 1;
     }
 
     pub fn finish(self) -> PreCompiled<'ast> {

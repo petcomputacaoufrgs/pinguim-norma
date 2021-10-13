@@ -114,17 +114,13 @@ impl<'ast> Expansor<'ast> {
         &mut self,
         mut working_macro: WorkingMacro<'ast>,
     ) {
-        let macro_def = self.get_macro(&working_macro.macro_data.name.content);
-
         loop {
-            if let Some((_, instr)) =
-                macro_def.instr.get_index(working_macro.instr_index)
-            {
-                let precomp_result =
-                    self.precompile_instruction(instr, &mut working_macro.code);
+            if let Some(instr) = working_macro.curr_instr() {
+                let precomp_result = self
+                    .precompile_instruction(instr, working_macro.code_mut());
 
                 match precomp_result {
-                    Ok(()) => working_macro.instr_index += 1,
+                    Ok(()) => working_macro.next_instr(),
                     Err(request) => {
                         self.push_working_macro(working_macro);
                         self.push_working_macro(request.working_macro);
@@ -142,7 +138,7 @@ impl<'ast> Expansor<'ast> {
     /// `WorkingMacro` no registro de macros pré-compilados.
     fn finish_working_macro(&mut self, working_macro: WorkingMacro<'ast>) {
         let precompiled = working_macro.finish();
-        let name = precompiled.macro_data.name.content.clone();
+        let name = precompiled.macro_data().name.content.clone();
         self.precompileds.insert(name, precompiled);
     }
 
@@ -201,7 +197,7 @@ impl<'ast> Expansor<'ast> {
                     label: label.content.clone(),
                 };
 
-                working_code.program.insert(instruction);
+                working_code.insert_instr(instruction);
 
                 Ok(())
             },
@@ -250,7 +246,7 @@ impl<'ast> Expansor<'ast> {
                     label: label.content.clone(),
                 };
 
-                working_code.program.insert(instruction);
+                working_code.insert_instr(instruction);
 
                 Ok(())
             },
@@ -293,7 +289,7 @@ impl<'ast> Expansor<'ast> {
             self.precompileds.get(&macro_name.content).cloned()
         {
             if call_expansor.macro_type()
-                == precompiled_macro.macro_data.macro_type
+                == precompiled_macro.macro_data().macro_type
             {
                 self.expand_macro(
                     precompiled_macro,
@@ -329,7 +325,7 @@ impl<'ast> Expansor<'ast> {
     ) where
         E: MacroCallExpansor<'ast>,
     {
-        let first_label = inner_precomp.program.first_label();
+        let first_label = inner_precomp.program().first_label();
         let expanded_first_label = self.expand_label(
             &inner_precomp,
             first_label,
@@ -343,12 +339,12 @@ impl<'ast> Expansor<'ast> {
         );
 
         let params_map = self.map_params_to_args(
-            &inner_precomp.macro_data.parameters,
+            &inner_precomp.macro_data().parameters,
             arguments,
         );
 
-        for instr in inner_precomp.program.instructions() {
-            working_code.program.insert(self.expand_instr(
+        for instr in inner_precomp.program().instructions() {
+            working_code.insert_instr(self.expand_instr(
                 &params_map,
                 instr,
                 outer_label,
@@ -491,11 +487,11 @@ impl<'ast> Expansor<'ast> {
     where
         E: MacroCallExpansor<'ast>,
     {
-        if inner_precomp.program.is_label_valid(inner_next_label) {
+        if inner_precomp.program().is_label_valid(inner_next_label) {
             format!(
                 "{}.{}.{}",
                 outer_label.content,
-                inner_precomp.macro_data.name.content,
+                inner_precomp.macro_data().name.content,
                 inner_next_label
             )
         } else if self.is_true_label(inner_next_label) {
