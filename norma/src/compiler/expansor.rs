@@ -650,14 +650,32 @@ impl<'ast> PreCompiled<'ast> {
 }
 
 #[derive(Clone, Debug)]
+struct WorkingCode {
+    program: Program,
+    expanded_labels: HashMap<String, String>,
+}
+
+impl WorkingCode {
+    fn finish(self) -> Program {
+        todo!()
+    }
+}
+
+#[derive(Clone, Debug)]
 struct WorkingMacro<'ast> {
-    precompiled: PreCompiled<'ast>,
+    code: WorkingCode,
+    macro_data: &'ast ast::Macro,
     instr_index: usize,
 }
 
 impl<'ast> WorkingMacro<'ast> {
-    fn new(precompiled: PreCompiled<'ast>) -> Self {
-        WorkingMacro { precompiled, instr_index: 0 }
+    fn new(code: WorkingCode, macro_data: &'ast ast::Macro) -> Self {
+        WorkingMacro { code, macro_data, instr_index: 0 }
+    }
+
+    fn finish(self) -> PreCompiled<'ast> {
+        let program = self.code.finish();
+        PreCompiled { program, macro_data: self.macro_data }
     }
 }
 
