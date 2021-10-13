@@ -1,10 +1,12 @@
 #[cfg(test)]
 mod test;
 
+pub mod error;
 pub mod token;
 
-use super::error::{BadCommentStart, Diagnostics, Error, InvalidChar};
+use super::error::{Diagnostics, Error};
 use crate::compiler::position::Span;
+use error::{BadCommentStart, InvalidChar};
 use std::{error::Error as StdError, iter::Peekable, str};
 use token::{BuiltInOperation, BuiltInTest, Token, TokenType};
 

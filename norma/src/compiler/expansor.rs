@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod test;
 
+pub mod error;
+
 mod artifacts;
 mod macro_call;
 

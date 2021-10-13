@@ -1,10 +1,11 @@
 #[cfg(test)]
 mod test;
 
+pub mod error;
 pub mod ast;
 
 use crate::compiler::{
-    error::*,
+    error::{Diagnostics, Error},
     lexer::token::{BuiltInOperation, BuiltInTest, Token, TokenType},
 };
 use ast::{
@@ -21,9 +22,17 @@ use ast::{
     Test,
     TestType,
 };
+use error::{
+    LabelAlreadyDeclared,
+    MacroAlreadyDeclared,
+    MainAlreadyDeclared,
+    MainNotDeclared,
+    UnexpectedEndOfInput,
+    UnexpectedToken,
+};
 use indexmap::IndexMap;
 use num_bigint::BigUint;
-use std::{error::Error as StdError, str::FromStr};
+use std::str::FromStr;
 
 pub fn parse(
     tokens: Vec<Token>,
