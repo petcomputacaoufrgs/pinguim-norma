@@ -40,7 +40,7 @@ impl Program {
     ///
     /// Invoca `panic!()` caso o rótulo esteja duplicado.
     pub fn insert(&mut self, instruction: Instruction) {
-        match self.instructions.entry(instruction.label.clone()) {
+        match self.instructions.entry(instruction.label().to_owned()) {
             map::Entry::Vacant(entry) => {
                 entry.insert(instruction);
             },
@@ -171,12 +171,22 @@ impl<'prog> ExactSizeIterator for InstructionsMut<'prog> {}
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Instruction {
     /// O rótulo identificado essa instrução.
-    pub label: String,
+    label: String,
     /// O tipo específico dessa instrução.
     pub kind: InstructionKind,
 }
 
 impl Instruction {
+    /// Cria uma instrução a partir do seu rótulo e de seu tipo específico.
+    pub fn new(label: String, kind: InstructionKind) -> Self {
+        Self { label, kind }
+    }
+
+    /// O rótulo da instrução.
+    pub fn label(&self) -> &str {
+        &self.label
+    }
+
     /// Exporta essa instrução para ser usada com JS, no formato `(label,
     /// instruction-data)`. TODO: substituir tuplas por um tipo próprio da
     /// comunicação.
