@@ -45,28 +45,28 @@ pub fn ast() -> ast::Program {
 pub fn runtime_program() -> Program {
     let mut program = Program::empty();
 
-    program.insert(Instruction {
-        label: String::from("dec_x"),
-        kind: InstructionKind::Operation(Operation {
+    program.insert(Instruction::new(
+        String::from("dec_x"),
+        InstructionKind::Operation(Operation {
             kind: OperationKind::Dec(String::from("X")),
             next: String::from("inc_y.incIfNotZero.1.notZero.1"),
         }),
-    });
-    program.insert(Instruction {
-        label: String::from("inc_y.incIfNotZero.1.notZero.1"),
-        kind: InstructionKind::Test(Test {
+    ));
+    program.insert(Instruction::new(
+        String::from("inc_y.incIfNotZero.1.notZero.1"),
+        InstructionKind::Test(Test {
             kind: TestKind::Zero(String::from("X")),
             next_then: String::from("0"),
             next_else: String::from("inc_y.incIfNotZero.2"),
         }),
-    });
-    program.insert(Instruction {
-        label: String::from("inc_y.incIfNotZero.2"),
-        kind: InstructionKind::Operation(Operation {
+    ));
+    program.insert(Instruction::new(
+        String::from("inc_y.incIfNotZero.2"),
+        InstructionKind::Operation(Operation {
             kind: OperationKind::Inc(String::from("Y")),
             next: String::from("0"),
         }),
-    });
+    ));
 
     program
 }

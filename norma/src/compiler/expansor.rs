@@ -192,10 +192,10 @@ impl<'ast> Expansor<'ast> {
                     next: operation.next_label.content.clone(),
                 };
 
-                let instruction = Instruction {
-                    kind: InstructionKind::Operation(runtime_oper),
-                    label: label.content.clone(),
-                };
+                let instruction = Instruction::new(
+                    label.content.clone(),
+                    InstructionKind::Operation(runtime_oper),
+                );
 
                 working_code.insert_instr(instruction);
 
@@ -241,10 +241,10 @@ impl<'ast> Expansor<'ast> {
                     next_else: test.next_false_label.content.clone(),
                 };
 
-                let instruction = Instruction {
-                    kind: InstructionKind::Test(runtime_test),
-                    label: label.content.clone(),
-                };
+                let instruction = Instruction::new(
+                    label.content.clone(),
+                    InstructionKind::Test(runtime_test),
+                );
 
                 working_code.insert_instr(instruction);
 
@@ -409,16 +409,16 @@ impl<'ast> Expansor<'ast> {
             },
         };
 
-        Instruction {
-            label: self.expand_label(
+        Instruction::new(
+            self.expand_label(
                 inner_precomp,
-                &instr.label,
+                instr.label(),
                 outer_label,
                 outer_instr_kind,
                 call_expansor,
             ),
-            kind: instr_kind,
-        }
+            instr_kind,
+        )
     }
 
     fn expand_oper_instr<E>(
