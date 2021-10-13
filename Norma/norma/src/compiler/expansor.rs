@@ -113,22 +113,36 @@ impl<'ast> Expansor<'ast> {
     ) {
         let macro_def =
             self.get_macro(&working_macro.precompiled.macro_data.name.content);
-        while let Some((_, instr)) =
-            macro_def.instr.get_index(working_macro.instr_index)
-        {
-            let precomp_result = self.precompile_instruction(
-                instr,
-                &mut working_macro.precompiled.program,
-            );
-            match precomp_result {
-                Ok(()) => working_macro.instr_index += 1,
-                Err(request) => {
-                    self.push_working_macro(working_macro);
-                    self.push_working_macro(request.working_macro);
-                    break;
-                },
+        loop {
+            if let Some((_, instr)) =
+                macro_def.instr.get_index(working_macro.instr_index)
+            {
+                let precomp_result = self.precompile_instruction(
+                    instr,
+                    &mut working_macro.precompiled.program,
+                );
+                match precomp_result {
+                    Ok(()) => working_macro.instr_index += 1,
+                    Err(request) => {
+                        self.push_working_macro(working_macro);
+                        self.push_working_macro(request.working_macro);
+                        break;
+                    },
+                }
+            } else {
+                self.finish_working_macro(working_macro);
+                break;
             }
         }
+    }
+
+    /// Acaba a pré-compilação de um macro, inserindo o trabalho feito por
+    /// `WorkingMacro` no registro de macros pré-compilados.
+    fn finish_working_macro(&mut self, working_macro: WorkingMacro<'ast>) {
+        self.precompileds.insert(
+            working_macro.precompiled.macro_data.name.content.clone(),
+            working_macro.precompiled,
+        );
     }
 
     // expande todas as macros na pilha de macros a serem trabalhadas
