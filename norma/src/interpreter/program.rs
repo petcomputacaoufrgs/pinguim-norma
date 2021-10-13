@@ -162,6 +162,22 @@ impl fmt::Display for InstructionKind {
     }
 }
 
+impl InstructionKind {
+    /// Renomeia todos os rótulos desse tipo de instrução a partir de uma função
+    /// de renomeamento. Pelo fato de aplicarmos a renomeação no tipo da
+    /// instrução e não na instrução toda, isso significa que o rótulo que
+    /// identifica a instrução em si não é renomeado.
+    pub fn rename_labels<F>(&mut self, renamer: F)
+    where
+        F: FnMut(&mut String),
+    {
+        match self {
+            InstructionKind::Operation(oper) => oper.rename_labels(renamer),
+            InstructionKind::Test(test) => test.rename_labels(renamer),
+        }
+    }
+}
+
 /// Dados de uma instrução de operação.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Operation {
@@ -174,6 +190,17 @@ pub struct Operation {
 impl fmt::Display for Operation {
     fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
         write!(fmtr, "do {} goto {}", self.kind, self.next)
+    }
+}
+
+impl Operation {
+    /// A partir de uma função de renomeamento, renomeia todos os rótulos da
+    /// operação, que na verdade é simplesmente o rótulo de `next`.
+    pub fn rename_labels<F>(&mut self, mut renamer: F)
+    where
+        F: FnMut(&mut String),
+    {
+        renamer(&mut self.next);
     }
 }
 
@@ -284,6 +311,18 @@ impl fmt::Display for Test {
             "if {} then goto {} else goto {}",
             self.kind, self.next_then, self.next_else
         )
+    }
+}
+
+impl Test {
+    /// A partir de uma função de renomeamento, renomeia todos os rótulos do
+    /// teste, que na verdade são os rótulo de `then` e de `else`.
+    pub fn rename_labels<F>(&mut self, mut renamer: F)
+    where
+        F: FnMut(&mut String),
+    {
+        renamer(&mut self.next_then);
+        renamer(&mut self.next_else);
     }
 }
 
