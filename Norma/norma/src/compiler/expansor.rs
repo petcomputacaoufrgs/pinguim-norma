@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod test;
+
 mod macro_call;
 
 use crate::{
