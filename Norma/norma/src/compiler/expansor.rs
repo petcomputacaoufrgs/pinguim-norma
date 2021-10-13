@@ -55,6 +55,13 @@ impl<'ast> Expansor<'ast> {
     // compila a main depois de precompilar os macros
     fn expand_main(&mut self) -> Option<Program> {
         todo!()
+
+        // criar Program vazio ~"working macro"
+        // iterar pelas instrucoes da ast da main
+        // para cada instrucao chamar precompile_instruction()
+        // dar expect("Macros existentes ja foram precompiladas") no precompile_instruction()
+        // retornar o programa no final
+        // trocar os parametros com working_macro para program nas funcoes de precompile_instruction abaixo
     }
 
     // precompila todas as macros
