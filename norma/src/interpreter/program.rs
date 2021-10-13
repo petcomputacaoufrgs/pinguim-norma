@@ -5,7 +5,7 @@ use num_bigint::BigUint;
 use std::fmt;
 
 /// Um programa da Norma.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Program {
     instructions: IndexMap<String, Instruction>,
 }
@@ -121,7 +121,7 @@ impl<'prog> DoubleEndedIterator for Instructions<'prog> {
 impl<'prog> ExactSizeIterator for Instructions<'prog> {}
 
 /// Uma instrução genérica da Norma.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Instruction {
     /// O rótulo identificado essa instrução.
     pub label: String,
@@ -145,7 +145,7 @@ impl fmt::Display for Instruction {
 }
 
 /// Um tipo específico de instrução.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InstructionKind {
     /// Uma instrução de operação.
     Operation(Operation),
@@ -163,7 +163,7 @@ impl fmt::Display for InstructionKind {
 }
 
 /// Dados de uma instrução de operação.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Operation {
     /// O "core" da operação em si, o tipo específico de operação.
     pub kind: OperationKind,
@@ -178,7 +178,7 @@ impl fmt::Display for Operation {
 }
 
 /// O tipo específico do "core" da operação.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum OperationKind {
     /// Incrementa o registrador do primeiro parâmetro.
     Inc(String),
@@ -267,7 +267,7 @@ impl fmt::Display for OperationKind {
 }
 
 /// Dados de uma instrução de teste.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Test {
     /// O "core" do teste, o tipo específico do teste.
     pub kind: TestKind,
@@ -288,7 +288,7 @@ impl fmt::Display for Test {
 }
 
 /// O tipo específico do "core" do teste.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TestKind {
     /// Testa se o primeiro parâmetro (registrador) é zero.
     Zero(String),
