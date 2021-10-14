@@ -96,3 +96,14 @@ impl fmt::Display for UnexpectedEndOfInput {
 }
 
 impl Error for UnexpectedEndOfInput {}
+
+#[derive(Clone, Debug)]
+pub struct InvalidLabel;
+
+impl fmt::Display for InvalidLabel {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "Nome de label não pode ser \"true\" nem \"false\"")
+    }
+}
+
+impl Error for InvalidLabel {}

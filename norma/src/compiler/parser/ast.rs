@@ -4,6 +4,7 @@ use crate::compiler::{
 };
 use indexmap::IndexMap;
 use num_bigint::BigUint;
+use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Instruction {
@@ -56,6 +57,15 @@ pub enum MacroType {
     Test,
 }
 
+impl fmt::Display for MacroType {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Operation => write!(formatter, "Operation"),
+            Test => write!(formatter, "Test")
+        }
+    }
+} 
+
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol {
     pub content: String,
@@ -68,6 +78,15 @@ pub enum MacroArgument {
     Number(BigUint),
 }
 
+impl MacroArgument {
+    pub fn arg_type(&self) -> MacroArgumentType {
+        match self {
+            MacroArgument::Register(_) => MacroArgumentType::Register,
+            MacroArgument::Number(_) => MacroArgumentType::Number,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Main {
     pub code: IndexMap<String, Instruction>,
@@ -78,3 +97,18 @@ pub struct Program {
     pub main: Main,
     pub macros: IndexMap<String, Macro>,
 }
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum MacroArgumentType {
+    Register,
+    Number,
+}
+
+impl fmt::Display for MacroArgumentType {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Register => write!(formatter, "registrador"),
+            Number => write!(formatter, "número")
+        }
+    }
+} 

@@ -8,7 +8,7 @@ mod macro_call;
 
 use crate::{
     compiler::{
-        error::Diagnostics,
+        error::{Diagnostics, Error},
         lexer::token::{BuiltInOperation, BuiltInTest},
         parser::ast,
     },
@@ -22,6 +22,7 @@ use crate::{
         TestKind,
     },
 };
+use error::{UndefinedMacro, RecursiveMacro, IncompatibleMacroType, MismatchedArgsNumber, MismatchedArgType};
 use artifacts::{ExpansionRequired, PreCompiled, WorkingCode, WorkingMacro};
 use indexmap::IndexSet;
 use macro_call::{
@@ -35,7 +36,7 @@ pub fn expand(
     ast: &ast::Program,
     diagnostics: &mut Diagnostics,
 ) -> Option<Program> {
-    Expansor::new(ast).expand_program()
+    Expansor::new(ast).expand_program(diagnostics)
 }
 
 struct Expansor<'ast> {
@@ -58,16 +59,16 @@ impl<'ast> Expansor<'ast> {
     }
 
     // compila o programa todo
-    fn expand_program(&mut self) -> Option<Program> {
-        self.precompile_macros();
-        self.expand_main()
+    fn expand_program(&mut self, diagnostics: &mut Diagnostics) -> Option<Program> {
+        self.precompile_macros(diagnostics);
+        self.expand_main(diagnostics)
     }
 
     // compila a main depois de precompilar os macros
-    fn expand_main(&mut self) -> Option<Program> {
+    fn expand_main(&mut self, diagnostics: &mut Diagnostics) -> Option<Program> {
         let mut code = WorkingCode::new();
         for instruction in self.ast.main.code.values() {
-            self.precompile_instruction(instruction, &mut code).expect(
+            self.precompile_instruction(instruction, &mut code, diagnostics).expect(
                 "All existing macros should already have been precompiled",
             );
         }
@@ -75,11 +76,11 @@ impl<'ast> Expansor<'ast> {
     }
 
     // precompila todas as macros
-    fn precompile_macros(&mut self) {
+    fn precompile_macros(&mut self, diagnostics: &mut Diagnostics) {
         while let Some(macro_name) = self.pop_target_macro() {
             let working_macro = self.make_working_macro(&macro_name);
             self.push_working_macro(working_macro);
-            self.precompile_working_macros();
+            self.precompile_working_macros(diagnostics);
         }
     }
 
@@ -113,11 +114,12 @@ impl<'ast> Expansor<'ast> {
     fn precompile_working_macro(
         &mut self,
         mut working_macro: WorkingMacro<'ast>,
+        diagnostics: &mut Diagnostics
     ) {
         loop {
             if let Some(instr) = working_macro.curr_instr() {
                 let precomp_result = self
-                    .precompile_instruction(instr, working_macro.code_mut());
+                    .precompile_instruction(instr, working_macro.code_mut(), diagnostics);
 
                 match precomp_result {
                     Ok(()) => working_macro.next_instr(),
@@ -143,9 +145,9 @@ impl<'ast> Expansor<'ast> {
     }
 
     // expande todas as macros na pilha de macros a serem trabalhadas
-    fn precompile_working_macros(&mut self) {
+    fn precompile_working_macros(&mut self, diagnostics: &mut Diagnostics) {
         while let Some(working_macro) = self.pop_working_macro() {
-            self.precompile_working_macro(working_macro);
+            self.precompile_working_macro(working_macro, diagnostics);
         }
     }
 
@@ -159,6 +161,7 @@ impl<'ast> Expansor<'ast> {
         &mut self,
         instr: &'ast ast::Instruction,
         working_code: &mut WorkingCode,
+        diagnostics: &mut Diagnostics
     ) -> Result<(), ExpansionRequired<'ast>> {
         match &instr.instruction_type {
             ast::InstructionType::Operation(operation) => {
@@ -166,10 +169,16 @@ impl<'ast> Expansor<'ast> {
                     &instr.label,
                     operation,
                     working_code,
+                    diagnostics
                 )?;
             },
             ast::InstructionType::Test(test) => {
-                self.precompile_test(&instr.label, test, working_code)?;
+                self.precompile_test(
+                    &instr.label, 
+                    test, 
+                    working_code, 
+                    diagnostics
+                )?;
             },
         }
 
@@ -182,6 +191,7 @@ impl<'ast> Expansor<'ast> {
         label: &'ast ast::Symbol,
         operation: &'ast ast::Operation,
         working_code: &mut WorkingCode,
+        diagnostics: &mut Diagnostics
     ) -> Result<(), ExpansionRequired<'ast>> {
         match &operation.oper_type {
             ast::OperationType::BuiltIn(builtin_oper, param) => {
@@ -209,6 +219,7 @@ impl<'ast> Expansor<'ast> {
                     macro_name,
                     params,
                     working_code,
+                    diagnostics
                 ),
         }
     }
@@ -230,6 +241,7 @@ impl<'ast> Expansor<'ast> {
         label: &'ast ast::Symbol,
         test: &'ast ast::Test,
         working_code: &mut WorkingCode,
+        diagnostics: &mut Diagnostics
     ) -> Result<(), ExpansionRequired<'ast>> {
         match &test.test_type {
             ast::TestType::BuiltIn(builtin_test, param) => {
@@ -258,6 +270,7 @@ impl<'ast> Expansor<'ast> {
                     macro_name,
                     params,
                     working_code,
+                    diagnostics
                 ),
         }
     }
@@ -281,6 +294,7 @@ impl<'ast> Expansor<'ast> {
         macro_name: &'ast ast::Symbol,
         arguments: &'ast [ast::MacroArgument],
         working_code: &mut WorkingCode,
+        diagnostics: &mut Diagnostics
     ) -> Result<(), ExpansionRequired<'ast>>
     where
         E: MacroCallExpansor<'ast>,
@@ -292,15 +306,23 @@ impl<'ast> Expansor<'ast> {
                 == precompiled_macro.macro_data().macro_type
             {
                 self.expand_macro(
+                    macro_name,
                     precompiled_macro,
                     label,
                     instr_kind,
                     call_expansor,
                     arguments,
                     working_code,
+                    diagnostics,
                 );
             } else {
-                panic!("Erro")
+                let error_cause = IncompatibleMacroType {
+                    macro_name: macro_name.content.clone(),
+                    expected_type: call_expansor.macro_type(),
+                    found_type: precompiled_macro.macro_data().macro_type
+                };
+
+                diagnostics.raise(Error::new(error_cause, macro_name.span));
             }
 
             Ok(())
@@ -308,20 +330,26 @@ impl<'ast> Expansor<'ast> {
             let working_macro = self.make_working_macro(&macro_name.content);
             Err(ExpansionRequired { working_macro })
         } else if self.ast.macros.contains_key(&macro_name.content) {
-            panic!("Recursãaaaaaaaaaaaao /o\\")
+            let error_cause = RecursiveMacro { macro_name: macro_name.content.clone() };
+            diagnostics.raise(Error::new(error_cause, macro_name.span));
+            Ok(())
         } else {
-            panic!("Macro não existe")
+            let error_cause = UndefinedMacro { macro_name: macro_name.content.clone() };
+            diagnostics.raise(Error::new(error_cause, macro_name.span));
+            Ok(())
         }
     }
 
     fn expand_macro<E>(
         &mut self,
+        call_macro_name: &'ast ast::Symbol,
         inner_precomp: PreCompiled<'ast>,
         outer_label: &'ast ast::Symbol,
         outer_instr_kind: &'ast E::InstructionKind,
         call_expansor: &E,
         arguments: &'ast [ast::MacroArgument],
         working_code: &mut WorkingCode,
+        diagnostics: &mut Diagnostics,
     ) where
         E: MacroCallExpansor<'ast>,
     {
@@ -339,8 +367,10 @@ impl<'ast> Expansor<'ast> {
         );
 
         let params_map = self.map_params_to_args(
+            call_macro_name,
             &inner_precomp.macro_data().parameters,
             arguments,
+            diagnostics
         );
 
         for instr in inner_precomp.program().instructions() {
@@ -537,31 +567,51 @@ impl<'ast> Expansor<'ast> {
     /// (chave) para registradores passados como argumentos (valor).
     fn map_params_to_args(
         &self,
+        call_macro_name: &'ast ast::Symbol,
         def_params: &'ast [ast::Symbol],
         args: &'ast [ast::MacroArgument],
+        diagnostics: &mut Diagnostics,
     ) -> HashMap<&'ast str, &'ast str> {
-        if def_params.len() > args.len() {
-            panic!("Missing arguments")
-        } else if def_params.len() < args.len() {
-            panic!("Too much arguments")
-        } else {
-            def_params
-                .iter()
-                .zip(args)
-                .map(|(param, arg)| {
-                    (param.content.as_str(), self.expect_register_arg(arg))
-                })
-                .collect()
+        if def_params.len() != args.len() {
+            let error_cause = MismatchedArgsNumber { 
+                macro_name: call_macro_name.content.clone(),
+                expected_num: def_params.len(),
+                found_num: args.len()
+            };
+            diagnostics.raise(Error::new(error_cause, call_macro_name.span));
         }
+
+        def_params
+            .iter()
+            .zip(args)
+            .enumerate()
+            .map(|(index, (param, arg))| {
+                (param.content.as_str(), self.expect_register_arg(call_macro_name, arg, index, diagnostics))
+            })
+            .collect()
     }
 
     fn expect_register_arg(
         &self,
+        call_macro_name: &'ast ast::Symbol,
         macro_argument: &'ast ast::MacroArgument,
+        index: usize,
+        diagnostics: &mut Diagnostics,
     ) -> &'ast str {
         match macro_argument {
             ast::MacroArgument::Register(register) => &register.content,
-            ast::MacroArgument::Number(_) => panic!("aaaaaa"),
+            _ => {
+                let found_type = macro_argument.arg_type();
+                let expected_type = ast::MacroArgumentType::Register;
+                let error_cause = MismatchedArgType {
+                    macro_name: call_macro_name.content.clone(),
+                    expected_type,
+                    found_type,
+                    index
+                };
+                diagnostics.raise(Error::new(error_cause, call_macro_name.span));
+                "?"
+            },
         }
     }
 
