@@ -17,6 +17,7 @@ mod interpreter;
     Teoria da Computação
 */
 
+/*
 #[wasm_bindgen(js_name = compileText)]
 pub fn compile(text: String) -> DataExporter {
     //Importa texto
@@ -59,3 +60,4 @@ fn lines_mock() -> Vec<IndexedLine> {
 
     vec![line1, line2]
 }
+*/
