@@ -61,8 +61,7 @@ impl Interpreter {
     where
         I: IntoIterator<Item = &'regs str>,
     {
-        let start =
-            program.first_label().expect("No mínimo uma instrução esperada");
+        let start = program.first_label().to_string();
 
         let mut machine = Machine::default();
         for register in aux_registers {
@@ -99,10 +98,8 @@ impl Interpreter {
     /// instrução do mapa de instruções.
     pub fn reset(&mut self) {
         self.machine.clear_all();
-        self.current = self
-            .program
-            .first_label()
-            .expect("No mínimo uma instrução esperada");
+        self.current = self.program.first_label().to_string();
+        self.steps.set_zero();
     }
 
     /// Roda a instrução atual, mas somente essa, caso o rótulo da instrução
@@ -111,7 +108,7 @@ impl Interpreter {
     /// específica. Retorna `true` se o rótulo é válido e a instrução foi de
     /// fato executada.
     pub fn run_step(&mut self) -> bool {
-        let entry = self.program.get_instruction(&self.current);
+        let entry = self.program.instruction(&self.current).cloned();
         match entry {
             Some(instruction) => {
                 self.run_instruction(instruction);
@@ -173,6 +170,9 @@ impl Interpreter {
             OperationKind::Inc(register) => self.run_inc(&register),
             OperationKind::Dec(register) => self.run_dec(&register),
             OperationKind::Clear(register) => self.run_clear(&register),
+            OperationKind::Load(register, constant) => {
+                self.run_load(&register, &constant)
+            },
             OperationKind::AddConst(register, constant) => {
                 self.run_add_const(&register, &constant)
             },
@@ -241,6 +241,26 @@ impl Interpreter {
         steps += 1u8;
         self.count_steps(steps);
         self.machine.clear(reg_name);
+    }
+
+    /// ```pre
+    /// operation load (Dest) N {
+    ///     // Dest * 2 + 1
+    ///     cleanup: do clear (Dest) goto actual_load
+    ///     // N
+    ///     actual_load: do add (Dest, N) goto done
+    /// }
+    /// ```
+    ///
+    /// `Dest * 2 + 1 + N` steps
+    fn run_load(&mut self, reg_name: &str, constant: &BigUint) {
+        let mut steps = self.machine.get_value(reg_name);
+        steps *= 2u8;
+        steps += 1u8;
+        steps += constant;
+        self.count_steps(steps);
+        self.machine.clear(reg_name);
+        self.machine.add_const(reg_name, constant);
     }
 
     /// ```pre

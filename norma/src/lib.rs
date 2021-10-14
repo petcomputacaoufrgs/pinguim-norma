@@ -1,6 +1,6 @@
-use crate::compiler::instruction::*;
-use wasm_bindgen::prelude::*;
+use crate::interpreter::program::*;
 use communication::*;
+use wasm_bindgen::prelude::*;
 
 // Core da máquina norma
 mod machine;
@@ -8,6 +8,7 @@ mod machine;
 mod communication;
 // Módulo do compilador
 mod compiler;
+mod interpreter;
 
 /*
     Simulador de máquina Norma
@@ -23,20 +24,16 @@ pub fn compile(text: String) -> DataExporter {
     //Parseia
     //[...]
     //Retorna (Por enquanto retorna um Mock)
-    DataExporter::new(lines_mock(), Temp{a: 0})
+    DataExporter::new(lines_mock(), Temp { a: 0 })
 }
 
 //Chama a função run_all do interpretador
 #[wasm_bindgen]
-pub fn run_all() {
-
-}
+pub fn run_all() {}
 
 //Chama a função run_step do interpretador
 #[wasm_bindgen]
-pub fn run_step() {
-
-}
+pub fn run_step() {}
 
 /**
  * TODO: Atualizar para o novo formato de instrução
@@ -47,7 +44,10 @@ fn lines_mock() -> Vec<IndexedLine> {
     i.set_type(InstructionType::Test(TestType::CmpConst));
     i.set_registers(vec![String::from("A")]);
     i.set_constant(5);
-    i.set_next_instructions(String::from("1.add.fim"), Some(String::from("1.add.fim")));
+    i.set_next_instructions(
+        String::from("1.add.fim"),
+        Some(String::from("1.add.fim")),
+    );
 
     let mut j = Instruction::new();
     j.set_type(InstructionType::Operation(OperationType::AddRegs));
@@ -57,5 +57,5 @@ fn lines_mock() -> Vec<IndexedLine> {
     let line1 = IndexedLine::from_instruction(String::from("1.add.1."), i);
     let line2 = IndexedLine::from_instruction(String::from("1.add.2."), j);
 
-    vec!{line1, line2}
+    vec![line1, line2]
 }
