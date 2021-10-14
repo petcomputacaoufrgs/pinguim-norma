@@ -4,7 +4,7 @@ use crate::{
         error::{Diagnostics, Error},
         position::Span,
     },
-    interpreter::Interpreter,
+    interpreter::{program::Program, Interpreter},
 };
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
@@ -36,8 +36,8 @@ impl ExportableSpan {
     pub fn new(span: Span) -> Self {
         Self {
             rendered: span.to_string(),
-            start: span.start.index_utf16,
-            end: span.end.index_utf16,
+            start: span.start.utf16_index,
+            end: span.end.utf16_index,
         }
     }
 }
@@ -60,7 +60,7 @@ impl ExportableError {
 
 fn export_diagnostics(diagnostics: &Diagnostics) -> JsValue {
     let errors: Vec<_> = diagnostics.iter().map(ExportableError::new).collect();
-    JsValue::from_serde(errors)
+    JsValue::from_serde(&errors).unwrap_or(JsValue::null())
 }
 
 #[wasm_bindgen]
@@ -75,15 +75,22 @@ pub fn check(source: &str) -> Result<(), JsValue> {
 #[wasm_bindgen]
 pub fn compile(source: &str) -> Result<InterpreterHandle, JsValue> {
     match compiler::compile(source) {
-        Ok(interpreter) => Ok(InterpreterHandle::new(interpreter)),
+        Ok(program) => Ok(InterpreterHandle::new(program)),
 
         Err(diagnostics) => Err(export_diagnostics(&diagnostics)),
     }
 }
 
 #[wasm_bindgen]
+#[derive(Debug, Clone)]
 pub struct InterpreterHandle {
     interpreter: Interpreter,
+}
+
+impl InterpreterHandle {
+    pub fn new(program: Program) -> Self {
+        Self { interpreter: Interpreter::new(program, []) }
+    }
 }
 
 /*
