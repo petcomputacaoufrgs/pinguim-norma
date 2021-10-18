@@ -1,3 +1,4 @@
+use interpreter::run_once;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -7,7 +8,16 @@ mod compiler;
 mod machine;
 mod interpreter;
 
+pub use self::compiler::{
+    error::{Diagnostics, Error},
+    position::{Position, Span},
+};
+
 use machine::Machine;
+
+pub fn run(source: &str, input: BigUint) -> Result<BigUint, Diagnostics> {
+    compiler::compile(source).map(|program| run_once(input, program))
+}
 
 // Import javascript functions
 #[wasm_bindgen]
