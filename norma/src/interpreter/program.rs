@@ -81,6 +81,17 @@ impl Program {
         InstructionsMut { inner: self.instructions.values_mut() }
     }
 
+    /// Coleta todos os nomes de registradores usados no programa, usando uma
+    /// função genérica para lidar com cada um e coletar.
+    pub fn collect_registers<F>(&self, mut collector: F)
+    where
+        F: FnMut(&str),
+    {
+        for instruction in self.instructions() {
+            instruction.collect_registers(&mut collector);
+        }
+    }
+
     /// Exporta todas as instruções do programa para serem usadas com JS, no
     /// formato `(label, instruction-data)`. TODO: substituir tuplas por um tipo
     /// próprio da comunicação.
@@ -193,6 +204,15 @@ impl Instruction {
     pub fn export(&self) -> (String, String) {
         (self.label.clone(), self.kind.to_string())
     }
+
+    /// Coleta todos os nomes de registradores usados na instrução, usando uma
+    /// função genérica para lidar com cada um e coletar.
+    pub fn collect_registers<F>(&self, collector: F)
+    where
+        F: FnMut(&str),
+    {
+        self.kind.collect_registers(collector);
+    }
 }
 
 impl fmt::Display for Instruction {
@@ -233,6 +253,23 @@ impl InstructionKind {
             InstructionKind::Test(test) => test.rename_labels(renamer),
         }
     }
+
+    /// Coleta todos os nomes de registradores usados nesse tipo específico de
+    /// instrução, usando uma função genérica para lidar com cada um e
+    /// coletar.
+    pub fn collect_registers<F>(&self, collector: F)
+    where
+        F: FnMut(&str),
+    {
+        match self {
+            InstructionKind::Operation(oper) => {
+                oper.collect_registers(collector);
+            },
+            InstructionKind::Test(test) => {
+                test.collect_registers(collector);
+            },
+        }
+    }
 }
 
 /// Dados de uma instrução de operação.
@@ -258,6 +295,15 @@ impl Operation {
         F: FnMut(&mut String),
     {
         renamer(&mut self.next);
+    }
+
+    /// Coleta todos os nomes de registradores usados nessa operação, usando
+    /// uma função genérica para lidar com cada um e coletar.
+    pub fn collect_registers<F>(&self, collector: F)
+    where
+        F: FnMut(&str),
+    {
+        self.kind.collect_registers(collector);
     }
 }
 
@@ -321,6 +367,44 @@ impl OperationKind {
             },
         }
     }
+
+    /// Coleta todos os nomes de registradores usados nesse tipo específico de
+    /// operação, usando uma função genérica para lidar com cada um e coletar.
+    pub fn collect_registers<F>(&self, mut collector: F)
+    where
+        F: FnMut(&str),
+    {
+        match self {
+            OperationKind::Inc(register) => {
+                collector(register);
+            },
+            OperationKind::Dec(register) => {
+                collector(register);
+            },
+            OperationKind::Clear(register) => {
+                collector(register);
+            },
+            OperationKind::Load(register, _constant) => {
+                collector(register);
+            },
+            OperationKind::AddConst(register, _constant) => {
+                collector(register);
+            },
+            OperationKind::Add(left, right, temp) => {
+                collector(left);
+                collector(right);
+                collector(temp);
+            },
+            OperationKind::SubConst(register, _constant) => {
+                collector(register);
+            },
+            OperationKind::Sub(left, right, temp) => {
+                collector(left);
+                collector(right);
+                collector(temp);
+            },
+        }
+    }
 }
 
 impl fmt::Display for OperationKind {
@@ -381,6 +465,15 @@ impl Test {
         renamer(&mut self.next_then);
         renamer(&mut self.next_else);
     }
+
+    /// Coleta todos os nomes de registradores usados nesse teste, usando
+    /// uma função genérica para lidar com cada um e coletar.
+    pub fn collect_registers<F>(&self, collector: F)
+    where
+        F: FnMut(&str),
+    {
+        self.kind.collect_registers(collector);
+    }
 }
 
 /// O tipo específico do "core" do teste.
@@ -422,6 +515,35 @@ impl TestKind {
             },
             TestKind::LessThan(left, right, temp) => {
                 TestKind::LessThan(mapper(left), mapper(right), mapper(temp))
+            },
+        }
+    }
+
+    /// Coleta todos os nomes de registradores usados nesse tipo específico de
+    /// teste, usando uma função genérica para lidar com cada um e coletar.
+    pub fn collect_registers<F>(&self, mut collector: F)
+    where
+        F: FnMut(&str),
+    {
+        match self {
+            TestKind::Zero(register) => {
+                collector(register);
+            },
+            TestKind::EqualsConst(register, _constant) => {
+                collector(register);
+            },
+            TestKind::Equals(left, right, temp) => {
+                collector(left);
+                collector(right);
+                collector(temp);
+            },
+            TestKind::LessThanConst(register, _constant) => {
+                collector(register);
+            },
+            TestKind::LessThan(left, right, temp) => {
+                collector(left);
+                collector(right);
+                collector(temp);
             },
         }
     }
