@@ -237,9 +237,6 @@ fn ast_main_inc_y() -> ast::Instruction {
     }
 }
 
-/// test notZero (A) {
-///     1: if zero A then goto false else goto true
-/// }
 fn ast_main() -> ast::Main {
     let instr_dec_x = ast_main_dec_x();
     let instr_inc_y = ast_main_inc_y();
