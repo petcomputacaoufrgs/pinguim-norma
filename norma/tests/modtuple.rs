@@ -41,7 +41,7 @@ fn modtuple_input_5_3() {
 }
 
 #[test]
-fn modtuple_input_8_5() {
+fn modtuple_input_7_3() {
     assert_eq!(
         norma::run(SOURCE, BigUint::from(2u64.pow(7) * 3u64.pow(3))).unwrap(),
         BigUint::from(1u8)
