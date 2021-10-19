@@ -81,8 +81,19 @@ pub fn compile(source: &str) -> Result<InterpreterHandle, JsValue> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportableRegister {
-    name: String,
-    value: String,
+    pub name: String,
+    pub value: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportableInstruction {
+    pub label: String,
+    pub kind: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportableProgram {
+    pub instructions: Vec<ExportableInstruction>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -103,19 +114,40 @@ impl InterpreterHandle {
     pub fn new(program: Program) -> Self {
         Self { interpreter: Interpreter::new(program) }
     }
+
+    fn export_status(&self, running: bool) -> InterpreterStatus {
+        InterpreterStatus {
+            registers: self.export_registers(),
+            current_label: self.interpreter.current_label().to_string(),
+            steps: self.interpreter.steps().to_string(),
+            running,
+        }
+    }
+
+    fn export_registers(&self) -> Vec<ExportableRegister> {
+        let mut registers = Vec::new();
+        for name in self.interpreter.machine().register_names() {
+            registers.push(ExportableRegister {
+                name: name.to_owned(),
+                value: self.interpreter.machine().get_value(name).to_string(),
+            });
+        }
+        registers
+    }
 }
 
 #[wasm_bindgen]
 impl InterpreterHandle {
-    #[wasm_bindgen]
-    pub fn run_step(&mut self) -> InterpreterStatus {
+    #[wasm_bindgen(js_name = "runStep")]
+    pub fn run_step(&mut self) -> JsValue {
         let running = self.interpreter.run_step();
-        todo!()
+        JsValue::from_serde(&self.export_status(running)).unwrap()
     }
 
-    #[wasm_bindgen]
-    pub fn run_steps(&mut self, max_steps: u64) -> InterpreterStatus {
-        todo!()
+    #[wasm_bindgen(js_name = "runSteps")]
+    pub fn run_steps(&mut self, max_steps: u64) -> JsValue {
+        let running = self.interpreter.run_steps(max_steps);
+        JsValue::from_serde(&self.export_status(running)).unwrap()
     }
 }
 
