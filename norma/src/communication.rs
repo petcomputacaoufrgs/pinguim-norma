@@ -92,16 +92,17 @@ pub struct ExportableInstruction {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportableProgram {
-    pub instructions: Vec<ExportableInstruction>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InterpreterStatus {
     pub registers: Vec<ExportableRegister>,
     pub current_label: String,
     pub steps: String,
     pub running: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InterpreterData {
+    pub instructions: Vec<ExportableInstruction>,
+    pub status: InterpreterStatus,
 }
 
 #[wasm_bindgen]
@@ -113,6 +114,11 @@ pub struct InterpreterHandle {
 impl InterpreterHandle {
     pub fn new(program: Program) -> Self {
         Self { interpreter: Interpreter::new(program) }
+    }
+
+    fn running(&self) -> bool {
+        let current_label = self.interpreter.current_label();
+        self.interpreter.program().is_label_valid(current_label)
     }
 
     fn export_status(&self, running: bool) -> InterpreterStatus {
@@ -149,6 +155,15 @@ impl InterpreterHandle {
 
 #[wasm_bindgen]
 impl InterpreterHandle {
+    #[wasm_bindgen(js_name = "data")]
+    pub fn js_data() -> JsValue {
+        let data = InterpreterData {
+            instructions: self.export_instructions(),
+            status: self.export_status(self.running()),
+        };
+        JsValue::from_serde(&data).unwrap()
+    }
+
     #[wasm_bindgen(js_name = "instructions")]
     pub fn js_instructions() -> JsValue {
         JsValue::from_serde(&self.export_instructions()).unwrap()
@@ -156,7 +171,8 @@ impl InterpreterHandle {
 
     #[wasm_bindgen(js_name = "status")]
     pub fn js_status() -> JsValue {
-        JsValue::from_serde(&self.export_status(false)).unwrap()
+        let running = self.running();
+        JsValue::from_serde(&self.export_status(running)).unwrap()
     }
 
     #[wasm_bindgen(js_name = "runStep")]
