@@ -71,6 +71,16 @@ impl Interpreter {
         Self { current, program, machine, steps }
     }
 
+    /// Retorna o rótulo da instrução sendo atualmente executada.
+    pub fn current_label(&self) -> &str {
+        &self.current
+    }
+
+    /// Retorna uma referência imutável para a máquina sendo operada.
+    pub fn machine(&self) -> &Machine {
+        &self.machine
+    }
+
     /// Define o valor de entrada (AKA valor do registrador X).
     pub fn input(&mut self, data: BigUint) {
         self.machine.input(data);
