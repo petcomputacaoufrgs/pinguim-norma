@@ -134,18 +134,39 @@ impl InterpreterHandle {
         }
         registers
     }
+
+    fn export_instructions(&self) -> Vec<ExportableInstruction> {
+        let mut instructions = Vec::new();
+        for instruction in self.interpreter.program().instructions() {
+            instructions.push(ExportableInstruction {
+                label: instruction.label().to_owned(),
+                kind: instruction.kind.to_string(),
+            });
+        }
+        instructions
+    }
 }
 
 #[wasm_bindgen]
 impl InterpreterHandle {
+    #[wasm_bindgen(js_name = "instructions")]
+    pub fn js_instructions() -> JsValue {
+        JsValue::from_serde(&self.export_instructions()).unwrap()
+    }
+
+    #[wasm_bindgen(js_name = "status")]
+    pub fn js_status() -> JsValue {
+        JsValue::from_serde(&self.export_status(false)).unwrap()
+    }
+
     #[wasm_bindgen(js_name = "runStep")]
-    pub fn run_step(&mut self) -> JsValue {
+    pub fn js_run_step(&mut self) -> JsValue {
         let running = self.interpreter.run_step();
         JsValue::from_serde(&self.export_status(running)).unwrap()
     }
 
     #[wasm_bindgen(js_name = "runSteps")]
-    pub fn run_steps(&mut self, max_steps: u64) -> JsValue {
+    pub fn js_run_steps(&mut self, max_steps: u64) -> JsValue {
         let running = self.interpreter.run_steps(max_steps);
         JsValue::from_serde(&self.export_status(running)).unwrap()
     }
