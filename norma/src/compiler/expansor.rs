@@ -397,8 +397,6 @@ impl<'ast> Expansor<'ast> {
     ///   fora. Ròtulos de saída da macro de dentro serão remapeados para esse
     ///   label.
     /// - `inner_precomp` é a precompilação da macro interna.
-    ///
-    /// TODO: por enquanto só considera chamadas de macro operação.
     fn expand_instr<E>(
         &mut self,
         params_map: &HashMap<&'ast str, &'ast str>,
@@ -553,6 +551,7 @@ impl<'ast> Expansor<'ast> {
         })
     }
 
+    /// TODO
     fn map_param_to_arg(
         &self,
         params_map: &HashMap<&'ast str, &'ast str>,
@@ -563,8 +562,13 @@ impl<'ast> Expansor<'ast> {
             .map_or_else(|| register.to_string(), |arg| arg.to_string())
     }
 
-    /// Produz mapeamento de nomes de registradores em parâmetros formais
-    /// (chave) para registradores passados como argumentos (valor).
+    /// Produz e retorna um mapeamento dos nomes de registradores dos parâmetros formais
+    /// (chave) para os nomes de registradores passados como argumentos (valor).
+    ///
+    /// - `call_macro_name`: nome da macro que foi chamada internamente
+    /// - `def_params`: vetor com todos os parâmetros formais de `call_macro_name`
+    /// - `args`: vetor com todos os argumentos de `call_macro_name`
+    /// - `diagnostics`: vetor com erros coletados durante a compilação
     fn map_params_to_args(
         &self,
         call_macro_name: &'ast ast::Symbol,
@@ -591,6 +595,13 @@ impl<'ast> Expansor<'ast> {
             .collect()
     }
 
+    /// Se o argumento passado para a macro é Register, retorna o conteúdo do registrador, 
+    /// caso contrário retorna erro MismatchedArgType
+    ///
+    /// - `call_macro_name`: nome da macro que foi chamada internamente
+    /// - `macro_argument`: argumento passado para a macro chamada
+    /// - `index`: posição do `macro_argument` dentre os argumentos de `call_macro_name`
+    /// - `diagnostics`: vetor com erros coletados durante a compilação
     fn expect_register_arg(
         &self,
         call_macro_name: &'ast ast::Symbol,
@@ -615,10 +626,16 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
+    /// Testa se o content do label é "true"
+    ///
+    /// - `label`: conteúdo de um label  
     fn is_true_label(&self, label: &str) -> bool {
         label == "true"
     }
 
+    /// Testa se o content do label é "false"
+    ///
+    /// - `label`: conteúdo de um label   
     fn is_false_label(&self, label: &str) -> bool {
         label == "false"
     }
