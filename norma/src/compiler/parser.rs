@@ -29,6 +29,7 @@ use error::{
     MainNotDeclared,
     UnexpectedEndOfInput,
     UnexpectedToken,
+    InvalidLabel,
 };
 use indexmap::IndexMap;
 use num_bigint::BigUint;
@@ -305,10 +306,15 @@ impl Parser {
         let type_option = self.parse_instr_type(diagnostics)?;
 
         let zipped = instr_label_option.zip(type_option);
-        let instr = zipped.map(|(label, instruction_type)| Instruction {
-            label,
-            instruction_type,
-        });
+        let instr = zipped.map(|(label, instruction_type)| {
+            if label.content == "true" || label.content == "false" {
+                diagnostics.raise(Error::new(InvalidLabel, label.span));
+            }
+            Instruction {
+                label,
+                instruction_type,
+            }
+        } );
 
         Ok(instr)
     }
