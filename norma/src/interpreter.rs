@@ -76,6 +76,11 @@ impl Interpreter {
         &self.current
     }
 
+    /// Retorna uma referência imutável para o programa sendo executado.
+    pub fn program(&self) -> &Program {
+        &self.program
+    }
+
     /// Retorna uma referência imutável para a máquina sendo operada.
     pub fn machine(&self) -> &Machine {
         &self.machine
