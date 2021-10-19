@@ -32,6 +32,10 @@ use macro_call::{
 };
 use std::collections::HashMap;
 
+/// Cria um Expansor e expande o programa a partir da `ast` fornecida
+///
+/// - `ast`: árvore sintática abstrata, programa oriundo do parser
+/// - `diagnostics`: vetor que armazena erros coletados durante a compilação
 pub fn expand(
     ast: &ast::Program,
     diagnostics: &mut Diagnostics,
@@ -40,13 +44,20 @@ pub fn expand(
 }
 
 struct Expansor<'ast> {
-    precompileds: HashMap<String, PreCompiled<'ast>>, // macros prontas
-    target_macros: IndexSet<String>,                  // macros untouched
-    working_macros: Vec<WorkingMacro<'ast>>,          // macros em progresso
+    /// - `precompileds`: macros já expandidas e prontas
+    precompileds: HashMap<String, PreCompiled<'ast>>,
+    /// - `target_macros`: macros a serem expandidas 
+    target_macros: IndexSet<String>,     
+    /// - `working_macros`: macros em progresso de expansão e que podem ser pausadas se necessário             
+    working_macros: Vec<WorkingMacro<'ast>>, 
+    /// - `ast`: árvore sintática abstrata, programa oriundo do parser         
     ast: &'ast ast::Program,
 }
 
 impl<'ast> Expansor<'ast> {
+    /// Construtor da estrutura Expansor
+    /// 
+    /// - `ast`: árvore sintática abstrata, programa oriundo do parser
     fn new(ast: &'ast ast::Program) -> Self {
         let target_macros = ast.macros.keys().cloned().collect();
 
@@ -58,13 +69,18 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
-    // compila o programa todo
+    /// Expande o programa inteiro, macros e main e retorna um possível programa na AST do Interpreter
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn expand_program(&mut self, diagnostics: &mut Diagnostics) -> Option<Program> {
         self.precompile_macros(diagnostics);
         self.expand_main(diagnostics)
     }
 
-    // compila a main depois de precompilar os macros
+    /// Expande tudo que estiver na main do programa do parser, caso todas as macros estiverem 
+    /// expandidas. Caso contrário, retorna None
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn expand_main(&mut self, diagnostics: &mut Diagnostics) -> Option<Program> {
         let mut code = WorkingCode::new();
         for instruction in self.ast.main.code.values() {
@@ -75,7 +91,9 @@ impl<'ast> Expansor<'ast> {
         Some(code.finish())
     }
 
-    // precompila todas as macros
+    /// Precompila todas as macros declaradas no programa
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn precompile_macros(&mut self, diagnostics: &mut Diagnostics) {
         while let Some(macro_name) = self.pop_target_macro() {
             let working_macro = self.make_working_macro(&macro_name);
@@ -84,19 +102,22 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
-    // pega uma nova macro target e coloca na pilha de macros a serem
-    // trabalhadas
+    /// Cria e retorna uma working macro para uma dada macro da ast
+    /// 
+    /// - `macro_name`: Nome da macro cujo os dados devem ser pegos da ast e utilizados para criar uma working macro
     fn make_working_macro(&mut self, macro_name: &str) -> WorkingMacro<'ast> {
         let macro_def = self.get_macro(macro_name);
         WorkingMacro::new(macro_def)
     }
 
-    // pega o nome da próxima macro a ser expandida
+    /// Retira uma macro da pilha de macros intocadas a serem precompiladas
     fn pop_target_macro(&mut self) -> Option<String> {
         self.target_macros.pop()
     }
 
-    // pega uma macro da ast através do seu nome e retorna-a
+    /// Pega uma dada macro da ast a partir de seu nome
+    /// 
+    /// - `macro_name`: Nome da macro cujo os dados devem ser pegos da ast
     fn get_macro(&mut self, macro_name: &str) -> &'ast ast::Macro {
         self.ast
             .macros
@@ -104,13 +125,17 @@ impl<'ast> Expansor<'ast> {
             .expect("Macro em target macros deveria existir na ast")
     }
 
-    // coloca um macro a ser trabalhado na pilha
+    /// Coloca uma macro em precompilação na pilha de macros a serem trabalhadas
+    /// 
+    /// - `working_macro`: Macro a ser colocada na pilha 
     fn push_working_macro(&mut self, working_macro: WorkingMacro<'ast>) {
         self.working_macros.push(working_macro);
     }
 
-    // expande o macro a ser trabalhado até que ele termine ou que precise ser
-    // pausado
+    /// Expande o macro a ser trabalhado até que ele termine ou que precise ser pausado
+    /// 
+    /// - `working_macro`: Macro em processo de precompilação
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn precompile_working_macro(
         &mut self,
         mut working_macro: WorkingMacro<'ast>,
@@ -136,27 +161,35 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
-    /// Acaba a pré-compilação de um macro, inserindo o trabalho feito por
-    /// `WorkingMacro` no registro de macros pré-compilados.
+    /// Encerra a precompilação de uma working macro e a insere como precompiled macro
+    /// 
+    /// - `working_macro`: macro que estava em precompilação e foi será finalizada e colocada
+    /// na estrutura de macros terminadas (precompileds macros)
     fn finish_working_macro(&mut self, working_macro: WorkingMacro<'ast>) {
         let precompiled = working_macro.finish();
         let name = precompiled.macro_data().name.content.clone();
         self.precompileds.insert(name, precompiled);
     }
 
-    // expande todas as macros na pilha de macros a serem trabalhadas
+    /// Expande todas as macros a serem trabalhadas enquanto houver macro nessa pilha
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn precompile_working_macros(&mut self, diagnostics: &mut Diagnostics) {
         while let Some(working_macro) = self.pop_working_macro() {
             self.precompile_working_macro(working_macro, diagnostics);
         }
     }
 
-    // tira uma macro da pilha de macros a serem trabalhadas
+    /// Retira uma macro da pilha de macros a serem precompiladas
     fn pop_working_macro(&mut self) -> Option<WorkingMacro<'ast>> {
         self.working_macros.pop()
     }
 
-    // expande uma instrução colocando o resultado na working macro
+    /// Expande uma instrução conforme se ela for teste ou operação
+    /// 
+    /// - `instr`: instrução a ser expandida
+    /// - `working_code`: macro em precompilação
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn precompile_instruction(
         &mut self,
         instr: &'ast ast::Instruction,
@@ -185,7 +218,12 @@ impl<'ast> Expansor<'ast> {
         Ok(())
     }
 
-    // expande uma instrução do tipo operação
+    /// Expande uma instrução do tipo operação
+    /// 
+    /// - `label`: rótulo da instrução
+    /// - `operation`: operação que a instrução executa
+    /// - `working_code`: macro a qual a instrução pertence
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn precompile_operation(
         &mut self,
         label: &'ast ast::Symbol,
@@ -224,7 +262,10 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
-    // expande uma operação builtin
+    /// Expande uma operação builtin em uma dada instrução
+    /// 
+    /// - `builtin_oper`: operação builtin a ser precompilada
+    /// - `param`: parâmetro da operação builtin
     fn precompile_builtin_oper(
         &mut self,
         builtin_oper: BuiltInOperation,
@@ -236,6 +277,12 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
+    /// Expande uma instrução do tipo teste
+    /// 
+    /// - `label`: rótulo da instrução
+    /// - `test`: teste que a instrução executa
+    /// - `working_code`: macro a qual a instrução pertence
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn precompile_test(
         &mut self,
         label: &'ast ast::Symbol,
@@ -275,6 +322,10 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
+    /// Expande um teste builtin em uma dada instrução
+    /// 
+    /// - `builtin_test`: teste builtin a ser precompilado
+    /// - `param`: parâmetro do teste builtin
     fn precompile_builtin_test(
         &mut self,
         builtin_test: BuiltInTest,
@@ -285,7 +336,15 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
-    // expande uma operação que é outra chamada de macro
+    /// Expande uma outra chamada de macro em uma dada instrução de uma macro que está sendo precompilada
+    /// 
+    /// - `label`: rótulo da instrução
+    /// - `instr_kind`: tipo da instrução que está chamando a macro
+    /// - `call_expansor`: estrutura que lida com a expansão de uma chamada de macro dentro de outra
+    /// - `macro_name`: nome da macro chamada mais internamente
+    /// - `arguments`: argumentos da nova chamada de macro
+    /// - `working_code`: macro que estava em precompilação
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn precompile_macro_call<E>(
         &mut self,
         label: &'ast ast::Symbol,
@@ -340,6 +399,8 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
+    // PAREI AQUI!!!!!
+
     fn expand_macro<E>(
         &mut self,
         call_macro_name: &'ast ast::Symbol,
@@ -384,6 +445,7 @@ impl<'ast> Expansor<'ast> {
             ));
         }
     }
+
 
     /// Expande uma instrução de um macro pré-compilado para dentro de um macro
     /// a ser compilado.
@@ -541,6 +603,7 @@ impl<'ast> Expansor<'ast> {
         })
     }
 
+    
     fn expand_test_kind(
         &self,
         test_kind: &TestKind,
@@ -568,7 +631,7 @@ impl<'ast> Expansor<'ast> {
     /// - `call_macro_name`: nome da macro que foi chamada internamente
     /// - `def_params`: vetor com todos os parâmetros formais de `call_macro_name`
     /// - `args`: vetor com todos os argumentos de `call_macro_name`
-    /// - `diagnostics`: vetor com erros coletados durante a compilação
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn map_params_to_args(
         &self,
         call_macro_name: &'ast ast::Symbol,
@@ -601,7 +664,7 @@ impl<'ast> Expansor<'ast> {
     /// - `call_macro_name`: nome da macro que foi chamada internamente
     /// - `macro_argument`: argumento passado para a macro chamada
     /// - `index`: posição do `macro_argument` dentre os argumentos de `call_macro_name`
-    /// - `diagnostics`: vetor com erros coletados durante a compilação
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn expect_register_arg(
         &self,
         call_macro_name: &'ast ast::Symbol,
