@@ -24,12 +24,11 @@ use wasm_bindgen::prelude::*;
 //
 // - Resetar interpretador.
 
-#[wasm_bindgen]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportableSpan {
-    rendered: String,
-    start: usize,
-    end: usize,
+    pub rendered: String,
+    pub start: usize,
+    pub end: usize,
 }
 
 impl ExportableSpan {
@@ -42,11 +41,10 @@ impl ExportableSpan {
     }
 }
 
-#[wasm_bindgen]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportableError {
-    message: String,
-    span: Option<ExportableSpan>,
+    pub message: String,
+    pub span: Option<ExportableSpan>,
 }
 
 impl ExportableError {
@@ -81,6 +79,20 @@ pub fn compile(source: &str) -> Result<InterpreterHandle, JsValue> {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportableRegister {
+    name: String,
+    value: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InterpreterStatus {
+    pub registers: Vec<ExportableRegister>,
+    pub current_label: String,
+    pub steps: String,
+    pub running: bool,
+}
+
 #[wasm_bindgen]
 #[derive(Debug, Clone)]
 pub struct InterpreterHandle {
@@ -89,7 +101,21 @@ pub struct InterpreterHandle {
 
 impl InterpreterHandle {
     pub fn new(program: Program) -> Self {
-        Self { interpreter: Interpreter::new(program, []) }
+        Self { interpreter: Interpreter::new(program) }
+    }
+}
+
+#[wasm_bindgen]
+impl InterpreterHandle {
+    #[wasm_bindgen]
+    pub fn run_step(&mut self) -> InterpreterStatus {
+        let running = self.interpreter.run_step();
+        todo!()
+    }
+
+    #[wasm_bindgen]
+    pub fn run_steps(&mut self, max_steps: u64) -> InterpreterStatus {
+        todo!()
     }
 }
 

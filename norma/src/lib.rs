@@ -9,7 +9,7 @@ mod machine;
 mod interpreter;
 mod communication;
 
-pub use self::compiler::{
+pub use compiler::{
     error::{Diagnostics, Error},
     position::{Position, Span},
 };
