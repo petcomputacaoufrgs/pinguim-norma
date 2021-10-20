@@ -61,10 +61,10 @@ impl fmt::Display for MacroType {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self {
             MacroType::Operation => write!(formatter, "Operation"),
-            MacroType::Test => write!(formatter, "Test")
+            MacroType::Test => write!(formatter, "Test"),
         }
     }
-} 
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol {
@@ -108,7 +108,7 @@ impl fmt::Display for MacroArgumentType {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self {
             MacroArgumentType::Register => write!(formatter, "registrador"),
-            MacroArgumentType::Number => write!(formatter, "número")
+            MacroArgumentType::Number => write!(formatter, "número"),
         }
     }
-} 
+}

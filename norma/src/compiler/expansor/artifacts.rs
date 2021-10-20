@@ -1,9 +1,8 @@
-use super::label;
 use crate::{
-    compiler::{error::Diagnostics, parser::ast},
+    compiler::parser::ast,
     interpreter::program::{Instruction, Program},
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
 #[derive(Clone, Debug)]
 pub struct ExpansionRequired<'ast> {
@@ -49,32 +48,9 @@ impl WorkingCode {
         self.expanded_labels.insert(old_label, new_label);
     }
 
-    pub fn finish_main(self, diagnostics: &mut Diagnostics) -> Program {
-        self.finish(diagnostics, label::validate_for_main)
-    }
-
-    pub fn finish_oper_macro(self, diagnostics: &mut Diagnostics) -> Program {
-        self.finish(diagnostics, label::validate_for_oper_macro)
-    }
-
-    pub fn finish_test_macro(self, diagnostics: &mut Diagnostics) -> Program {
-        self.finish(diagnostics, label::validate_for_test_macro)
-    }
-
-    fn finish<F>(
-        self,
-        diagnostics: &mut Diagnostics,
-        mut validate_label: F,
-    ) -> Program
-    where
-        F: FnMut(&str, &Program, &mut Diagnostics),
-    {
+    pub fn finish(self) -> Program {
         let mut program = self.program;
         let expanded_labels = self.expanded_labels;
-
-        program.collect_labels(|label| {
-            validate_label(label, &program, diagnostics)
-        });
 
         for instruction in &mut program {
             instruction.kind.rename_labels(|label: &mut String| {
@@ -123,13 +99,8 @@ impl<'ast> WorkingMacro<'ast> {
         self.instr_index += 1;
     }
 
-    pub fn finish(self, diagnostics: &mut Diagnostics) -> PreCompiled<'ast> {
-        let program = match self.macro_data.macro_type {
-            ast::MacroType::Operation => {
-                self.code.finish_oper_macro(diagnostics)
-            },
-            ast::MacroType::Test => self.code.finish_test_macro(diagnostics),
-        };
+    pub fn finish(self) -> PreCompiled<'ast> {
+        let program = self.code.finish();
         PreCompiled { program, macro_data: self.macro_data }
     }
 }

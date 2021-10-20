@@ -31,7 +31,7 @@ use error::{
     RecursiveMacro,
     UndefinedMacro,
 };
-use indexmap::IndexSet;
+use indexmap::{IndexMap, IndexSet};
 use macro_call::{
     MacroCallExpansor,
     OperMacroCallExpansor,
@@ -106,13 +106,19 @@ impl<'ast> Expansor<'ast> {
     ) -> Option<Program> {
         let mut code = WorkingCode::new();
         for instruction in self.ast.main.code.values() {
-            self.precompile_instruction(instruction, &mut code, diagnostics)
-                .expect(
-                    "All existing macros should already have been precompiled",
-                );
+            let result = self.precompile_instruction(
+                instruction,
+                &mut code,
+                &self.ast.main.code,
+                diagnostics,
+                label::validate_for_main,
+            );
+            result.expect(
+                "All existing macros should already have been precompiled",
+            );
         }
 
-        Some(code.finish_main(diagnostics))
+        Some(code.finish())
     }
 
     /// Precompila todas as macros declaradas no programa
@@ -172,10 +178,18 @@ impl<'ast> Expansor<'ast> {
     ) {
         loop {
             if let Some(instr) = working_macro.curr_instr() {
+                let macro_data = working_macro.macro_data();
+                let validate_label = match macro_data.macro_type {
+                    ast::MacroType::Operation => label::validate_for_oper_macro,
+                    ast::MacroType::Test => label::validate_for_test_macro,
+                };
+
                 let precomp_result = self.precompile_instruction(
                     instr,
                     working_macro.code_mut(),
+                    &macro_data.instr,
                     diagnostics,
+                    validate_label,
                 );
 
                 match precomp_result {
@@ -187,7 +201,7 @@ impl<'ast> Expansor<'ast> {
                     },
                 }
             } else {
-                self.finish_working_macro(working_macro, diagnostics);
+                self.finish_working_macro(working_macro);
                 break;
             }
         }
@@ -199,12 +213,8 @@ impl<'ast> Expansor<'ast> {
     /// - `working_macro`: macro que estava em precompilação e foi será
     ///   finalizada e colocada
     /// na estrutura de macros terminadas (precompileds macros)
-    fn finish_working_macro(
-        &mut self,
-        working_macro: WorkingMacro<'ast>,
-        diagnostics: &mut Diagnostics,
-    ) {
-        let precompiled = working_macro.finish(diagnostics);
+    fn finish_working_macro(&mut self, working_macro: WorkingMacro<'ast>) {
+        let precompiled = working_macro.finish();
         let name = precompiled.macro_data().name.content.clone();
         self.precompileds.insert(name, precompiled);
     }
@@ -229,27 +239,41 @@ impl<'ast> Expansor<'ast> {
     /// - `instr`: instrução a ser expandida
     /// - `working_code`: macro em precompilação
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
-    fn precompile_instruction(
+    fn precompile_instruction<F>(
         &mut self,
         instr: &'ast ast::Instruction,
         working_code: &mut WorkingCode,
+        ast_code: &'ast IndexMap<String, ast::Instruction>,
         diagnostics: &mut Diagnostics,
-    ) -> Result<(), ExpansionRequired<'ast>> {
+        validate_label: F,
+    ) -> Result<(), ExpansionRequired<'ast>>
+    where
+        F: FnMut(
+            &'ast ast::Symbol,
+            &'ast IndexMap<String, ast::Instruction>,
+            &mut Diagnostics,
+        ),
+    {
         match &instr.instruction_type {
             ast::InstructionType::Operation(operation) => {
                 self.precompile_operation(
                     &instr.label,
                     operation,
                     working_code,
+                    ast_code,
                     diagnostics,
+                    validate_label,
                 )?;
             },
+
             ast::InstructionType::Test(test) => {
                 self.precompile_test(
                     &instr.label,
                     test,
                     working_code,
+                    ast_code,
                     diagnostics,
+                    validate_label,
                 )?;
             },
         }
@@ -263,13 +287,24 @@ impl<'ast> Expansor<'ast> {
     /// - `operation`: operação que a instrução executa
     /// - `working_code`: macro a qual a instrução pertence
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
-    fn precompile_operation(
+    fn precompile_operation<F>(
         &mut self,
         label: &'ast ast::Symbol,
         operation: &'ast ast::Operation,
         working_code: &mut WorkingCode,
+        ast_code: &'ast IndexMap<String, ast::Instruction>,
         diagnostics: &mut Diagnostics,
-    ) -> Result<(), ExpansionRequired<'ast>> {
+        mut validate_label: F,
+    ) -> Result<(), ExpansionRequired<'ast>>
+    where
+        F: FnMut(
+            &'ast ast::Symbol,
+            &'ast IndexMap<String, ast::Instruction>,
+            &mut Diagnostics,
+        ),
+    {
+        validate_label(&operation.next_label, ast_code, diagnostics);
+
         match &operation.oper_type {
             ast::OperationType::BuiltIn(builtin_oper, argument) => {
                 let oper_kind =
@@ -322,13 +357,25 @@ impl<'ast> Expansor<'ast> {
     /// - `test`: teste que a instrução executa
     /// - `working_code`: macro a qual a instrução pertence
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
-    fn precompile_test(
+    fn precompile_test<F>(
         &mut self,
         label: &'ast ast::Symbol,
         test: &'ast ast::Test,
         working_code: &mut WorkingCode,
+        ast_code: &'ast IndexMap<String, ast::Instruction>,
         diagnostics: &mut Diagnostics,
-    ) -> Result<(), ExpansionRequired<'ast>> {
+        mut validate_label: F,
+    ) -> Result<(), ExpansionRequired<'ast>>
+    where
+        F: FnMut(
+            &'ast ast::Symbol,
+            &'ast IndexMap<String, ast::Instruction>,
+            &mut Diagnostics,
+        ),
+    {
+        validate_label(&test.next_true_label, ast_code, diagnostics);
+        validate_label(&test.next_false_label, ast_code, diagnostics);
+
         match &test.test_type {
             ast::TestType::BuiltIn(builtin_test, argument) => {
                 let test_kind =
