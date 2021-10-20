@@ -81,6 +81,17 @@ impl Program {
         InstructionsMut { inner: self.instructions.values_mut() }
     }
 
+    /// Coleta todos os rótulos usados nessa instrução, usando uma função
+    /// genérica para lidar com cada um e coletar.
+    pub fn collect_labels<F>(&self, mut collector: F)
+    where
+        F: FnMut(&str),
+    {
+        for instruction in self.instructions() {
+            instruction.collect_labels(&mut collector);
+        }
+    }
+
     /// Coleta todos os nomes de registradores usados no programa, usando uma
     /// função genérica para lidar com cada um e coletar.
     pub fn collect_registers<F>(&self, mut collector: F)
@@ -205,6 +216,15 @@ impl Instruction {
         (self.label.clone(), self.kind.to_string())
     }
 
+    /// Coleta todos os rótulos usados nessa instrução, usando uma função
+    /// genérica para lidar com cada um e coletar.
+    pub fn collect_labels<F>(&self, collector: F)
+    where
+        F: FnMut(&str),
+    {
+        self.kind.collect_labels(collector);
+    }
+
     /// Coleta todos os nomes de registradores usados na instrução, usando uma
     /// função genérica para lidar com cada um e coletar.
     pub fn collect_registers<F>(&self, collector: F)
@@ -254,6 +274,18 @@ impl InstructionKind {
         }
     }
 
+    /// Coleta todos os rótulos usados nesse tipo de instrução, usando uma
+    /// função genérica para lidar com cada um e coletar.
+    pub fn collect_labels<F>(&self, collector: F)
+    where
+        F: FnMut(&str),
+    {
+        match self {
+            InstructionKind::Operation(oper) => oper.collect_labels(collector),
+            InstructionKind::Test(test) => test.collect_labels(collector),
+        }
+    }
+
     /// Coleta todos os nomes de registradores usados nesse tipo específico de
     /// instrução, usando uma função genérica para lidar com cada um e
     /// coletar.
@@ -295,6 +327,15 @@ impl Operation {
         F: FnMut(&mut String),
     {
         renamer(&mut self.next);
+    }
+
+    /// Coleta todos os rótulos usados nessa operação, usando uma função
+    /// genérica para lidar com cada um e coletar.
+    pub fn collect_labels<F>(&self, mut collector: F)
+    where
+        F: FnMut(&str),
+    {
+        collector(&self.next);
     }
 
     /// Coleta todos os nomes de registradores usados nessa operação, usando
@@ -464,6 +505,16 @@ impl Test {
     {
         renamer(&mut self.next_then);
         renamer(&mut self.next_else);
+    }
+
+    /// Coleta todos os rótulos usados nesse teste, usando uma função
+    /// genérica para lidar com cada um e coletar.
+    pub fn collect_labels<F>(&self, mut collector: F)
+    where
+        F: FnMut(&str),
+    {
+        collector(&self.next_then);
+        collector(&self.next_else);
     }
 
     /// Coleta todos os nomes de registradores usados nesse teste, usando
