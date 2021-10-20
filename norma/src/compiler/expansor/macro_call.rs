@@ -31,14 +31,14 @@ impl<'ast> MacroCallExpansor<'ast> for OperMacroCallExpansor {
         &self,
         outer_instr_kind: &'ast Self::InstructionKind,
     ) -> String {
-        panic!("Erro de compilação");
+        String::from("true")
     }
 
     fn expand_false_label(
         &self,
         outer_instr_kind: &'ast Self::InstructionKind,
     ) -> String {
-        panic!("Erro de compilação");
+        String::from("false")
     }
 
     fn expand_invalid_label(
@@ -77,7 +77,7 @@ impl<'ast> MacroCallExpansor<'ast> for TestMacroCallExpansor {
         &self,
         outer_instr_kind: &'ast Self::InstructionKind,
     ) -> String {
-        panic!("Erro de compilação");
+        String::from("?")
     }
 
     fn macro_type(&self) -> ast::MacroType {

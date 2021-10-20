@@ -81,6 +81,9 @@ impl<'ast> Expansor<'ast> {
     /// expandidas. Caso contrário, retorna None
     /// 
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
+    /// 
+    /// # Panics
+    /// Invoca panic caso exista macro que não tenha sido precompilada
     fn expand_main(&mut self, diagnostics: &mut Diagnostics) -> Option<Program> {
         let mut code = WorkingCode::new();
         for instruction in self.ast.main.code.values() {
@@ -118,6 +121,9 @@ impl<'ast> Expansor<'ast> {
     /// Pega uma dada macro da ast a partir de seu nome
     /// 
     /// - `macro_name`: Nome da macro cujo os dados devem ser pegos da ast
+    /// 
+    /// # Panics
+    /// Invoca panic se for requisitado macro que não existe na ast
     fn get_macro(&mut self, macro_name: &str) -> &'ast ast::Macro {
         self.ast
             .macros
@@ -232,9 +238,9 @@ impl<'ast> Expansor<'ast> {
         diagnostics: &mut Diagnostics
     ) -> Result<(), ExpansionRequired<'ast>> {
         match &operation.oper_type {
-            ast::OperationType::BuiltIn(builtin_oper, param) => {
+            ast::OperationType::BuiltIn(builtin_oper, argument) => {
                 let oper_kind =
-                    self.precompile_builtin_oper(*builtin_oper, param);
+                    self.precompile_builtin_oper(*builtin_oper, argument);
                 let runtime_oper = Operation {
                     kind: oper_kind,
                     next: operation.next_label.content.clone(),
@@ -269,11 +275,11 @@ impl<'ast> Expansor<'ast> {
     fn precompile_builtin_oper(
         &mut self,
         builtin_oper: BuiltInOperation,
-        param: &'ast ast::Symbol,
+        arg: &'ast ast::Symbol,
     ) -> OperationKind {
         match builtin_oper {
-            BuiltInOperation::Inc => OperationKind::Inc(param.content.clone()),
-            BuiltInOperation::Dec => OperationKind::Dec(param.content.clone()),
+            BuiltInOperation::Inc => OperationKind::Inc(arg.content.clone()),
+            BuiltInOperation::Dec => OperationKind::Dec(arg.content.clone()),
         }
     }
 
@@ -291,9 +297,9 @@ impl<'ast> Expansor<'ast> {
         diagnostics: &mut Diagnostics
     ) -> Result<(), ExpansionRequired<'ast>> {
         match &test.test_type {
-            ast::TestType::BuiltIn(builtin_test, param) => {
+            ast::TestType::BuiltIn(builtin_test, argument) => {
                 let test_kind =
-                    self.precompile_builtin_test(*builtin_test, param);
+                    self.precompile_builtin_test(*builtin_test, argument);
                 let runtime_test = Test {
                     kind: test_kind,
                     next_then: test.next_true_label.content.clone(),
@@ -329,14 +335,16 @@ impl<'ast> Expansor<'ast> {
     fn precompile_builtin_test(
         &mut self,
         builtin_test: BuiltInTest,
-        param: &'ast ast::Symbol,
+        arg: &'ast ast::Symbol,
     ) -> TestKind {
         match builtin_test {
-            BuiltInTest::Zero => TestKind::Zero(param.content.clone()),
+            BuiltInTest::Zero => TestKind::Zero(arg.content.clone()),
         }
     }
 
-    /// Expande uma outra chamada de macro em uma dada instrução de uma macro que está sendo precompilada
+    /// Precompila uma outra chamada de macro em uma dada instrução de uma macro que está sendo precompilada.
+    /// Caso retorne erro, significa que outra macro precisa ser precompilada antes de continuar a macro atual. 
+    /// Recomenda-se empilhar a macro atual e em seguida empilhar a macro requisitada. 
     /// 
     /// - `label`: rótulo da instrução
     /// - `instr_kind`: tipo da instrução que está chamando a macro
@@ -399,8 +407,16 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
-    // PAREI AQUI!!!!!
-
+    /// Expande uma chamada de macro em uma dada instrução que está sendo precompilada
+    /// 
+    /// - `call_macro_name`: nome da macro que chama a macro interna
+    /// - `inner_precomp`: macro que é chamada internamente
+    /// - `outer_label`: label da instrução da macro externa que chamou a macro interna
+    /// - `outer_instr_kind`: tipo da instrução da macro externa
+    /// - `call_expansor`: estrutura que lida com a expansão de uma chamada de macro dentro de outra
+    /// - `arguments`: argumentos da chamada de macro
+    /// - `working_code`: macro que estava em precompilação
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn expand_macro<E>(
         &mut self,
         call_macro_name: &'ast ast::Symbol,
@@ -446,9 +462,9 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
+    // PAREI AQUIIIIIIIIIIIIIIII
 
-    /// Expande uma instrução de um macro pré-compilado para dentro de um macro
-    /// a ser compilado.
+    /// Expande uma instrução de um macro pré-compilada para dentro de onde ela é chamada
     ///
     /// - `params_map` mapeia parâmetros formais do macro pré-compilado para os
     ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
@@ -511,6 +527,7 @@ impl<'ast> Expansor<'ast> {
         )
     }
 
+    /// Expande uma instrução do tipo operação
     fn expand_oper_instr<E>(
         &mut self,
         params_map: &HashMap<&'ast str, &'ast str>,
@@ -535,6 +552,7 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
+    /// Expande uma instrução do tipo teste
     fn expand_test_instr<E>(
         &mut self,
         params_map: &HashMap<&'ast str, &'ast str>,
@@ -566,6 +584,7 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
+    /// Expande um dado rótulo
     fn expand_label<E>(
         &self,
         inner_precomp: &PreCompiled<'ast>,
@@ -593,6 +612,8 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
+    /// Renomeia registradores que são parâmetros na definição da macro chamada, trocando-os pelos 
+    /// argumentos da chamada. Referente a isntrução do tipo operação
     fn expand_oper_kind(
         &self,
         operation_kind: &OperationKind,
@@ -603,7 +624,8 @@ impl<'ast> Expansor<'ast> {
         })
     }
 
-    
+    /// Renomeia registradores que são parâmetros na definição da macro chamada, trocando-os pelos 
+    /// argumentos da chamada. Referente a isntrução do tipo teste
     fn expand_test_kind(
         &self,
         test_kind: &TestKind,
@@ -614,7 +636,8 @@ impl<'ast> Expansor<'ast> {
         })
     }
 
-    /// TODO
+    /// Renomeia um registrador. Caso o registrador seja um parâmetro, será substituido pelo argumento 
+    /// correspondente na chamada. Caso não seja um parâmetro, o registrador é inalterado.
     fn map_param_to_arg(
         &self,
         params_map: &HashMap<&'ast str, &'ast str>,
