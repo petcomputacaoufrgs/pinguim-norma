@@ -156,7 +156,7 @@ impl InterpreterHandle {
 #[wasm_bindgen]
 impl InterpreterHandle {
     #[wasm_bindgen(js_name = "data")]
-    pub fn js_data() -> JsValue {
+    pub fn js_data(&self) -> JsValue {
         let data = InterpreterData {
             instructions: self.export_instructions(),
             status: self.export_status(self.running()),
@@ -165,12 +165,12 @@ impl InterpreterHandle {
     }
 
     #[wasm_bindgen(js_name = "instructions")]
-    pub fn js_instructions() -> JsValue {
+    pub fn js_instructions(&self) -> JsValue {
         JsValue::from_serde(&self.export_instructions()).unwrap()
     }
 
     #[wasm_bindgen(js_name = "status")]
-    pub fn js_status() -> JsValue {
+    pub fn js_status(&self) -> JsValue {
         let running = self.running();
         JsValue::from_serde(&self.export_status(running)).unwrap()
     }
