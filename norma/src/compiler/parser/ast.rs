@@ -60,11 +60,11 @@ pub enum MacroType {
 impl fmt::Display for MacroType {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Operation => write!(formatter, "Operation"),
-            Test => write!(formatter, "Test")
+            MacroType::Operation => write!(formatter, "Operation"),
+            MacroType::Test => write!(formatter, "Test"),
         }
     }
-} 
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol {
@@ -107,8 +107,8 @@ pub enum MacroArgumentType {
 impl fmt::Display for MacroArgumentType {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Register => write!(formatter, "registrador"),
-            Number => write!(formatter, "número")
+            MacroArgumentType::Register => write!(formatter, "registrador"),
+            MacroArgumentType::Number => write!(formatter, "número"),
         }
     }
-} 
+}

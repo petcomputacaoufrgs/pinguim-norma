@@ -2,7 +2,7 @@ use crate::{
     compiler::parser::ast,
     interpreter::program::{Instruction, Program},
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
 #[derive(Clone, Debug)]
 pub struct ExpansionRequired<'ast> {
