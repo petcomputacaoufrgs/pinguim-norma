@@ -211,8 +211,7 @@ impl<'ast> Expansor<'ast> {
     /// macro
     ///
     /// - `working_macro`: macro que estava em precompilação e foi será
-    ///   finalizada e colocada
-    /// na estrutura de macros terminadas (precompileds macros)
+    /// finalizada e colocada na estrutura de macros terminadas (precompileds macros)
     fn finish_working_macro(&mut self, working_macro: WorkingMacro<'ast>) {
         let precompiled = working_macro.finish();
         let name = precompiled.macro_data().name.content.clone();
@@ -238,7 +237,9 @@ impl<'ast> Expansor<'ast> {
     ///
     /// - `instr`: instrução a ser expandida
     /// - `working_code`: macro em precompilação
+    /// - `ast_code`: programa da macro, estrutura com todas as instruções
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
+    /// - `validate_label`: função genérica que valida próximo label da instrução
     fn precompile_instruction<F>(
         &mut self,
         instr: &'ast ast::Instruction,
@@ -286,7 +287,9 @@ impl<'ast> Expansor<'ast> {
     /// - `label`: rótulo da instrução
     /// - `operation`: operação que a instrução executa
     /// - `working_code`: macro a qual a instrução pertence
+    /// - `ast_code`: programa da macro, estrutura com todas as instruções
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
+    /// - `validate_label`: função genérica que valida próximo label da instrução
     fn precompile_operation<F>(
         &mut self,
         label: &'ast ast::Symbol,
@@ -339,7 +342,7 @@ impl<'ast> Expansor<'ast> {
     /// Expande uma operação builtin em uma dada instrução
     ///
     /// - `builtin_oper`: operação builtin a ser precompilada
-    /// - `param`: parâmetro da operação builtin
+    /// - `arg`: argumento da operação builtin
     fn precompile_builtin_oper(
         &mut self,
         builtin_oper: BuiltInOperation,
@@ -356,7 +359,9 @@ impl<'ast> Expansor<'ast> {
     /// - `label`: rótulo da instrução
     /// - `test`: teste que a instrução executa
     /// - `working_code`: macro a qual a instrução pertence
+    /// - `ast_code`: programa da macro, estrutura com todas as instruções
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
+    /// - `validate_label`: função genérica que valida próximo label da instrução
     fn precompile_test<F>(
         &mut self,
         label: &'ast ast::Symbol,
@@ -411,7 +416,7 @@ impl<'ast> Expansor<'ast> {
     /// Expande um teste builtin em uma dada instrução
     ///
     /// - `builtin_test`: teste builtin a ser precompilado
-    /// - `param`: parâmetro do teste builtin
+    /// - `arg`: argumento do teste builtin
     fn precompile_builtin_test(
         &mut self,
         builtin_test: BuiltInTest,
@@ -431,7 +436,7 @@ impl<'ast> Expansor<'ast> {
     /// - `label`: rótulo da instrução
     /// - `instr_kind`: tipo da instrução que está chamando a macro
     /// - `call_expansor`: estrutura que lida com a expansão de uma chamada de
-    ///   macro dentro de outra
+    /// macro dentro de outra
     /// - `macro_name`: nome da macro chamada mais internamente
     /// - `arguments`: argumentos da nova chamada de macro
     /// - `working_code`: macro que estava em precompilação
@@ -550,20 +555,20 @@ impl<'ast> Expansor<'ast> {
         }
     }
 
-    // PAREI AQUIIIIIIIIIIIIIIII
-
     /// Expande uma instrução de um macro pré-compilada para dentro de onde ela
     /// é chamada
     ///
-    /// - `params_map` mapeia parâmetros formais do macro pré-compilado para os
+    /// - `params_map`: mapeia parâmetros formais do macro pré-compilado para os
     ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
-    /// - `instr` é a instrução a ser compilada.
-    /// - `outer_label` é o label da instrução que chama a macro de dentro. Será
+    /// - `instr`: é a instrução a ser compilada.
+    /// - `outer_label`: é o label da instrução que chama a macro de dentro. Será
     ///   prefixado a todos labels da macro de dentro.
-    /// - `outer_next_label` é o label após o `goto` na instrução da macro de
-    ///   fora. Ròtulos de saída da macro de dentro serão remapeados para esse
+    /// - `outer_instr_kind`: é o label após o `goto` na instrução da macro de
+    ///   fora. Rótulos de saída da macro de dentro serão remapeados para esse
     ///   label.
-    /// - `inner_precomp` é a precompilação da macro interna.
+    /// - `call_expansor`: estrutura que lida com a expansão de uma chamada de
+    ///   macro dentro de outra
+    /// - `inner_precomp`: é a precompilação da macro interna.
     fn expand_instr<E>(
         &mut self,
         params_map: &HashMap<&'ast str, &'ast str>,
@@ -617,6 +622,18 @@ impl<'ast> Expansor<'ast> {
     }
 
     /// Expande uma instrução do tipo operação
+    /// 
+    /// - `params_map`: mapeia parâmetros formais do macro pré-compilado para os
+    ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
+    /// - `operation`: é a operação da instrução a ser compilada.
+    /// - `outer_label`: é o label da instrução que chama a macro de dentro. Será
+    ///   prefixado a todos labels da macro de dentro.
+    /// - `outer_instr_kind`: é o label após o `goto` na instrução da macro de
+    ///   fora. Rótulos de saída da macro de dentro serão remapeados para esse
+    ///   label.
+    /// - `call_expansor`: estrutura que lida com a expansão de uma chamada de
+    /// macro dentro de outra
+    /// - `inner_precomp`: é a precompilação da macro interna.
     fn expand_oper_instr<E>(
         &mut self,
         params_map: &HashMap<&'ast str, &'ast str>,
@@ -642,6 +659,18 @@ impl<'ast> Expansor<'ast> {
     }
 
     /// Expande uma instrução do tipo teste
+    /// 
+    /// - `params_map`: mapeia parâmetros formais do macro pré-compilado para os
+    ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
+    /// - `teste`: é o teste da instrução a ser compilada.
+    /// - `outer_label`: é o label da instrução que chama a macro de dentro. Será
+    ///   prefixado a todos labels da macro de dentro.
+    /// - `outer_instr_kind`: é o label após o `goto` na instrução da macro de
+    ///   fora. Rótulos de saída da macro de dentro serão remapeados para esse
+    ///   label.
+    /// - `call_expansor`: estrutura que lida com a expansão de uma chamada de
+    /// macro dentro de outra
+    /// - `inner_precomp`: é a precompilação da macro interna.
     fn expand_test_instr<E>(
         &mut self,
         params_map: &HashMap<&'ast str, &'ast str>,
@@ -674,6 +703,16 @@ impl<'ast> Expansor<'ast> {
     }
 
     /// Expande um dado rótulo
+    /// 
+    /// - `inner_precomp`: é a precompilação da macro interna.
+    /// - `inner_next_label`: o próximo label da instrução atual da macro chamada
+    /// - `outer_label`: é o label da instrução que chama a macro de dentro. Será
+    ///   prefixado a todos labels da macro de dentro
+    /// - `outer_instr_kind`: é o label após o `goto` na instrução da macro de
+    ///   fora. Rótulos de saída da macro de dentro serão remapeados para esse
+    ///   label
+    /// - `call_expansor`: estrutura que lida com a expansão de uma chamada de
+    /// macro dentro de outra
     fn expand_label<E>(
         &self,
         inner_precomp: &PreCompiled<'ast>,
@@ -704,6 +743,10 @@ impl<'ast> Expansor<'ast> {
     /// Renomeia registradores que são parâmetros na definição da macro chamada,
     /// trocando-os pelos argumentos da chamada. Referente a isntrução do
     /// tipo operação
+    /// 
+    /// - `operation_kind`: o tipo de operação executado pela instrução
+    /// - `params_map`: mapeia parâmetros formais do macro pré-compilado para os
+    ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
     fn expand_oper_kind(
         &self,
         operation_kind: &OperationKind,
@@ -717,6 +760,10 @@ impl<'ast> Expansor<'ast> {
     /// Renomeia registradores que são parâmetros na definição da macro chamada,
     /// trocando-os pelos argumentos da chamada. Referente a isntrução do
     /// tipo teste
+    /// 
+    /// - `test_kind`: o tipo de teste executado pela instrução
+    /// - `params_map`: mapeia parâmetros formais do macro pré-compilado para os
+    ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
     fn expand_test_kind(
         &self,
         test_kind: &TestKind,
@@ -730,6 +777,10 @@ impl<'ast> Expansor<'ast> {
     /// Renomeia um registrador. Caso o registrador seja um parâmetro, será
     /// substituido pelo argumento correspondente na chamada. Caso não seja
     /// um parâmetro, o registrador é inalterado.
+    /// 
+    /// - `params_map`: mapeia parâmetros formais do macro pré-compilado para os
+    ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
+    /// - `register`: registrador dos parâmetros formais a ser mapeado
     fn map_param_to_arg(
         &self,
         params_map: &HashMap<&'ast str, &'ast str>,
