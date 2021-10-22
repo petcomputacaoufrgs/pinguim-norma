@@ -48,20 +48,25 @@ impl CodeType {
 }
 */
 
-/// Testa se o content do label é "true"
+/// Testa se o conteúdo do rótulo é "true"
 ///
 /// - `label`: conteúdo de um label
 pub fn is_true(label: &str) -> bool {
     label == "true"
 }
 
-/// Testa se o content do label é "false"
+/// Testa se o conteúdo do rótulo é "false"
 ///
 /// - `label`: conteúdo de um label
 pub fn is_false(label: &str) -> bool {
     label == "false"
 }
 
+/// Valida rótulo conforme os requisitos de rótulos para a main
+///
+/// - `label`: rótulo de uma instrução
+/// - `code`: mapeamento de rótulos e suas instruções
+/// - `diagnostics`: vetor que armazena erros coletados durante a compilação
 pub fn validate_for_main(
     label: &ast::Symbol,
     code: &IndexMap<String, ast::Instruction>,
@@ -73,6 +78,11 @@ pub fn validate_for_main(
     }
 }
 
+/// Valida rótulo conforme os requisitos de rótulos para macros de operações
+///
+/// - `label`: rótulo de uma instrução
+/// - `_code`: mapeamento de rótulos e suas instruções
+/// - `diagnostics`: vetor que armazena erros coletados durante a compilação
 pub fn validate_for_oper_macro(
     label: &ast::Symbol,
     _code: &IndexMap<String, ast::Instruction>,
@@ -84,6 +94,11 @@ pub fn validate_for_oper_macro(
     }
 }
 
+/// Valida rótulo conforme os requisitos de rótulos para macros de testes
+///
+/// - `label`: rótulo de uma instrução
+/// - `code`: mapeamento de rótulos e suas instruções
+/// - `diagnostics`: vetor que armazena erros coletados durante a compilação
 pub fn validate_for_test_macro(
     label: &ast::Symbol,
     code: &IndexMap<String, ast::Instruction>,
