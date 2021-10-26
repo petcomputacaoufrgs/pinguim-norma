@@ -40,12 +40,15 @@ if (!supported) {
 const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
 const toggleIcon = document.getElementById('toggle-icon');
 function switchTheme(e) {
+    // TODO: Gambiarra testing; remove later
     try {
-      const prog = wasm.compile(document.getElementById('userinput').textContent);
-      console.log(prog);
+      const source = document.getElementById('userinput').value;
+      const interpreter = wasm.compile(source);
+      console.log(interpreter.data());
     } catch(e) {
       console.log(e);
     }
+    // End gambiarra
 
     if (e.target.checked) {
         document.documentElement.setAttribute('data-theme', 'dark');
