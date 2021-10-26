@@ -1,4 +1,4 @@
-import { } from './common.js';
+import { init, getStorage, setStorage } from './common.js';
 import * as wasm from "norma-wasm";
 
 // Upload and download buttons
@@ -39,13 +39,9 @@ downloadBtn.addEventListener('click', (e) => {
 // Local Storage
 
 const getLastCode = () => {
-    textAreaHTML.innerHTML = getStorage();
+    textAreaHTML.value = getStorage();
     highlight();
 };
-
-window.onload = () => {
-    getLastCode();
-}
 
 // Highlight 
 const textAreaHTML = document.getElementById('userinput');
@@ -78,6 +74,8 @@ const handleKeys = {
     '(': (e) => handleBracket(e),
     '{': (e) => handleCurly(e)
 };
+
+textAreaHTML.addEventListener('keyup', (evt) => highlight());
 
 textAreaHTML.addEventListener('keydown', (e) => {
      try { handleKeys[e.key](e) }
@@ -160,3 +158,7 @@ const handleCurly = (e) => {
     textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
 };
 
+// Init
+init(() => {
+  getLastCode();
+});

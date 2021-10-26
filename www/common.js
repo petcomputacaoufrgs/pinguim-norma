@@ -1,19 +1,34 @@
 import * as styles from './styles.css';
 import * as commonStyles from './common_styles.css';
+import * as wasm from "norma-wasm";
+
+export function init(handler) {
+    let initialized = false;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!initialized) {
+          initialized = true;
+          handler();
+      }
+    });
+    if (document.readyState == 'complete' && !initialized) {
+        initialized = true;
+        handler();
+    }
+};
 
 // Código para verificar se o wasm é suportado]
 // Retirado de https://www.syncfusion.com/faq/how-can-i-check-if-a-browser-supports-webassembly
 const supported = (() => {
-  try {
-    if (typeof WebAssembly === "object"
-        && typeof WebAssembly.instantiate === "function")
-    {
-        const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
-        if (module instanceof WebAssembly.Module)
-            return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
+    try {
+        if (typeof WebAssembly === "object"
+            && typeof WebAssembly.instantiate === "function")
+        {
+            const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
+            if (module instanceof WebAssembly.Module)
+                return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
         }
-    } catch (e) {
-    }
+    } catch (e) { }
     return false;
 })();
   
@@ -25,6 +40,13 @@ if (!supported) {
 const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
 const toggleIcon = document.getElementById('toggle-icon');
 function switchTheme(e) {
+    try {
+      const prog = wasm.compile(document.getElementById('userinput').textContent);
+      console.log(prog);
+    } catch(e) {
+      console.log(e);
+    }
+
     if (e.target.checked) {
         document.documentElement.setAttribute('data-theme', 'dark');
         toggleIcon.innerHTML = 'dark_mode';
@@ -48,11 +70,11 @@ if (currentTheme) {
 const storageKey = "pinguim.norma.userCode";
 
 // Local Storage
-const setStorage = (baseText) => {
+export const setStorage = (baseText) => {
     localStorage.setItem(storageKey, baseText);
 };
 
-const getStorage = () => {
+export const getStorage = () => {
     return localStorage.getItem(storageKey);
 };
 

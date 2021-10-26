@@ -63,7 +63,7 @@ impl ExportableError {
 
 fn export_diagnostics(diagnostics: &Diagnostics) -> JsValue {
     let errors: Vec<_> = diagnostics.iter().map(ExportableError::new).collect();
-    JsValue::from_serde(&errors).unwrap_or(JsValue::null())
+    JsValue::from_serde(&errors).unwrap()
 }
 
 #[wasm_bindgen]
