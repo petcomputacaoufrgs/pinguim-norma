@@ -1,0 +1,10 @@
+[workspace]
+members = ["./norma", "./norma-wasm"]
+
+[profile.release]
+# Link-Time Optimization
+lto = true
+
+[profile.release.package.norma-wasm]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"

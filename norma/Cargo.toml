@@ -3,18 +3,10 @@ name = "norma"
 version = "0.1.0"
 authors = ["Jordi Pujol Ricarte <jpricarte@inf.ufrgs.br>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[lib]
-crate-type = ["cdylib", "rlib"]
+workspace = "../"
 
 [dependencies]
 indexmap = "1.7.0"
 serde = { version = "1.0", features = ["derive"] }
-wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 num-bigint = "0.4"
 num-traits = "0.2"
-
-[profile.release]
-lto = true
