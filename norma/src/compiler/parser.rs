@@ -35,6 +35,10 @@ use indexmap::IndexMap;
 use num_bigint::BigUint;
 use std::str::FromStr;
 
+/// Cria uma estrutura Parser e parsa a lista de tokens para um programa
+/// 
+/// - `tokens`: vetor de tokens
+/// - `diagnostics`: vetor que armazena erros coletados durante a compilação 
 pub fn parse(
     tokens: Vec<Token>,
     diagnostics: &mut Diagnostics,
@@ -43,23 +47,35 @@ pub fn parse(
 }
 
 #[derive(Debug)]
+/// Estrutura responsável por para o parser em situações críticas
 struct Abort;
 
 #[derive(Debug)]
 struct Parser {
+    ///
+    /// - `tokens`: vetor de tokens a serem parsados
     tokens: Vec<Token>,
+    ///
+    /// - `curr_token`: índice do token que está sendo parsado
     curr_token: usize,
 }
 
 impl Parser {
+    /// Cria uma nova estrutura de Parser
+    /// 
+    /// - `tokens`: vetor de tokens
     fn new(tokens: Vec<Token>) -> Self {
         Parser { tokens, curr_token: 0 }
     }
 
+    /// Pega o token o qual está sendo parsado no momento dado seu índice
     fn current(&self) -> Option<&Token> {
         self.tokens.get(self.curr_token)
     }
 
+    /// Pega o token o qual está sendo parsado no momento e garante que ele exista
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn require_current(
         &self,
         diagnostics: &mut Diagnostics,
@@ -73,10 +89,15 @@ impl Parser {
         }
     }
 
+    /// Incrementa o índice para o próximo token
     fn next(&mut self) {
         self.curr_token += 1;
     }
 
+    /// Confere se o próximo token é do tipo esperado, adicionando erro no diagnóstico quando não for
+    /// 
+    /// - `expected_type`: tipo de token que é esperado encontrar
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn expect(
         &mut self,
         expected_type: TokenType,
@@ -97,6 +118,10 @@ impl Parser {
         Ok(())
     }
 
+    /// Confere se o próximo token é do tipo esperado, retornando true se for, false se não for
+    /// 
+    /// - `expected_type`: tipo de token esperado
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn check_expect(
         &mut self,
         expected_type: TokenType,
@@ -112,6 +137,9 @@ impl Parser {
         }
     }
 
+    /// Faz o parse do vetor de tokens em um programa
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_program(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -183,6 +211,11 @@ impl Parser {
         Ok(main_option.map(|main| Program { main, macros }))
     }
 
+    /// Insere definição de macro na estrutura que armazena todas as definições de macros
+    /// 
+    /// - `macros`: estrutura <nome da macro, definição da macro>
+    /// - `macro_def`: definição de uma macro
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn insert_macro_def(
         &mut self,
         macros: &mut IndexMap<String, Macro>,
@@ -204,6 +237,9 @@ impl Parser {
         }
     }
 
+    /// Faz o parse do vetor de tokens no programa da main
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_main(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -214,6 +250,9 @@ impl Parser {
         Ok(Some(Main { code: instructions }))
     }
 
+    /// Faz o parse do código de qualquer função
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_func_body(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -249,6 +288,10 @@ impl Parser {
         Ok(code)
     }
 
+    /// Faz o parse da definição de uma macro
+    /// 
+    /// - `macro_type`: tipo da macro
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_macro_def(
         &mut self,
         macro_type: MacroType,
@@ -267,6 +310,9 @@ impl Parser {
         }))
     }
 
+    /// Faz o parse do nome de uma macro
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_macro_name(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -289,6 +335,9 @@ impl Parser {
         }
     }
 
+    /// Faz o parse dos parametros formais de uma macro
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_macro_def_params(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -296,6 +345,9 @@ impl Parser {
         self.parse_param_list(Self::parse_register, diagnostics)
     }
 
+    /// Faz o parse uma instrução do corpo (código) da macro
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_instr(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -319,6 +371,9 @@ impl Parser {
         Ok(instr)
     }
 
+    /// Faz o parse o tipo de uma instrução
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_instr_type(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -341,6 +396,9 @@ impl Parser {
         }
     }
 
+    /// Faz o parse uma instrução do tipo operação
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_instr_op(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -360,6 +418,9 @@ impl Parser {
         Ok(operation)
     }
 
+    /// Faz o parse o tipo de operação de uma instrução do tipo operação
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_operation_type(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -399,6 +460,9 @@ impl Parser {
         }
     }
 
+    /// Faz o parse uma instrução do tipo teste
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_instr_test(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -424,6 +488,9 @@ impl Parser {
         Ok(test)
     }
 
+    /// Faz o parse do tipo de teste de uma instrução do tipo teste
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_test_type(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -462,6 +529,9 @@ impl Parser {
         }
     }
 
+    /// Faz o parse de argumentos de testes ou operações builtin
+    /// 
+    ///  - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_builtin_arg(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -475,6 +545,10 @@ impl Parser {
         Ok(parameter)
     }
 
+    /// Faz o parse de qualquer lista de parâmetros/argumentos
+    /// 
+    /// - `parse_param`: função genérica que faz o parse de parâmetros
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_param_list<F, T>(
         &mut self,
         mut parse_param: F,
@@ -509,6 +583,9 @@ impl Parser {
         Ok(parameters)
     }
 
+    /// Faz o parse dos argumentos da macro
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_macro_args(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -516,6 +593,9 @@ impl Parser {
         self.parse_param_list(Self::parse_macro_arg, diagnostics)
     }
 
+    /// Faz o parse de um argumento por vez
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_macro_arg(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -550,6 +630,9 @@ impl Parser {
         }
     }
 
+    /// Faz o parse de registradores
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_register(
         &mut self,
         diagnostics: &mut Diagnostics,
@@ -571,6 +654,9 @@ impl Parser {
         }
     }
 
+    /// Faz o parse do rótulo de uma instrução
+    /// 
+    /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_label(
         &mut self,
         diagnostics: &mut Diagnostics,

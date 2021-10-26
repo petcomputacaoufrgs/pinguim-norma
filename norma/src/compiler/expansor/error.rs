@@ -3,22 +3,29 @@ use std::{error::Error, fmt};
 
 #[derive(Clone, Debug)]
 pub struct UndefinedMacro {
+    ///
+    /// - `macro_name`: nome da macro que não foi definida no código
     pub macro_name: String,
 }
 
+/// Implementa a trait Display para mensagens de erro
 impl fmt::Display for UndefinedMacro {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(formatter, "Macro \"{}\" não existe", self.macro_name)
     }
 }
 
+/// Implementa a trait Error para poder ser colocado no diagnóstico
 impl Error for UndefinedMacro {}
 
 #[derive(Clone, Debug)]
 pub struct RecursiveMacro {
+    ///
+    /// - `macro_name`: nome da macro que executa chamadas recursivas
     pub macro_name: String,
 }
 
+/// Implementa a trait Display para mensagens de erro
 impl fmt::Display for RecursiveMacro {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -29,6 +36,7 @@ impl fmt::Display for RecursiveMacro {
     }
 }
 
+/// Implementa a trait Error para poder ser colocado no diagnóstico
 impl Error for RecursiveMacro {}
 
 #[derive(Clone, Debug)]
@@ -38,6 +46,7 @@ pub struct IncompatibleMacroType {
     pub found_type: ast::MacroType,
 }
 
+/// Implementa a trait Display para mensagens de erro
 impl fmt::Display for IncompatibleMacroType {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -48,15 +57,23 @@ impl fmt::Display for IncompatibleMacroType {
     }
 }
 
+/// Implementa a trait Error para poder ser colocado no diagnóstico
 impl Error for IncompatibleMacroType {}
 
 #[derive(Clone, Debug)]
 pub struct MismatchedArgsNumber {
+    ///
+    /// - `macro_name`: nome da macro cujos argumentos não estão de acordo com os parâmetros formais
     pub macro_name: String,
+    ///
+    /// - `expected_num`: número de parâmetros formais
     pub expected_num: usize,
+    ///
+    /// - `found_num`: número de argumentos passados na chamada da macro
     pub found_num: usize,
 }
 
+/// Implementa a trait Display para mensagens de erro
 impl fmt::Display for MismatchedArgsNumber {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -68,16 +85,26 @@ impl fmt::Display for MismatchedArgsNumber {
     }
 }
 
+/// Implementa a trait Error para poder ser colocado no diagnóstico
 impl Error for MismatchedArgsNumber {}
 
 #[derive(Clone, Debug)]
 pub struct MismatchedArgType {
+    ///
+    /// - `macro_name`: nome da macro cujo argumento passado não é do tipo esperado
     pub macro_name: String,
+    ///
+    /// - `expected_type`: tipo do parâmetro formal
     pub expected_type: ast::MacroArgumentType,
+    ///
+    /// - `found_type`: tipo do argumento passado na chamada da macro
     pub found_type: ast::MacroArgumentType,
+    ///
+    /// - `index`: índice do argumento do tipo errado na chamada
     pub index: usize,
 }
 
+/// Implementa a trait Display para mensagens de erro
 impl fmt::Display for MismatchedArgType {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -89,26 +116,34 @@ impl fmt::Display for MismatchedArgType {
     }
 }
 
+/// Implementa a trait Error para poder ser colocado no diagnóstico
 impl Error for MismatchedArgType {}
 
 #[derive(Clone, Debug)]
 pub struct InvalidLabelForMain {
+    ///
+    /// - `label`: nome do label inválido
     pub label: String,
 }
 
+/// Implementa a trait Display para mensagens de erro
 impl fmt::Display for InvalidLabelForMain {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(formatter, "Rótulo \"{}\" é inválido para main", self.label)
     }
 }
 
+/// Implementa a trait Error para poder ser colocado no diagnóstico
 impl Error for InvalidLabelForMain {}
 
 #[derive(Clone, Debug)]
 pub struct InvalidLabelForOperMacro {
+    ///
+    /// - `label`: nome do label inválido
     pub label: String,
 }
 
+/// Implementa a trait Display para mensagens de erro
 impl fmt::Display for InvalidLabelForOperMacro {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -119,13 +154,17 @@ impl fmt::Display for InvalidLabelForOperMacro {
     }
 }
 
+/// Implementa a trait Error para poder ser colocado no diagnóstico
 impl Error for InvalidLabelForOperMacro {}
 
 #[derive(Clone, Debug)]
 pub struct InvalidLabelForTestMacro {
+    ///
+    /// - `label`: nome do label inválido
     pub label: String,
 }
 
+/// Implementa a trait Display para mensagens de erro
 impl fmt::Display for InvalidLabelForTestMacro {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -136,4 +175,5 @@ impl fmt::Display for InvalidLabelForTestMacro {
     }
 }
 
+/// Implementa a trait Error para poder ser colocado no diagnóstico
 impl Error for InvalidLabelForTestMacro {}

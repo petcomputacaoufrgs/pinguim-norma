@@ -2,6 +2,7 @@ use crate::compiler::lexer::token::TokenType;
 use std::{error::Error, fmt};
 
 #[derive(Clone, Debug)]
+/// Erro em que a função principal main é declarada mais de uma vez no código
 pub struct MainAlreadyDeclared;
 
 impl fmt::Display for MainAlreadyDeclared {
@@ -13,6 +14,7 @@ impl fmt::Display for MainAlreadyDeclared {
 impl Error for MainAlreadyDeclared {}
 
 #[derive(Clone, Debug)]
+/// Erro em que a função principal main não é declarada nenhuma vez no código
 pub struct MainNotDeclared;
 
 impl fmt::Display for MainNotDeclared {
@@ -24,7 +26,10 @@ impl fmt::Display for MainNotDeclared {
 impl Error for MainNotDeclared {}
 
 #[derive(Clone, Debug)]
+/// Erro em que determinada macro já foi declarada (com mesmo nome)
 pub struct MacroAlreadyDeclared {
+    ///
+    /// - `macro_name`: nome da macro que foi encontrado mais de uma vez no código como declaração
     pub macro_name: String,
 }
 
@@ -41,7 +46,10 @@ impl fmt::Display for MacroAlreadyDeclared {
 impl Error for MacroAlreadyDeclared {}
 
 #[derive(Clone, Debug)]
+/// Erro em que dois ou mais rótulos tem o mesmo nome
 pub struct LabelAlreadyDeclared {
+    ///
+    /// - `label_name`: nome do rótulo repetido
     pub label_name: String,
 }
 
@@ -58,7 +66,10 @@ impl fmt::Display for LabelAlreadyDeclared {
 impl Error for LabelAlreadyDeclared {}
 
 #[derive(Clone, Debug)]
+/// Erro em que o token lido não é de um tipo esperado
 pub struct UnexpectedToken {
+    ///
+    /// - `expected_types`: vetor com todos os tipos de tokens que poderiam aparecer nessa posição
     pub expected_types: Vec<TokenType>,
 }
 
@@ -87,6 +98,7 @@ impl fmt::Display for UnexpectedToken {
 impl Error for UnexpectedToken {}
 
 #[derive(Clone, Debug)]
+/// Erro em que esperava-se algum token, porém o vetor de tokens chegou ao fim
 pub struct UnexpectedEndOfInput;
 
 impl fmt::Display for UnexpectedEndOfInput {
@@ -98,6 +110,7 @@ impl fmt::Display for UnexpectedEndOfInput {
 impl Error for UnexpectedEndOfInput {}
 
 #[derive(Clone, Debug)]
+/// Erro em que o nome do label é inválido
 pub struct InvalidLabel;
 
 impl fmt::Display for InvalidLabel {
