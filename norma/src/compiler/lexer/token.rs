@@ -43,7 +43,7 @@ impl fmt::Display for TokenType {
             },
             TokenType::Number => write!(formatter, "<número>"),
             TokenType::Identifier => write!(formatter, "<identificador>"),
-            TokenType::Colon => write!(formatter, ";"),
+            TokenType::Colon => write!(formatter, ":"),
             TokenType::Comma => write!(formatter, ","),
             TokenType::OpenParen => write!(formatter, "("),
             TokenType::CloseParen => write!(formatter, ")"),
