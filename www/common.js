@@ -6,11 +6,12 @@ export function init(handler) {
     let initialized = false;
 
     window.addEventListener('DOMContentLoaded', () => {
-      if (!initialized) {
-          initialized = true;
-          handler();
-      }
+        if (!initialized) {
+            initialized = true;
+            handler();
+        }
     });
+
     if (document.readyState == 'complete' && !initialized) {
         initialized = true;
         handler();
@@ -42,11 +43,11 @@ const toggleIcon = document.getElementById('toggle-icon');
 function switchTheme(e) {
     // TODO: Gambiarra testing; remove later
     try {
-      const source = document.getElementById('userinput').value;
-      const interpreter = wasm.compile(source);
-      console.log(interpreter.data());
-    } catch(e) {
-      console.log(e);
+        const source = document.getElementById('userinput').value;
+        const interpreter = wasm.compile(source);
+        console.log(interpreter.data());
+    } catch (e) {
+        console.log(e);
     }
     // End gambiarra
 
@@ -80,4 +81,3 @@ export const setStorage = (baseText) => {
 export const getStorage = () => {
     return localStorage.getItem(storageKey);
 };
-

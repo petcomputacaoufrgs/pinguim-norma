@@ -99,6 +99,7 @@ pub struct ExportableInstruction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InterpreterStatus {
     pub registers: Vec<ExportableRegister>,
+    #[serde(rename(serialize = "currentLabel", deserialize = "currentLabel"))]
     pub current_label: String,
     pub steps: String,
     pub running: bool,

@@ -160,5 +160,5 @@ const handleCurly = (e) => {
 
 // Init
 init(() => {
-  getLastCode();
+    getLastCode();
 });
