@@ -7,8 +7,6 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com">
 		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-		<link rel= "stylesheet" href= "styles.css">
-		<link rel= "stylesheet" href= "common_styles.css">
 		<title> Máquina Norma </title>
 	</head>
 
@@ -65,27 +63,8 @@
 				</div>
 			</div>
 		</div>
-		<script src = "script.js"></script>
-		<script type="module" src="./communication.js" ></script>
-		<script type="module">
-			// Código para verificar se o wasm é suportado]
-			// Retirado de https://www.syncfusion.com/faq/how-can-i-check-if-a-browser-supports-webassembly
-			 const supported = (() => {
-				try {
-				if (typeof WebAssembly === "object"
-							&& typeof WebAssembly.instantiate === "function") {
-							const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
-							if (module instanceof WebAssembly.Module)
-								return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
-						}
-					} catch (e) {
-					}
-					return false;
-				})();
-				
-				if (!supported) {
-					alert("Seu navegador não suporta WebAssembly\nmude de navegador ou use a versão antiga");
-				}
+		<script src="./index.js" ></script>
+		<script type="text/javascript">
 		</script>
 	</body>
 </html>

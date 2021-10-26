@@ -1,0 +1,40 @@
+{
+  "name": "pinguim-norma",
+  "version": "0.1.0",
+  "description": "simulador de máquina norma",
+  "main": "index.js",
+  "bin": {
+    "create-wasm-app": ".bin/create-wasm-app.js"
+  },
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "start": "webpack-dev-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/petcomputacaoufrgs/pinguim-norma.git"
+  },
+  "keywords": [
+    "webassembly",
+    "wasm",
+    "rust",
+    "webpack"
+  ],
+  "author": "PET Computação UFRGS",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/petcomputacaoufrgs/pinguim-norma/issues"
+  },
+  "homepage": "https://github.com/petcomputacaoufrgs/pinguim-norma#readme",
+  "devDependencies": {
+    "copy-webpack-plugin": "^9.0.1",
+    "css-loader": "^6.4.0",
+    "style-loader": "^3.3.0",
+    "webpack": "^5.59.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.3.1"
+  },
+  "dependencies": {
+    "norma-wasm": "file:../norma-wasm/pkg"
+  }
+}

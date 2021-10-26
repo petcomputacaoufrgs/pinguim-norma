@@ -1,26 +1,5 @@
-// Theme
-const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
-const toggleIcon = document.getElementById('toggle-icon');
-function switchTheme(e) {
-    if (e.target.checked) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        toggleIcon.innerHTML = 'dark_mode';
-    }
-    else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        toggleIcon.innerHTML = 'light_mode';
-    }    
-}
-toggleSwitch.addEventListener('change', switchTheme, false);
-
-const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
-if (currentTheme) {
-    document.documentElement.setAttribute('data-theme', currentTheme);
-
-    if (currentTheme === 'dark') {
-        toggleSwitch.checked = true;
-    }
-}
+import { } from './common.js';
+import * as wasm from "norma-wasm";
 
 // Upload and download buttons
 const downloadBtn = document.getElementById('download_button');
@@ -58,18 +37,11 @@ downloadBtn.addEventListener('click', (e) => {
 });
 
 // Local Storage
-const setStorage = (baseText) => {
-    localStorage.setItem("userCode", baseText);
-}
-
-const getStorage = () => {
-    return localStorage.getItem("userCode");
-}
 
 const getLastCode = () => {
     textAreaHTML.innerHTML = getStorage();
     highlight();
-}
+};
 
 window.onload = () => {
     getLastCode();
@@ -97,7 +69,7 @@ const highlight = () => {
 
     codeAreaHTML.innerHTML = finalText;
     setStorage(baseText);
-}
+};
 
 const handleKeys = {
     'Tab': (e) => handleTab(e),
@@ -105,7 +77,7 @@ const handleKeys = {
     'Backspace': (e) => handleBackspace(e),
     '(': (e) => handleBracket(e),
     '{': (e) => handleCurly(e)
-}
+};
 
 textAreaHTML.addEventListener('keydown', (e) => {
      try { handleKeys[e.key](e) }
@@ -128,7 +100,7 @@ const handleTab = (e) => {
         `    ` + textAreaHTML.value.substring(end);
 
     textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 4;
-}
+};
 
 const handleEnter = (e) => {
     const start = textAreaHTML.selectionStart;
@@ -145,7 +117,7 @@ const handleEnter = (e) => {
 
         textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 5;
     }
-}
+};
 
 const handleBackspace = (e) => {
     const start = textAreaHTML.selectionStart;
@@ -164,7 +136,7 @@ const handleBackspace = (e) => {
 
         textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start - 1;
     }
-}
+};
 
 const handleBracket = (e) => {
     e.preventDefault();
@@ -175,7 +147,7 @@ const handleBracket = (e) => {
         "()" + textAreaHTML.value.substring(end);
 
     textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
-}
+};
 
 const handleCurly = (e) => {
     e.preventDefault();
@@ -186,4 +158,5 @@ const handleCurly = (e) => {
         "{}" + textAreaHTML.value.substring(end);
 
     textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
-}
+};
+
