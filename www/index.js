@@ -238,10 +238,14 @@ init(() => {
                     setTimeout(tick, 1);
                 } else {
                     console.log(status);
-                    console.log('Run All ended');
+                    console.log('Ended "run all"');
                 }
+            } else {
+                console.log('Ended "run all"');
             }
         };
+
+        console.log('Running all...');
 
         running = true;
         interpreter.reset();
