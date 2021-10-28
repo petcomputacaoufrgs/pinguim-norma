@@ -174,7 +174,7 @@ init(() => {
     document.getElementById('gambiarra-check').onclick = () => {
         interpreter = null;
         try {
-            console.log(wasm.check(source()));
+            wasm.check(source());
             console.log('wasm.check ok!');
         } catch (error) {
             console.log(error);
@@ -225,17 +225,17 @@ init(() => {
     };
 
     document.getElementById('gambiarra-run-steps').onclick = () => {
-        console.log(interpreter.runSteps(10000));
+        console.log(interpreter.runSteps(50000));
         console.log('interpreter.runSteps ok!');
     };
 
     document.getElementById('gambiarra-run-all').onclick = () => {
         const tick = () => {
             if (running) {
-                const status = interpreter.runSteps(10000);
+                const status = interpreter.runSteps(50000);
                 running = status.running;
                 if (running) {
-                    setTimeout(tick, 1);
+                    setTimeout(tick, 10);
                 } else {
                     console.log(status);
                     console.log('Ended "run all"');

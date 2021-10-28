@@ -2,21 +2,29 @@ import * as styles from './styles.css';
 import * as commonStyles from './common_styles.css';
 import * as wasm from "norma-wasm";
 
-export function init(handler) {
-    let initialized = false;
+export const init = (() => {
+    let handlers = [];
 
-    window.addEventListener('DOMContentLoaded', () => {
-        if (!initialized) {
-            initialized = true;
+    function callAllHandlers() {
+        const oldHandlers = handlers;
+        handlers = [];
+        for (const handler of oldHandlers) {
             handler();
         }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        callAllHandlers();
     });
 
-    if (document.readyState == 'complete' && !initialized) {
-        initialized = true;
-        handler();
-    }
-};
+    return (handler) => {
+        handlers.push(handler);
+
+        if (document.readyState == 'complete') {
+            callAllHandlers();
+        }
+    };
+})();
 
 // Código para verificar se o wasm é suportado]
 // Retirado de https://www.syncfusion.com/faq/how-can-i-check-if-a-browser-supports-webassembly
