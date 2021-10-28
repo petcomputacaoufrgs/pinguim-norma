@@ -1,3 +1,5 @@
+use std::{fmt, str::FromStr};
+
 use norma::{
     compiler::{
         self,
@@ -6,6 +8,7 @@ use norma::{
     },
     interpreter::{program::Program, Interpreter},
 };
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
@@ -28,6 +31,17 @@ pub fn start() {
 // - Executar passos do interpretador (e parar interpretador).
 //
 // - Resetar interpretador.
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NumberParseError {
+    pub message: String,
+}
+
+impl fmt::Display for NumberParseError {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "{}", self.message)
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportableSpan {
@@ -175,6 +189,27 @@ impl InterpreterHandle {
         JsValue::from_serde(&self.export_instructions()).unwrap()
     }
 
+    #[wasm_bindgen(js_name = "input")]
+    pub fn js_input(&mut self, value_text: &str) -> Result<(), JsValue> {
+        match BigUint::from_str(&value_text) {
+            Ok(value) => {
+                self.interpreter.input(value);
+                Ok(())
+            },
+
+            Err(error) => {
+                let message = error.to_string();
+                let exported_error = NumberParseError { message };
+                Err(JsValue::from_serde(&exported_error).unwrap())
+            },
+        }
+    }
+
+    #[wasm_bindgen(js_name = "reset")]
+    pub fn js_reset(&mut self) {
+        self.interpreter.reset();
+    }
+
     #[wasm_bindgen(js_name = "status")]
     pub fn js_status(&self) -> JsValue {
         let running = self.running();
@@ -188,7 +223,7 @@ impl InterpreterHandle {
     }
 
     #[wasm_bindgen(js_name = "runSteps")]
-    pub fn js_run_steps(&mut self, max_steps: u64) -> JsValue {
+    pub fn js_run_steps(&mut self, max_steps: u32) -> JsValue {
         let running = self.interpreter.run_steps(max_steps);
         JsValue::from_serde(&self.export_status(running)).unwrap()
     }

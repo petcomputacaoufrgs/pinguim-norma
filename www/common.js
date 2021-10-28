@@ -41,16 +41,6 @@ if (!supported) {
 const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
 const toggleIcon = document.getElementById('toggle-icon');
 function switchTheme(e) {
-    // TODO: Gambiarra testing; remove later
-    try {
-        const source = document.getElementById('userinput').value;
-        const interpreter = wasm.compile(source);
-        console.log(interpreter.data());
-    } catch (e) {
-        console.log(e);
-    }
-    // End gambiarra
-
     if (e.target.checked) {
         document.documentElement.setAttribute('data-theme', 'dark');
         toggleIcon.innerHTML = 'dark_mode';
@@ -81,3 +71,97 @@ export const setStorage = (baseText) => {
 export const getStorage = () => {
     return localStorage.getItem(storageKey);
 };
+
+// BEGIN Gambiarra pra testar WASM
+init(() => {
+    let interpreter = null;
+    let running = false;
+
+    const source = () => document.getElementById('userinput').value;
+    const registerX = () => document.getElementById('gambiarra-reg-x').value;
+
+    document.getElementById('gambiarra-check').onclick = () => {
+        interpreter = null;
+        try {
+            console.log(wasm.check(source()));
+            console.log('wasm.check ok!');
+        } catch (error) {
+            console.log(error);
+            console.log('wasm.check failed!');
+        }
+    };
+
+    document.getElementById('gambiarra-compile').onclick = () => {
+        interpreter = null;
+        try {
+            interpreter = wasm.compile(source());
+            console.log(interpreter);
+            console.log('wasm.compile ok!');
+        } catch (error) {
+            console.log(error);
+            console.log('wasm.compile failed!');
+        }
+    };
+
+    document.getElementById('gambiarra-data').onclick = () => {
+        console.log(interpreter.data());
+        console.log('interpreter.data ok!');
+    };
+
+    document.getElementById('gambiarra-instructions').onclick = () => {
+        console.log(interpreter.instructions());
+        console.log('interpreter.instructions ok!');
+    };
+
+    document.getElementById('gambiarra-status').onclick = () => {
+        console.log(interpreter.status());
+        console.log('interpreter.status ok!');
+    };
+
+    document.getElementById('gambiarra-reset').onclick = () => {
+        interpreter.reset();
+        console.log('interpreter.reset ok!');
+    };
+
+    document.getElementById('gambiarra-input').onclick = () => {
+        interpreter.input(registerX());
+        console.log('interpreter.input ok!');
+    };
+
+    document.getElementById('gambiarra-run-step').onclick = () => {
+        console.log(interpreter.runStep());
+        console.log('interpreter.runStep ok!');
+    };
+
+    document.getElementById('gambiarra-run-steps').onclick = () => {
+        console.log(interpreter.runSteps(10000));
+        console.log('interpreter.runSteps ok!');
+    };
+
+    document.getElementById('gambiarra-run-all').onclick = () => {
+        const tick = () => {
+            if (running) {
+                const status = interpreter.runSteps(10000);
+                running = status.running;
+                if (running) {
+                    setTimeout(tick, 1);
+                } else {
+                    console.log(status);
+                    console.log('Run All ended');
+                }
+            }
+        };
+
+        running = true;
+        interpreter.reset();
+        interpreter.input(registerX());
+        tick();
+    };
+
+    document.getElementById('gambiarra-abort').onclick = () => {
+        running = false;
+        console.log('Aborting...');
+    };
+});
+// END Gambiarra pra testar WASM
+
