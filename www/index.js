@@ -230,6 +230,8 @@ init(() => {
     };
 
     document.getElementById('gambiarra-run-all').onclick = () => {
+        const then = performance.now();
+
         const tick = () => {
             if (running) {
                 const status = interpreter.runSteps(10000);
@@ -237,8 +239,9 @@ init(() => {
                 if (running) {
                     setTimeout(tick, 10);
                 } else {
+                    const end = performance.now();
                     console.log(status);
-                    console.log('Ended "run all"');
+                    console.log('Ended "run all" in', end - then + 'ms');
                 }
             } else {
                 console.log('Ended "run all"');
