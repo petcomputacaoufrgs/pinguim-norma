@@ -225,14 +225,14 @@ init(() => {
     };
 
     document.getElementById('gambiarra-run-steps').onclick = () => {
-        console.log(interpreter.runSteps(50000));
+        console.log(interpreter.runSteps(10000));
         console.log('interpreter.runSteps ok!');
     };
 
     document.getElementById('gambiarra-run-all').onclick = () => {
         const tick = () => {
             if (running) {
-                const status = interpreter.runSteps(50000);
+                const status = interpreter.runSteps(10000);
                 running = status.running;
                 if (running) {
                     setTimeout(tick, 10);
