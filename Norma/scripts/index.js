@@ -1,10 +1,12 @@
 // Local Storage
+const storageKey = "pinguim-norma-userCode";
+
 const setStorage = (userCode) => {
-    localStorage.setItem("pinguim-norma-userCode", userCode);
+    localStorage.setItem(storageKey, userCode);
 }
 
 const getStorage = () => {
-    return localStorage.getItem("pinguim-norma-userCode");
+    return localStorage.getItem(storageKey);
 }
 
 const getLastCode = () => {
