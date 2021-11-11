@@ -20,7 +20,8 @@
     --code-built-in-funcs: #F9BC41;
     --code-label-color: #8FBF7F;
     --code-background-color: #282828;
-    --error-font-color: #FF7676;
+    --error-font-color: #F84B3C;
+    --correct-font-color: #8FBF7F;
     --highlight-color: #D2C656;
 
     /* General colors */
@@ -47,7 +48,8 @@
     --code-built-in-funcs: #B47523;
     --code-label-color: #447A59;
     --code-background-color: #FBF2D1;
-    --error-font-color: #FF5977;
+    --error-font-color: #9B0511;
+    --correct-font-color: #447A59;
     --highlight-color: #B9A1D8;
 }
 
@@ -234,17 +236,21 @@ input:checked + .slider > span {
 
 .log-area div {
     padding: 0.4rem;
-    color: var(--error-font-color);
+    white-space: pre-line;
     box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.25);
 }
 
-.log-area__errors {
+.log-area__errors, .log-area__corrects {
     background-color: var(--code-background-color);
     padding: 0.6rem;
     font-size: 1rem;
     color: var(--error-font-color);
     min-width: 30vw;
     min-height: 10vh;
+}
+
+.log-area__corrects {
+    color: var(--correct-font-color);
 }
 
 /* Verify and execute code buttons */
@@ -266,6 +272,7 @@ input:checked + .slider > span {
     padding: 1rem 1.5rem;
     background-color: var(--execution-button-background);
     color: var(--main-font-color);
+    cursor: pointer;
 }
 
 

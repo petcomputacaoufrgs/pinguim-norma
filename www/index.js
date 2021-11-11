@@ -36,8 +36,21 @@ downloadBtn.addEventListener('click', (e) => {
     download(textAreaHTML.value, "maqnorma.mn");
 });
 
-// Local Storage
+// Log area
+const logAreaText = document.getElementById('log-area__text');
 
+const toggleLogColor = (correct) => {
+	if(correct) {
+		logAreaText.classList.remove("log-area__errors");
+		logAreaText.classList.add("log-area__corrects");
+	}
+	else {
+		logAreaText.classList.add("log-area__errors");
+		logAreaText.classList.remove("log-area__corrects");		
+	}
+} 
+
+// Local Storage
 const getLastCode = () => {
     textAreaHTML.value = getStorage();
     highlight();
@@ -163,7 +176,7 @@ init(() => {
     getLastCode();
 });
 
-// BEGIN Gambiarra pra testar WASM
+//---------- WASM ==========  
 init(() => {
     let interpreter = null;
     let running = false;
@@ -171,17 +184,21 @@ init(() => {
     const source = () => document.getElementById('userinput').value;
     const registerX = () => document.getElementById('gambiarra-reg-x').value;
 
-    document.getElementById('gambiarra-check').onclick = () => {
+    //---------- VERIFICAR CÓDIGO  ========== 
+    document.getElementById('verify').onclick = () => {
         interpreter = null;
         try {
             wasm.check(source());
-            console.log('wasm.check ok!');
+            logAreaText.textContent = 'Código OK!';
+	        toggleLogColor(true);
         } catch (error) {
-            console.log(error);
-            console.log('wasm.check failed!');
+            logAreaText.textContent = 'ERRO: ' + error[0]['span']['rendered'];
+	        logAreaText.textContent += '\r\n\r\n' + error[0]['message'];
+	        toggleLogColor(false);
         }
     };
 
+    //---------- COMPILAR CÓDIGO ========== 
     document.getElementById('gambiarra-compile').onclick = () => {
         interpreter = null;
         try {
@@ -194,41 +211,49 @@ init(() => {
         }
     };
 
+    //---------- PEGAR DADOS ==========  
     document.getElementById('gambiarra-data').onclick = () => {
         console.log(interpreter.data());
         console.log('interpreter.data ok!');
     };
 
+    //---------- PEGAR INSTRUÇÕES ==========  
     document.getElementById('gambiarra-instructions').onclick = () => {
         console.log(interpreter.instructions());
         console.log('interpreter.instructions ok!');
     };
 
+    //---------- PEGAR STATUS DO PROGRAMA ==========  
     document.getElementById('gambiarra-status').onclick = () => {
         console.log(interpreter.status());
         console.log('interpreter.status ok!');
     };
 
+    //---------- RESETAR PROGRAMA ==========  
     document.getElementById('gambiarra-reset').onclick = () => {
         interpreter.reset();
         console.log('interpreter.reset ok!');
     };
 
+    //---------- INICIAR REGISTRADOR X ========== 
     document.getElementById('gambiarra-input').onclick = () => {
         interpreter.input(registerX());
         console.log('interpreter.input ok!');
     };
 
+    //---------- RODAR UM PASSO ==========  
     document.getElementById('gambiarra-run-step').onclick = () => {
         console.log(interpreter.runStep());
         console.log('interpreter.runStep ok!');
     };
 
+    //---------- RODAR N PASSOS ========== 
     document.getElementById('gambiarra-run-steps').onclick = () => {
         console.log(interpreter.runSteps(10000));
         console.log('interpreter.runSteps ok!');
     };
 
+    //---------- RODAR TODOS OS PASSOS ==========  
     document.getElementById('gambiarra-run-all').onclick = () => {
         const then = performance.now();
 
@@ -256,9 +281,9 @@ init(() => {
         tick();
     };
 
+    //---------- ABORTAR PROGRAMA ========== 
     document.getElementById('gambiarra-abort').onclick = () => {
         running = false;
         console.log('Aborting...');
     };
 });
-// END Gambiarra pra testar WASM
