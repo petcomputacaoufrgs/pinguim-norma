@@ -22,7 +22,7 @@
     --code-background-color: #282828;
     --error-font-color: #F84B3C;
     --correct-font-color: #8FBF7F;
-    --highlight-color: #D2C656;
+    --highlight-color: #C19898;
 
     /* General colors */
     --dark-color: #121212;
@@ -314,7 +314,7 @@ input:checked + .slider > span {
 }
 
 .input_box {
-    background: var(--textarea-background);
+    background: var(--code-background-color);
     color:var(--main-font-color);
     border: none;
     box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.25);

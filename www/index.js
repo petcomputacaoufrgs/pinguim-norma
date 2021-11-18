@@ -179,10 +179,8 @@ init(() => {
 //---------- WASM ==========  
 init(() => {
     let interpreter = null;
-    let running = false;
 
     const source = () => document.getElementById('userinput').value;
-    const registerX = () => document.getElementById('gambiarra-reg-x').value;
 
     //---------- VERIFICAR CÓDIGO  ========== 
     document.getElementById('verify').onclick = () => {
@@ -196,94 +194,5 @@ init(() => {
 	        logAreaText.textContent += '\r\n\r\n' + error[0]['message'];
 	        toggleLogColor(false);
         }
-    };
-
-    //---------- COMPILAR CÓDIGO ========== 
-    document.getElementById('gambiarra-compile').onclick = () => {
-        interpreter = null;
-        try {
-            interpreter = wasm.compile(source());
-            console.log(interpreter);
-            console.log('wasm.compile ok!');
-        } catch (error) {
-            console.log(error);
-            console.log('wasm.compile failed!');
-        }
-    };
-
-    //---------- PEGAR DADOS ==========  
-    document.getElementById('gambiarra-data').onclick = () => {
-        console.log(interpreter.data());
-        console.log('interpreter.data ok!');
-    };
-
-    //---------- PEGAR INSTRUÇÕES ==========  
-    document.getElementById('gambiarra-instructions').onclick = () => {
-        console.log(interpreter.instructions());
-        console.log('interpreter.instructions ok!');
-    };
-
-    //---------- PEGAR STATUS DO PROGRAMA ==========  
-    document.getElementById('gambiarra-status').onclick = () => {
-        console.log(interpreter.status());
-        console.log('interpreter.status ok!');
-    };
-
-    //---------- RESETAR PROGRAMA ==========  
-    document.getElementById('gambiarra-reset').onclick = () => {
-        interpreter.reset();
-        console.log('interpreter.reset ok!');
-    };
-
-    //---------- INICIAR REGISTRADOR X ========== 
-    document.getElementById('gambiarra-input').onclick = () => {
-        interpreter.input(registerX());
-        console.log('interpreter.input ok!');
-    };
-
-    //---------- RODAR UM PASSO ==========  
-    document.getElementById('gambiarra-run-step').onclick = () => {
-        console.log(interpreter.runStep());
-        console.log('interpreter.runStep ok!');
-    };
-
-    //---------- RODAR N PASSOS ========== 
-    document.getElementById('gambiarra-run-steps').onclick = () => {
-        console.log(interpreter.runSteps(10000));
-        console.log('interpreter.runSteps ok!');
-    };
-
-    //---------- RODAR TODOS OS PASSOS ==========  
-    document.getElementById('gambiarra-run-all').onclick = () => {
-        const then = performance.now();
-
-        const tick = () => {
-            if (running) {
-                const status = interpreter.runSteps(10000);
-                running = status.running;
-                if (running) {
-                    setTimeout(tick, 10);
-                } else {
-                    const end = performance.now();
-                    console.log(status);
-                    console.log('Ended "run all" in', end - then + 'ms');
-                }
-            } else {
-                console.log('Ended "run all"');
-            }
-        };
-
-        console.log('Running all...');
-
-        running = true;
-        interpreter.reset();
-        interpreter.input(registerX());
-        tick();
-    };
-
-    //---------- ABORTAR PROGRAMA ========== 
-    document.getElementById('gambiarra-abort').onclick = () => {
-        running = false;
-        console.log('Aborting...');
     };
 });
