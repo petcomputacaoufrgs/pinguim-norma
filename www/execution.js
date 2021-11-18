@@ -14,11 +14,9 @@ init(() => {
         interpreter = null;
         try {
             interpreter = wasm.compile(source());
-            console.log('wasm.compile ok');
             return true;
         }
         catch(error) {
-            console.log('wasm.compile failed');
             return false;
         }
     }
@@ -29,25 +27,25 @@ init(() => {
             compile();
             setInput();
             compiled = true;
+            makeTable();
         }
     }
 
     //---------- INPUT REGISTRADOR X ========== 
     const setInput = () => {
         interpreter.input(registerX());
-        console.log('interpreter.input ok');
     }
 
     //---------- RODAR PASSO ==========  
     document.getElementById('step').onclick = () => {
         compileTest();
-        console.log(interpreter.runStep());    
+        interpreter.runStep();    
     }
 
     //---------- RODAR N-PASSOS ========== 
     const runSteps = () => {
         compileTest();
-        console.log(interpreter.runSteps(10000));
+        interpreter.runSteps(10000);
     }
 
     //---------- RODAR TODOS PASSOS ==========  
@@ -66,11 +64,7 @@ init(() => {
                 }
                 else {
                     const end = performance.now();
-                    console.log(status);
                 }
-            }
-            else {
-                console.log('Ended run all...');
             }
         }
         running = true;
@@ -81,14 +75,13 @@ init(() => {
 
     //---------- RESETAR CÓDIGO ========== 
     document.getElementById('reset').onclick = () => {
-        compileTest();
         interpreter.reset();
     }
 
     //---------- ABORTAR PROGRAMA ==========  
     document.getElementById('abort').onclick = () => {
-        compileTest();
         running = false;
+
     }
 
     //---------- DADOS DO CÓDIGO ==========
@@ -107,5 +100,26 @@ init(() => {
     const codeStatus = () => {
         compileTest();
         return interpreter.status();
+    }
+
+    //---------- TABELA CÓDIGO COMPILADO ==========  
+    const tableCode = document.getElementById('table-compiled-program');
+
+    const makeTable = () => {
+        const instList = instructions();
+
+        for(let i in instList) {
+            const newRow = tableCode.insertRow();
+            const pointerColumn = newRow.insertCell();
+            const stepColumn = newRow.insertCell();
+            const programColumn = newRow.insertCell();
+
+            pointerColumn.classList.add("pointer_column");
+            stepColumn.classList.add("step_column");
+            programColumn.classList.add("program_column");
+
+            stepColumn.innerHTML = instList[i]['label'];
+            programColumn.innerHTML = instList[i]['kind'];
+        }
     }
 })
