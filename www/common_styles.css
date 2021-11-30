@@ -340,11 +340,18 @@ input:checked + .slider > span {
 }
 
 
-/* COMPILED PROGRAM AND TREE VISUALIZATION */
+/* COMPILED PROGRAM */
 .compiled-program {
     width: 50vw;
 }
 
+.table-compiled-program {
+    font-size: 3rem;
+}
+
+.register_section__registers {
+    flex-flow: wrap;
+}
 
 /* ======> SETTINGS FOR CELLPHONES <====== */
 @media screen and (max-device-width:800px) {

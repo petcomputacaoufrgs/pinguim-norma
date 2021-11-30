@@ -28,6 +28,7 @@ init(() => {
             setInput();
             compiled = true;
             makeTable();
+            makeRegisters();
         }
     }
 
@@ -81,7 +82,6 @@ init(() => {
     //---------- ABORTAR PROGRAMA ==========  
     document.getElementById('abort').onclick = () => {
         running = false;
-
     }
 
     //---------- DADOS DO CÓDIGO ==========
@@ -102,6 +102,32 @@ init(() => {
         return interpreter.status();
     }
 
+    //---------- REGISTRADORES NO HTML ========== 
+    const regSection = document.getElementById('registers-section');
+    
+    const makeRegisters = () => {
+        let registers = data();
+        registers = registers['status']['registers'];
+        
+        for(let i in registers) {
+            const outerDiv = document.createElement('div');
+            outerDiv.id = 'reg-' + registers[i]['name'];
+            outerDiv.className = 'register';
+            regSection.appendChild(outerDiv);
+
+            const innerH3 = document.createElement('h3');
+            const innerDiv = document.createElement('div');
+            innerH3.id = 'reg-name-' + registers[i]['name'];
+            innerDiv.id = 'reg-value-' + registers[i]['name'];
+            innerH3.className = 'register_name';
+            innerDiv.className = 'register_value';
+            innerH3.innerText = registers[i]['name'];
+            innerDiv.innerText = registers[i]['value'];
+            outerDiv.appendChild(innerH3);
+            outerDiv.appendChild(innerDiv);
+        }
+    }
+
     //---------- TABELA CÓDIGO COMPILADO ==========  
     const tableCode = document.getElementById('table-compiled-program');
 
@@ -110,11 +136,9 @@ init(() => {
 
         for(let i in instList) {
             const newRow = tableCode.insertRow();
-            const pointerColumn = newRow.insertCell();
             const stepColumn = newRow.insertCell();
             const programColumn = newRow.insertCell();
 
-            pointerColumn.classList.add("pointer_column");
             stepColumn.classList.add("step_column");
             programColumn.classList.add("program_column");
 
@@ -123,3 +147,10 @@ init(() => {
         }
     }
 })
+
+/*
+operation clear(A) {
+    1: if zero A then goto 0 else goto 2
+    2: do dec A goto 1
+}
+*/
