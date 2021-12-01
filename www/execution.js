@@ -102,6 +102,16 @@ init(() => {
         return interpreter.status();
     }
 
+    //---------- STEP SPEED CONTROL ==========  
+    const stepHeader = document.getElementById('step-header');
+    const stepControl = document.getElementById('step-control');
+    const stepSpeed = 1000;
+
+    document.getElementById('step-control').onchange = () => {
+        stepHeader.innerHTML = stepControl.value;
+        stepSpeed = stepControl.value;
+    }
+
     //---------- REGISTRADORES NO HTML ========== 
     const regSection = document.getElementById('registers-section');
     

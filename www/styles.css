@@ -15,6 +15,11 @@ body {
     background: transparent;
 }
 
+/* STEP CONTROL */
+.step-control {
+    width: 60%;
+}
+
 /* REGISTERS */
 .register_section {
     margin-top: 2.5rem;
@@ -22,6 +27,7 @@ body {
 
 .register_section__registers {
     display: flex;
+    flex-wrap: wrap;
 }
 
 .register {
@@ -55,6 +61,7 @@ body {
 
 /* COMPILED CODE */
 table, tr, td {
+    font-family: monospace;
     background-color: var(--textarea-background);
     color: var(--main-font-color);
     border-collapse: collapse;
@@ -73,5 +80,4 @@ table, tr, td {
 }
 
 .program_column {
-    min-width: 20rem;
 }

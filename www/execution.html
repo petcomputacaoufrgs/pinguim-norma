@@ -42,9 +42,8 @@
                 </div>
             
                 <!-- Steps control -->
-                <h2>Espera entre passos (em ms): 0</h2> 
-                <input type="range" min="0" max="500" step="10">
-                <b>Passo: 0</b>
+                <h2>Espera entre passos: <span id="step-header">1000</span> (ms)</h2> 
+                <input id="step-control" class="step-control" type="range" min="1" max="5000" step="1" value="1000">
             
                 <!-- Registers -->
                 <div class='register_section'>
