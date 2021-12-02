@@ -69,11 +69,12 @@ init(() => {
 
         const tick = () => {
             if(running) {
-                const status = interpreter.runSteps(10000);
+                const status = interpreter.runSteps(1);
                 running = status.running;
 
                 if(running) {
-                    setTimeout(tick, 10);
+                    updateRegisters();
+                    setTimeout(tick, stepSpeed);
                 }
                 else {
                     const end = performance.now();
@@ -117,7 +118,7 @@ init(() => {
     //---------- STEP SPEED CONTROL ==========  
     const stepHeader = document.getElementById('step-header');
     const stepControl = document.getElementById('step-control');
-    const stepSpeed = 1000;
+    let stepSpeed = 1000;
 
     document.getElementById('step-control').onchange = () => {
         stepHeader.innerHTML = stepControl.value;
