@@ -41,6 +41,18 @@ init(() => {
     document.getElementById('step').onclick = () => {
         compileTest();
         interpreter.runStep();    
+
+        updateRegisters();
+    }
+
+    //---------- UPDATE REGISTERS ==========  
+    const updateRegisters = () => {
+        let registers = data();
+        registers = registers['status']['registers'];
+
+        for(let i in registers) {
+            document.getElementById('reg-value-' + registers[i]['name']).innerHTML = registers[i]['value'];
+        }
     }
 
     //---------- RODAR N-PASSOS ========== 
