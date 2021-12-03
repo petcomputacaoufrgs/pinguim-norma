@@ -3,7 +3,7 @@ import * as commonStyles from './common_styles.css';
 import * as wasm from "norma-wasm";
 
 if (typeof WebAssembly.instantiateStreaming === 'function') {
-    let oldInstantiateStreaming = WebAssembly.instantiateStreaming;
+    let oldInstantiateStreaming = WebAssembly.instantiateStreaming.bind(WebAssembly);
     WebAssembly.instantiateStreaming = (request, importsObj) => {
         return oldInstantiateStreaming(request, importsObj).catch(error => {
             return request
