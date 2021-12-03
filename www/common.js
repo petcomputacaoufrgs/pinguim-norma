@@ -2,6 +2,17 @@ import * as styles from './styles.css';
 import * as commonStyles from './common_styles.css';
 import * as wasm from "norma-wasm";
 
+if (typeof WebAssembly.instantiateStreaming === 'function') {
+    let oldInstantiateStreaming = WebAssembly.instantiateStreaming;
+    WebAssembly.instantiateStreaming = (request, importsObj) => {
+        return oldInstantiateStreaming(request, importsObj).catch(error => {
+            return request
+                .then(response => response.arrayBuffer())
+                .then(bytes => WebAssembly.instantiate(bytes, importsObj));
+        });
+    };
+}
+
 export const init = (() => {
     let handlers = [];
 
