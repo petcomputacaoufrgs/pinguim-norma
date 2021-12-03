@@ -43,6 +43,9 @@ init(() => {
         interpreter.runStep();    
 
         updateRegisters();
+
+        let line = data()
+        lineHighlight(line['status']['currentLabel'])
     }
 
     //---------- UPDATE REGISTERS ==========  
@@ -74,6 +77,7 @@ init(() => {
 
                 if(running) {
                     updateRegisters();
+                    lineHighlight(status.currentLabel);
                     setTimeout(tick, stepSpeed);
                 }
                 else {
@@ -167,13 +171,40 @@ init(() => {
 
             stepColumn.innerHTML = instList[i]['label'];
             programColumn.innerHTML = instList[i]['kind'];
+            newRow.id = instList[i]['label'];
         }
     }
+
+    //---------- COMPILE ON LOAD ==========  
+    compileTest()
+
+    //---------- HIGHLIGHT RUNNING LINE ==========  
+    let lastLine = tableCode.firstElementChild.firstChild;
+    lastLine.classList.add('line_selected')
+    const lineHighlight = (lineId) => {
+        try {
+            if(lastLine) {
+                lastLine.classList.remove('line_selected')
+            }
+
+            let actualLine = document.getElementById(lineId);
+            actualLine.classList.add('line_selected');
+            lastLine = actualLine;
+       } catch(e) {}
+    }
+
 })
 
 /*
 operation clear(A) {
     1: if zero A then goto 0 else goto 2
     2: do dec A goto 1
+}
+
+main {
+    1: do inc A goto 2
+    2: do inc A goto 3
+    3: do clear(A) goto 4
+    4: do inc X goto 0
 }
 */

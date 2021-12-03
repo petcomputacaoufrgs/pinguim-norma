@@ -71,13 +71,21 @@ table, tr, td {
     background-color: var(--highlight-color);
 }
 
-.pointer_column {
-    width: 2rem;
-}
-
 .step_column {
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 6px;
+    padding-bottom: 6px;
     width: 4.5rem;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
 }
 
 .program_column {
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
 }
