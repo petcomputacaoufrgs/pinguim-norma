@@ -7,6 +7,7 @@ init(() => {
     let compiled = false;
 
     const source = () => getStorage();
+    const userInput = document.getElementById('input');
     const registerX = () => document.getElementById('input').value;
 
     //---------- COMPILAR CÓDIGO  ========== 
@@ -40,21 +41,22 @@ init(() => {
     //---------- RODAR PASSO ==========  
     document.getElementById('step').onclick = () => {
         compileTest();
-        interpreter.runStep();    
-
+        interpreter.runSteps(1);    
         updateRegisters();
 
-        let line = data()
-        lineHighlight(line['status']['currentLabel'])
+        let line = data();
+        lineHighlight(line['status']['currentLabel']);
     }
 
     //---------- UPDATE REGISTERS ==========  
     const updateRegisters = () => {
         let registers = data();
+        let numPassos = registers['status']['steps'];
         registers = registers['status']['registers'];
 
         for(let i in registers) {
             document.getElementById('reg-value-' + registers[i]['name']).innerHTML = registers[i]['value'];
+            updatePassos(numPassos);
         }
     }
 
@@ -94,6 +96,8 @@ init(() => {
     //---------- RESETAR CÓDIGO ========== 
     document.getElementById('reset').onclick = () => {
         interpreter.reset();
+        setInput();
+        cleanHTML();
     }
 
     //---------- ABORTAR PROGRAMA ==========  
@@ -175,12 +179,13 @@ init(() => {
         }
     }
 
-    //---------- COMPILE ON LOAD ==========  
+    //---------- COMPILAR AO CARREGAR ==========  
     compileTest()
 
-    //---------- HIGHLIGHT RUNNING LINE ==========  
+    //---------- HIGHLIGHT LINHA ATUAL ==========  
     let lastLine = tableCode.firstElementChild.firstChild;
     lastLine.classList.add('line_selected')
+    let firstLine = lastLine;
     const lineHighlight = (lineId) => {
         try {
             if(lastLine) {
@@ -193,18 +198,23 @@ init(() => {
        } catch(e) {}
     }
 
+    //---------- UPDATE NÚMERO DE PASSOS ========== 
+    const numPassos = document.getElementById('num-passos');
+    const updatePassos = (num) => numPassos.innerHTML = num;
+
+    //---------- LIMPA HTML QUANDO RESETAR ==========  
+    const cleanHTML = () => {
+        numPassos.innerHTML = '0';
+        lastLine.classList.remove('line_selected');
+        firstLine.classList.add('line_selected');
+        lastLine = firstLine;
+
+        for(let i in regSection.children) {
+            try {
+                regSection.children[i].lastChild.innerHTML = 0
+            } catch(e) {}
+        }
+        document.getElementById('reg-value-X').innerHTML = userInput.value
+    }
 })
 
-/*
-operation clear(A) {
-    1: if zero A then goto 0 else goto 2
-    2: do dec A goto 1
-}
-
-main {
-    1: do inc A goto 2
-    2: do inc A goto 3
-    3: do clear(A) goto 4
-    4: do inc X goto 0
-}
-*/
