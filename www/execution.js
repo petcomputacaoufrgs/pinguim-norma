@@ -47,7 +47,8 @@ init(() => {
     //---------- RODAR PASSO ==========  
     document.getElementById('step').onclick = () => {
         compileTest();
-        interpreter.runSteps(1);    
+        const status = interpreter.runSteps(1);    
+        running = status.running;
         updateRegisters();
 
         let line = data();
@@ -64,6 +65,7 @@ init(() => {
             document.getElementById('reg-value-' + registers[i]['name']).innerHTML = registers[i]['value'];
             updatePassos(numPassos);
         }
+        updateSaida();
     }
 
     //---------- RODAR N-PASSOS ========== 
@@ -188,7 +190,7 @@ init(() => {
 
     //---------- HIGHLIGHT LINHA ATUAL ==========  
     let lastLine = tableCode.firstElementChild.firstChild;
-    lastLine.classList.add('line_selected')
+    lastLine.classList.add('line_selected');
     let firstLine = lastLine;
     const lineHighlight = (lineId) => {
         try {
@@ -206,9 +208,23 @@ init(() => {
     const numPassos = document.getElementById('num-passos');
     const updatePassos = (num) => numPassos.innerHTML = num;
 
+    //---------- UPDATE SAÍDA ==========   
+    const outputSpan = document.getElementById('saida');
+
+    const updateSaida = () => {
+        if(running) {
+            outputSpan.innerHTML = 'Rodando...';
+        } else {
+            let values = data();
+            values = values.status.registers
+            outputSpan.innerHTML = values[values.length - 1].value;
+        }
+    }
+
     //---------- LIMPA HTML QUANDO RESETAR ==========  
     const cleanHTML = () => {
         numPassos.innerHTML = '0';
+        outputSpan.innerHTML = '';
         lastLine.classList.remove('line_selected');
         firstLine.classList.add('line_selected');
         lastLine = firstLine;
