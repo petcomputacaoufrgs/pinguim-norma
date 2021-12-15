@@ -10,6 +10,12 @@ init(() => {
     const userInput = document.getElementById('input');
     const registerX = () => document.getElementById('input').value;
 
+    //---------- ATUALIZA X ON CHANGE ==========  
+    userInput.onchange = () => {
+        setInput();
+        document.getElementById('reg-value-X').innerHTML = userInput.value
+    }
+
     //---------- COMPILAR CÓDIGO  ========== 
     const compile = () => {
         interpreter = null;
@@ -76,9 +82,9 @@ init(() => {
             if(running) {
                 const status = interpreter.runSteps(1);
                 running = status.running;
+                updateRegisters();
 
                 if(running) {
-                    updateRegisters();
                     lineHighlight(status.currentLabel);
                     setTimeout(tick, stepSpeed);
                 }
@@ -88,8 +94,6 @@ init(() => {
             }
         }
         running = true;
-        interpreter.reset();
-        interpreter.input(registerX());
         tick();
     }
 
