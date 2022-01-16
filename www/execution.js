@@ -10,13 +10,13 @@ init(() => {
     const userInput = document.getElementById('input');
     const registerX = () => document.getElementById('input').value;
 
-    //---------- ATUALIZA X ON CHANGE ==========  
+    //---------- ATUALIZA X ON CHANGE ==========
     userInput.onchange = () => {
         setInput();
         document.getElementById('reg-value-X').innerHTML = userInput.value
     }
 
-    //---------- COMPILAR CÓDIGO  ========== 
+    //---------- COMPILAR CÓDIGO  ==========
     const compile = () => {
         interpreter = null;
         try {
@@ -28,7 +28,7 @@ init(() => {
         }
     }
 
-    //---------- COMPILE TESTE ==========  
+    //---------- COMPILE TESTE ==========
     const compileTest = () => {
         if(!compiled) {
             compile();
@@ -39,15 +39,15 @@ init(() => {
         }
     }
 
-    //---------- INPUT REGISTRADOR X ========== 
+    //---------- INPUT REGISTRADOR X ==========
     const setInput = () => {
         interpreter.input(registerX());
     }
 
-    //---------- RODAR PASSO ==========  
+    //---------- RODAR PASSO ==========
     document.getElementById('step').onclick = () => {
         compileTest();
-        const status = interpreter.runSteps(1);    
+        const status = interpreter.runSteps(1);
         running = status.running;
         updateRegisters();
 
@@ -55,7 +55,7 @@ init(() => {
         lineHighlight(line['status']['currentLabel']);
     }
 
-    //---------- UPDATE REGISTERS ==========  
+    //---------- UPDATE REGISTERS ==========
     const updateRegisters = () => {
         let registers = data();
         let numPassos = registers['status']['steps'];
@@ -68,13 +68,13 @@ init(() => {
         updateSaida();
     }
 
-    //---------- RODAR N-PASSOS ========== 
+    //---------- RODAR N-PASSOS ==========
     const runSteps = () => {
         compileTest();
         interpreter.runSteps(10000);
     }
 
-    //---------- RODAR TODOS PASSOS ==========  
+    //---------- RODAR TODOS PASSOS ==========
     document.getElementById('run').onclick = () => {
         const then = performance.now();
 
@@ -99,14 +99,14 @@ init(() => {
         tick();
     }
 
-    //---------- RESETAR CÓDIGO ========== 
+    //---------- RESETAR CÓDIGO ==========
     document.getElementById('reset').onclick = () => {
         interpreter.reset();
         setInput();
         cleanHTML();
     }
 
-    //---------- ABORTAR PROGRAMA ==========  
+    //---------- ABORTAR PROGRAMA ==========
     document.getElementById('abort').onclick = () => {
         running = false;
     }
@@ -117,19 +117,19 @@ init(() => {
         return interpreter.data();
     }
 
-    //---------- INSTRUÇÕES DO CÓDIGO ==========  
+    //---------- INSTRUÇÕES DO CÓDIGO ==========
     const instructions = () => {
         compileTest();
         return interpreter.instructions();
     }
 
-    //---------- STATUS DO CÓDIGO ========== 
+    //---------- STATUS DO CÓDIGO ==========
     const codeStatus = () => {
         compileTest();
         return interpreter.status();
     }
 
-    //---------- STEP SPEED CONTROL ==========  
+    //---------- STEP SPEED CONTROL ==========
     const stepHeader = document.getElementById('step-header');
     const stepControl = document.getElementById('step-control');
     let stepSpeed = 1000;
@@ -139,13 +139,13 @@ init(() => {
         stepSpeed = stepControl.value;
     }
 
-    //---------- REGISTRADORES NO HTML ========== 
+    //---------- REGISTRADORES NO HTML ==========
     const regSection = document.getElementById('registers-section');
-    
+
     const makeRegisters = () => {
         let registers = data();
         registers = registers['status']['registers'];
-        
+
         for(let i in registers) {
             const outerDiv = document.createElement('div');
             outerDiv.id = 'reg-' + registers[i]['name'];
@@ -165,7 +165,7 @@ init(() => {
         }
     }
 
-    //---------- TABELA CÓDIGO COMPILADO ==========  
+    //---------- TABELA CÓDIGO COMPILADO ==========
     const tableCode = document.getElementById('table-compiled-program');
 
     const makeTable = () => {
@@ -185,10 +185,10 @@ init(() => {
         }
     }
 
-    //---------- COMPILAR AO CARREGAR ==========  
+    //---------- COMPILAR AO CARREGAR ==========
     compileTest()
 
-    //---------- HIGHLIGHT LINHA ATUAL ==========  
+    //---------- HIGHLIGHT LINHA ATUAL ==========
     let lastLine = tableCode.firstElementChild.firstChild;
     lastLine.classList.add('line_selected');
     let firstLine = lastLine;
@@ -204,11 +204,11 @@ init(() => {
        } catch(e) {}
     }
 
-    //---------- UPDATE NÚMERO DE PASSOS ========== 
+    //---------- UPDATE NÚMERO DE PASSOS ==========
     const numPassos = document.getElementById('num-passos');
     const updatePassos = (num) => numPassos.innerHTML = num;
 
-    //---------- UPDATE SAÍDA ==========   
+    //---------- UPDATE SAÍDA ==========
     const outputSpan = document.getElementById('saida');
 
     const updateSaida = () => {
@@ -216,12 +216,12 @@ init(() => {
             outputSpan.innerHTML = 'Rodando...';
         } else {
             let values = data();
-            values = values.status.registers
-            outputSpan.innerHTML = values[values.length - 1].value;
+            values = values.status.registers.find(values => values.name == "Y");
+            outputSpan.innerHTML = values.value;
         }
     }
 
-    //---------- LIMPA HTML QUANDO RESETAR ==========  
+    //---------- LIMPA HTML QUANDO RESETAR ==========
     const cleanHTML = () => {
         numPassos.innerHTML = '0';
         outputSpan.innerHTML = '';
@@ -237,4 +237,3 @@ init(() => {
         document.getElementById('reg-value-X').innerHTML = userInput.value
     }
 })
-
