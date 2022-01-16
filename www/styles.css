@@ -34,8 +34,6 @@ body {
     text-align: center;
     min-height: 4rem;
     min-width: 3.5rem;
-    width: 6.5vmin;
-    height: 8vmin;
     background-color: var(--register-lighter-background);
     color: var(--dark-color);
     border-radius: 0.6rem;
