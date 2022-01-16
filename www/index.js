@@ -9,7 +9,7 @@ const fileChosen = document.getElementById('file-chosen');
 const download = (text, filename) => {
     const element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    element.setAttribute('download', filename); 
+    element.setAttribute('download', filename);
 
     element.style.display = 'none';
 
@@ -20,14 +20,14 @@ const download = (text, filename) => {
 
 const upload = (file) => {
     const reader = new FileReader();
-    
+
     fileChosen.textContent = file.name;
     reader.readAsText(file, "UTF-8");
 
     reader.onload = (e) => {
         textAreaHTML.value = e.target.result;
         highlight();
-    } 
+    }
 }
 
 actualBtn.addEventListener('change', () => upload(actualBtn.files[actualBtn.files.length - 1]));
@@ -46,9 +46,9 @@ const toggleLogColor = (correct) => {
 	}
 	else {
 		logAreaText.classList.add("log-area__errors");
-		logAreaText.classList.remove("log-area__corrects");		
+		logAreaText.classList.remove("log-area__corrects");
 	}
-} 
+}
 
 // Local Storage
 const getLastCode = () => {
@@ -56,7 +56,7 @@ const getLastCode = () => {
     highlight();
 };
 
-// Highlight 
+// Highlight
 const textAreaHTML = document.getElementById('userinput');
 const codeAreaHTML = document.getElementById('codeholder');
 const preAreaHTML = document.getElementById('codeediting');
@@ -107,7 +107,7 @@ const handleTab = (e) => {
     const start = textAreaHTML.selectionStart;
     const end = textAreaHTML.selectionEnd;
 
-    textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
+    textAreaHTML.value = textAreaHTML.value.substring(0, start) +
         `    ` + textAreaHTML.value.substring(end);
 
     textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 4;
@@ -117,7 +117,7 @@ const handleEnter = (e) => {
     const start = textAreaHTML.selectionStart;
     const end = textAreaHTML.selectionEnd;
 
-    if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') && 
+    if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') &&
         (textAreaHTML.value[textAreaHTML.selectionStart] == '}')) {
         e.preventDefault();
         const start = textAreaHTML.selectionStart;
@@ -134,12 +134,12 @@ const handleBackspace = (e) => {
     const start = textAreaHTML.selectionStart;
     const end = textAreaHTML.selectionEnd;
 
-    if(((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '(') && 
-        (textAreaHTML.value[textAreaHTML.selectionStart] == ')')) 
-        || 
-        ((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') && 
+    if(((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '(') &&
+        (textAreaHTML.value[textAreaHTML.selectionStart] == ')'))
+        ||
+        ((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') &&
         (textAreaHTML.value[textAreaHTML.selectionStart] == '}'))) {
-            
+
         e.preventDefault();
 
         textAreaHTML.value = textAreaHTML.value.substring(0, start).slice(0, start - 1)
@@ -154,7 +154,7 @@ const handleBracket = (e) => {
     const start = textAreaHTML.selectionStart;
     const end = textAreaHTML.selectionEnd;
 
-    textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
+    textAreaHTML.value = textAreaHTML.value.substring(0, start) +
         "()" + textAreaHTML.value.substring(end);
 
     textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
@@ -165,7 +165,7 @@ const handleCurly = (e) => {
     const start = textAreaHTML.selectionStart;
     const end = textAreaHTML.selectionEnd;
 
-    textAreaHTML.value = textAreaHTML.value.substring(0, start) + 
+    textAreaHTML.value = textAreaHTML.value.substring(0, start) +
         "{}" + textAreaHTML.value.substring(end);
 
     textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
@@ -176,23 +176,29 @@ init(() => {
     getLastCode();
 });
 
-//---------- WASM ==========  
+//---------- WASM ==========
 init(() => {
     let interpreter = null;
 
     const source = () => document.getElementById('userinput').value;
 
-    //---------- VERIFICAR CÓDIGO  ========== 
+    //---------- VERIFICAR CÓDIGO  ==========
     document.getElementById('verify').onclick = () => {
         interpreter = null;
-        try {
+
+        if(textAreaHTML.value == '') {
+          logAreaText.textContent = 'Entrada vazia!';
+          toggleLogColor(false);
+        } else {
+          try {
             wasm.check(source());
             logAreaText.textContent = 'Código OK!';
-	        toggleLogColor(true);
-        } catch (error) {
+            toggleLogColor(true);
+          } catch (error) {
             logAreaText.textContent = 'ERRO: ' + error[0]['span']['rendered'];
-	        logAreaText.textContent += '\r\n\r\n' + error[0]['message'];
-	        toggleLogColor(false);
+            logAreaText.textContent += '\r\n\r\n' + error[0]['message'];
+            toggleLogColor(false);
+          }
         }
     };
 });
