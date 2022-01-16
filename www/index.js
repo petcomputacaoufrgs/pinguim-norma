@@ -142,12 +142,13 @@ const handleBackspace = (e) => {
 
         e.preventDefault();
 
-        textAreaHTML.value = textAreaHTML.value.substring(0, start).slice(0, start - 1)
-            + textAreaHTML.value.substring(end).slice(1, end);
+        textAreaHTML.value = textAreaHTML.value.substring(0, start - 1)
+            + textAreaHTML.value.substring(end + 1);
 
         textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start - 1;
     }
 };
+
 
 const handleBracket = (e) => {
     e.preventDefault();
