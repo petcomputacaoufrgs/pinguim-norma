@@ -82,7 +82,7 @@ init(() => {
 
         const tick = () => {
             if(running) {
-                const status = interpreter.runSteps(1);
+                const status = interpreter.runSteps(stepsPerCall);
                 running = status.running;
                 updateRegisters();
 
@@ -137,6 +137,16 @@ init(() => {
     document.getElementById('step-control').onchange = () => {
         stepHeader.innerHTML = stepControl.value;
         stepSpeed = stepControl.value;
+    }
+
+    //---------- STEP NUMBER CONTROL ==========
+    const stepHeaderNumber = document.getElementById('step-header-number');
+    const stepNumber = document.getElementById('step-number');
+    let stepsPerCall = 1000;
+
+    document.getElementById('step-number').onchange = () => {
+      stepHeaderNumber.innerHTML = stepNumber.value;
+      stepsPerCall = stepNumber.value;
     }
 
     //---------- REGISTRADORES NO HTML ==========
