@@ -10,9 +10,16 @@ init(() => {
     const userInput = document.getElementById('input');
     const registerX = () => document.getElementById('input').value;
 
+    const reset = () => {
+        interpreter.reset();
+        setInput();
+        cleanHTML();
+        running = false;
+    };
+
     //---------- ATUALIZA X ON CHANGE ==========
     userInput.onchange = () => {
-        setInput();
+        reset();
         document.getElementById('reg-value-X').innerHTML = userInput.value
     }
 
@@ -101,9 +108,7 @@ init(() => {
 
     //---------- RESETAR CÓDIGO ==========
     document.getElementById('reset').onclick = () => {
-        interpreter.reset();
-        setInput();
-        cleanHTML();
+        reset();
     }
 
     //---------- ABORTAR PROGRAMA ==========
