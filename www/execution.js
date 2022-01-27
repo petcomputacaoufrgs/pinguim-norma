@@ -5,6 +5,7 @@ init(() => {
     let interpreter = null;
     let running = false;
     let compiled = false;
+    let stepSpeed = 0;
 
     const source = () => getStorage();
     const userInput = document.getElementById('input');
@@ -37,7 +38,7 @@ init(() => {
 
     //---------- COMPILE TESTE ==========
     const compileTest = () => {
-        if(!compiled) {
+        if (!compiled) {
             compile();
             setInput();
             compiled = true;
@@ -83,26 +84,25 @@ init(() => {
 
     //---------- RODAR TODOS PASSOS ==========
     document.getElementById('run').onclick = () => {
-        const then = performance.now();
-
         compileTest();
 
         const tick = () => {
-            if(running) {
-                const status = interpreter.runSteps(stepsPerCall);
+            if (running) {
+                const status = interpreter.runSteps(stepSpeed ? 1 : 1347);
                 running = status.running;
                 updateRegisters();
 
-                if(running) {
+                if (running) {
                     lineHighlight(status.currentLabel);
-                    setTimeout(tick, stepSpeed);
-                }
-                else {
+                    setTimeout(tick, stepSpeed || 1);
+                } else {
                     const end = performance.now();
                 }
             }
         }
+
         running = true;
+        const then = performance.now();
         tick();
     }
 
@@ -137,23 +137,21 @@ init(() => {
     //---------- STEP SPEED CONTROL ==========
     const stepHeader = document.getElementById('step-header');
     const stepControl = document.getElementById('step-control');
-    let stepSpeed = stepControl.value;
-    stepHeader.innerHTML = stepControl.value;
+
+    const renderStepControl = () => {
+        stepSpeed = parseInt(stepControl.value);
+        if (stepSpeed == 0) {
+            stepHeader.innerHTML = 'sem espera';
+        } else {
+            stepHeader.innerHTML = stepSpeed + ' (ms)';
+        }
+    };
+
+    renderStepControl();
 
     document.getElementById('step-control').onchange = () => {
-        stepHeader.innerHTML = stepControl.value;
         stepSpeed = stepControl.value;
-    }
-
-    //---------- STEP NUMBER CONTROL ==========
-    const stepHeaderNumber = document.getElementById('step-header-number');
-    const stepNumber = document.getElementById('step-number');
-    let stepsPerCall = stepNumber.value;
-    stepHeaderNumber.innerHTML = stepNumber.value;
-
-    document.getElementById('step-number').onchange = () => {
-      stepHeaderNumber.innerHTML = stepNumber.value;
-      stepsPerCall = stepNumber.value;
+        renderStepControl();
     }
 
     //---------- REGISTRADORES NO HTML ==========
