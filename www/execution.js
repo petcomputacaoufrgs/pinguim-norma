@@ -137,7 +137,8 @@ init(() => {
     //---------- STEP SPEED CONTROL ==========
     const stepHeader = document.getElementById('step-header');
     const stepControl = document.getElementById('step-control');
-    let stepSpeed = 1000;
+    let stepSpeed = stepControl.value;
+    stepHeader.innerHTML = stepControl.value;
 
     document.getElementById('step-control').onchange = () => {
         stepHeader.innerHTML = stepControl.value;
@@ -147,7 +148,8 @@ init(() => {
     //---------- STEP NUMBER CONTROL ==========
     const stepHeaderNumber = document.getElementById('step-header-number');
     const stepNumber = document.getElementById('step-number');
-    let stepsPerCall = 1000;
+    let stepsPerCall = stepNumber.value;
+    stepHeaderNumber.innerHTML = stepNumber.value;
 
     document.getElementById('step-number').onchange = () => {
       stepHeaderNumber.innerHTML = stepNumber.value;
