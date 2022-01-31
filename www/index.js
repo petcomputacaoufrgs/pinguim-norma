@@ -54,30 +54,133 @@ const toggleLogColor = (correct) => {
 const getLastCode = () => {
     textAreaHTML.value = getStorage();
     highlight();
+    syncScroll();
 };
 
 // Highlight
 const textAreaHTML = document.getElementById('userinput');
-const codeAreaHTML = document.getElementById('codeholder');
 const preAreaHTML = document.getElementById('codeediting');
 
-const reservedWords = /\bmain\b|\bif\b|\bthen\b|\belse\b|\bdo\b|\bgoto\b|\boperation\b|\btest\b/gi;
-const builtInFuncs = /\binc\b|\bdec\b|\bzero\b|\badd\b|\bsub\b|\bcmp\b/gi;
-const regexLabels = /[a-zA-z0-9_-]*[:]/g;
+class Highlighter {
+    constructor(...types) {
+        this.types = types;
 
-const spanEnd = '</span>';
-const spanLabels = '<span class="label">';
-const spanReserved = '<span class="reserved">';
-const spanBuiltIn = '<span class="builtin">';
+        const alternatives = types.map(type => '(' + type.regex.source + ')');
+        const flags = types.reduce(
+            (flags, type) => {
+                for (const flag of type.regex.flags) {
+                    if (flags.indexOf(flag) < 0) {
+                        flags += flag;
+                    }
+                }
+                return flags;
+            },
+            ''
+        );
+
+        this.splitRegex = new RegExp(alternatives.join('|'), flags);
+    }
+
+    highlight(inputElement, targetElement) {
+        const baseText = inputElement.value;
+        const brackets = {};
+        let index = 0;
+
+        targetElement.innerHTML = '';
+
+        for (let piece of baseText.split(this.splitRegex)) {
+            piece = piece || "";
+
+            const type = this.types.find(type => type.regex.test(piece));
+
+            let child;
+            if (type === undefined) {
+                child = document.createTextNode(piece);
+            } else {
+                child = document.createElement('span');
+                child.setAttribute('class', type.className);
+                child.textContent = piece;
+
+                if (type.bracket !== undefined) {
+                    this.handleBracket(
+                        inputElement,
+                        piece,
+                        type,
+                        brackets,
+                        index,
+                        child,
+                    );
+                }
+            }
+
+            targetElement.appendChild(child);
+            index += piece.length;
+        }
+
+        targetElement.appendChild(document.createElement('br'));
+    }
+
+    handleBracket(inputElement, piece, type, brackets, index, child) {
+        let isSelected = (
+            inputElement.selectionStart == index
+            && inputElement.selectionEnd <= index + piece.length
+        );
+        const name = type.bracket.name;
+        brackets[name] = brackets[name] || [];
+
+        switch (type.bracket.direction) {
+            case 'opening': {
+                brackets[name].push({ node: child, selected: isSelected });
+                break;
+            }
+            case 'closing': {
+                const prev = brackets[name].pop();
+                if (prev !== undefined && (prev.selected || isSelected)) {
+                    let cls = child.getAttribute('class');
+                    child.setAttribute('class', cls + ' selected-bracket');
+
+                    cls = prev.node.getAttribute('class');
+                    prev.node.setAttribute( 'class', cls + ' selected-bracket');
+                }
+
+                break;
+            }
+        }
+    }
+}
+
+
+const highlighter = new Highlighter(
+    { className: 'comment', regex: /\/\/.*\n/ },
+    { className: 'reserved', regex: /\bmain\b|\bif\b|\bthen\b|\belse\b|\bdo\b|\bgoto\b|\boperation\b|\btest\b/ },
+    { className: 'label', regex: /[a-zA-z0-9_-]*[:]/ },
+    { className: 'builtin', regex: /\binc\b|\bdec\b|\bzero\b|\badd\b|\bsub\b|\bcmp\b/ },
+    {
+        className: 'punctuation',
+        bracket: { name: 'parens', direction: 'opening' },
+        regex: /\(/,
+    },
+    {
+        className: 'punctuation',
+        bracket: { name: 'parens', direction: 'closing' },
+        regex: /\)/,
+    },
+    {
+        className: 'punctuation',
+        bracket: { name: 'curly-brackets', direction: 'opening' },
+        regex: /\{/,
+    },
+    {
+        className: 'punctuation',
+        bracket: { name: 'curly-brackets', direction: 'closing' },
+        regex: /\}/,
+    },
+);
 
 const highlight = () => {
-    let baseText = textAreaHTML.value;
-    let finalText = baseText.replace(regexLabels, (match) => spanLabels + match + spanEnd);
-    finalText = finalText.replace(reservedWords, (match) => spanReserved + match + spanEnd);
-    finalText = finalText.replace(builtInFuncs, (match) => spanBuiltIn + match + spanEnd);
-
-    codeAreaHTML.innerHTML = finalText;
-    setStorage(baseText);
+    highlighter.highlight(textAreaHTML, preAreaHTML);
+    setStorage(textAreaHTML.value);
+    syncScroll();
 };
 
 const handleKeys = {
@@ -95,12 +198,13 @@ textAreaHTML.addEventListener('keydown', (e) => {
      catch(e) {}
 });
 
-textAreaHTML.addEventListener('scroll', (e) => handleScroll());
+textAreaHTML.addEventListener('scroll', (e) => syncScroll());
 
-const handleScroll = () => {
+textAreaHTML.addEventListener('input', (e) => highlight());
+
+const syncScroll = () => {
     preAreaHTML.scrollTop = textAreaHTML.scrollTop;
-    preAreaHTML.scrollLeft = textAreaHTML.scrollLeft;
-}
+};
 
 const handleTab = (e) => {
     e.preventDefault();

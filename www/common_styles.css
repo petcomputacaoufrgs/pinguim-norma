@@ -20,6 +20,7 @@
     --code-built-in-funcs: #F9BC41;
     --code-label-color: #8FBF7F;
     --code-background-color: #282828;
+    --code-punctuation: #8FBF7F;
     --error-font-color: #F84B3C;
     --correct-font-color: #8FBF7F;
     --highlight-color: #C19898;
@@ -48,6 +49,7 @@
     --code-built-in-funcs: #B47523;
     --code-label-color: #447A59;
     --code-background-color: #FBF2D1;
+    --code-punctuation: #447A59;
     --error-font-color: #9B0511;
     --correct-font-color: #447A59;
     --highlight-color: #B9A1D8;
@@ -131,6 +133,14 @@ input:checked + .slider > span {
     border-radius: 2.125rem;
 }
 
+.selected-bracket {
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.punctuation {
+    color: var(--code-punctuation);
+}
 
 /* ======> INDEX PAGE <====== */
 /* DOWNLOAD AND UPLOAD BUTTONS */
@@ -174,6 +184,7 @@ input:checked + .slider > span {
     padding: 10px;
     width: 56vw;
     min-height: 40vh;
+    overflow-y: scroll;
     box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.25);
     color: var(--code-font-color);
     background: var(--textarea-background);
@@ -191,13 +202,16 @@ input:checked + .slider > span {
 }
 
 .highlighting {
+    font-size: 1.06rem;
     width: 56vw;
     height: 40vh;
     max-height: 40vh;
     margin: 0;
+    padding: 10px;
     white-space: pre-wrap; 
     word-wrap: break-word;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
 
 .front {
@@ -208,7 +222,6 @@ input:checked + .slider > span {
 .behind {
     position: absolute;
     margin: 0 2vw;
-    padding: 10px;
     background-clip: padding-box;
     background-color: var(--code-background-color);
     z-index: 0;
