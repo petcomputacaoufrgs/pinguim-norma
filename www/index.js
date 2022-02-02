@@ -291,19 +291,28 @@ init(() => {
     document.getElementById('verify').onclick = () => {
         interpreter = null;
 
-        if(textAreaHTML.value == '') {
-          logAreaText.textContent = 'Entrada vazia!';
-          toggleLogColor(false);
-        } else {
-          try {
-            wasm.check(source());
-            logAreaText.textContent = 'Código OK!';
-            toggleLogColor(true);
-          } catch (error) {
-            logAreaText.textContent = 'ERRO: ' + error[0]['span']['rendered'];
-            logAreaText.textContent += '\r\n\r\n' + error[0]['message'];
+        if (textAreaHTML.value == '') {
+            logAreaText.textContent = 'Entrada vazia!';
             toggleLogColor(false);
-          }
+        } else {
+            try {
+                wasm.check(source());
+                logAreaText.textContent = 'Código OK!';
+                toggleLogColor(true);
+            } catch (errors) {
+                logAreaText.textContent = '';
+                let first = true;
+                for (const error of errors) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        logAreaText.textContent += '\n\n\n';
+                    }
+                    logAreaText.textContent += 'ERRO: ' + error.span.rendered;
+                    logAreaText.textContent += '\n\n' + error.message;
+                }
+                toggleLogColor(false);
+            }
         }
     };
 });

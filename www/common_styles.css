@@ -21,6 +21,7 @@
     --code-label-color: #8FBF7F;
     --code-background-color: #282828;
     --code-punctuation: #8FBF7F;
+    --code-comment-color: #a0a0a0;
     --error-font-color: #F84B3C;
     --correct-font-color: #8FBF7F;
     --highlight-color: #C19898;
@@ -50,6 +51,7 @@
     --code-label-color: #447A59;
     --code-background-color: #FBF2D1;
     --code-punctuation: #447A59;
+    --code-comment-color: #585858;
     --error-font-color: #9B0511;
     --correct-font-color: #447A59;
     --highlight-color: #B9A1D8;
@@ -239,6 +241,11 @@ input:checked + .slider > span {
     color: var(--code-built-in-funcs);
 }
 
+.comment {
+    color: var(--code-comment-color);
+}
+
+
 /* LOG AND EXECUTION AREA */
 /* Log area */
 .log-and-execution-area h2 {
@@ -260,6 +267,8 @@ input:checked + .slider > span {
     color: var(--error-font-color);
     min-width: 30vw;
     min-height: 10vh;
+    max-height: 16vh;
+    overflow-y: scroll;
 }
 
 .log-area__corrects {
