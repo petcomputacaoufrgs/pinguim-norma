@@ -5,6 +5,8 @@ import * as wasm from "norma-wasm";
 const downloadBtn = document.getElementById('download_button');
 const actualBtn = document.getElementById('upload_button');
 const fileChosen = document.getElementById('file-chosen');
+const inputLineSpan = document.getElementById('input-line');
+const inputColumnSpan = document.getElementById('input-column');
 
 const download = (text, filename) => {
     const element = document.createElement('a');
@@ -204,8 +206,25 @@ textAreaHTML.addEventListener('input', evt => highlight());
 
 textAreaHTML.addEventListener('click', evt => highlight());
 
+const updateLineColumn = () => {
+    const position = textAreaHTML.selectionStart;
+    const prevText = textAreaHTML.value.substring(0, position);
+    let line = 1;
+    for (const ch of prevText) {
+        if (ch == '\n') {
+            line++;
+        }
+    }
+    const lineStart = prevText.lastIndexOf('\n') + 1;
+    const column = position - lineStart + 1;
+
+    inputLineSpan.textContent = line;
+    inputColumnSpan.textContent = column;
+};
+
 const syncScroll = () => {
     preAreaHTML.scrollTop = textAreaHTML.scrollTop;
+    updateLineColumn();
 };
 
 const handleTab = evt => {
