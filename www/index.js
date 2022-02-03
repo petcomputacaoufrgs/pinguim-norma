@@ -24,15 +24,15 @@ const upload = (file) => {
     fileChosen.textContent = file.name;
     reader.readAsText(file, "UTF-8");
 
-    reader.onload = (e) => {
-        textAreaHTML.value = e.target.result;
+    reader.onload = evt => {
+        textAreaHTML.value = evt.target.result;
         highlight();
     }
 }
 
 actualBtn.addEventListener('change', () => upload(actualBtn.files[actualBtn.files.length - 1]));
-downloadBtn.addEventListener('click', (e) => {
-    e.preventDefault();
+downloadBtn.addEventListener('click', evt => {
+    evt.preventDefault();
     download(textAreaHTML.value, "maqnorma.mn");
 });
 
@@ -40,11 +40,10 @@ downloadBtn.addEventListener('click', (e) => {
 const logAreaText = document.getElementById('log-area__text');
 
 const toggleLogColor = (correct) => {
-	if(correct) {
+	if (correct) {
 		logAreaText.classList.remove("log-area__errors");
 		logAreaText.classList.add("log-area__corrects");
-	}
-	else {
+	} else {
 		logAreaText.classList.add("log-area__errors");
 		logAreaText.classList.remove("log-area__corrects");
 	}
@@ -184,30 +183,33 @@ const highlight = () => {
 };
 
 const handleKeys = {
-    'Tab': (e) => handleTab(e),
-    'Enter': (e) => handleEnter(e),
-    'Backspace': (e) => handleBackspace(e),
-    '(': (e) => handleBracket(e),
-    '{': (e) => handleCurly(e)
+    'Tab': evt => handleTab(evt),
+    'Enter': evt => handleEnter(evt),
+    'Backspace': evt => handleBackspace(evt),
+    '(': evt => handleBracket(evt),
+    '{': evt => handleCurly(evt)
 };
 
-textAreaHTML.addEventListener('keyup', (evt) => highlight());
+textAreaHTML.addEventListener('keyup', evt => highlight());
 
-textAreaHTML.addEventListener('keydown', (e) => {
-     try { handleKeys[e.key](e) }
-     catch(e) {}
+textAreaHTML.addEventListener('keydown', evt => {
+    if (evt.key in handleKeys) {
+        handleKeys[evt.key](evt);
+    }
 });
 
-textAreaHTML.addEventListener('scroll', (e) => syncScroll());
+textAreaHTML.addEventListener('scroll', evt => syncScroll());
 
-textAreaHTML.addEventListener('input', (e) => highlight());
+textAreaHTML.addEventListener('input', evt => highlight());
+
+textAreaHTML.addEventListener('click', evt => highlight());
 
 const syncScroll = () => {
     preAreaHTML.scrollTop = textAreaHTML.scrollTop;
 };
 
-const handleTab = (e) => {
-    e.preventDefault();
+const handleTab = evt => {
+    evt.preventDefault();
     const start = textAreaHTML.selectionStart;
     const end = textAreaHTML.selectionEnd;
 
@@ -217,13 +219,13 @@ const handleTab = (e) => {
     textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 4;
 };
 
-const handleEnter = (e) => {
+const handleEnter = evt => {
     const start = textAreaHTML.selectionStart;
     const end = textAreaHTML.selectionEnd;
 
     if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') &&
         (textAreaHTML.value[textAreaHTML.selectionStart] == '}')) {
-        e.preventDefault();
+        evt.preventDefault();
         const start = textAreaHTML.selectionStart;
         const end = textAreaHTML.selectionEnd;
 
@@ -234,7 +236,7 @@ const handleEnter = (e) => {
     }
 };
 
-const handleBackspace = (e) => {
+const handleBackspace = evt => {
     const start = textAreaHTML.selectionStart;
     const end = textAreaHTML.selectionEnd;
 
@@ -244,7 +246,7 @@ const handleBackspace = (e) => {
         ((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') &&
         (textAreaHTML.value[textAreaHTML.selectionStart] == '}'))) {
 
-        e.preventDefault();
+        evt.preventDefault();
 
         textAreaHTML.value = textAreaHTML.value.substring(0, start - 1)
             + textAreaHTML.value.substring(end + 1);
@@ -254,8 +256,8 @@ const handleBackspace = (e) => {
 };
 
 
-const handleBracket = (e) => {
-    e.preventDefault();
+const handleBracket = evt => {
+    evt.preventDefault();
     const start = textAreaHTML.selectionStart;
     const end = textAreaHTML.selectionEnd;
 
@@ -265,8 +267,8 @@ const handleBracket = (e) => {
     textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
 };
 
-const handleCurly = (e) => {
-    e.preventDefault();
+const handleCurly = evt => {
+    evt.preventDefault();
     const start = textAreaHTML.selectionStart;
     const end = textAreaHTML.selectionEnd;
 
