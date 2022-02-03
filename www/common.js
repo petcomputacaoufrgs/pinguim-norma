@@ -80,13 +80,23 @@ if (currentTheme) {
     }
 }
 
-const storageKey = "pinguim.norma.userCode";
+const storagePrefix = "pinguim.norma";
+const storageCodeKey = storagePrefix + '.userCode';
+const storageCodeHistKey = storagePrefix + '.userCodeHistory';
 
 // Local Storage
-export const setStorage = (baseText) => {
-    localStorage.setItem(storageKey, baseText);
+export const saveCode = baseText => {
+    localStorage.setItem(storageCodeKey, baseText);
 };
 
-export const getStorage = () => {
-    return localStorage.getItem(storageKey);
+export const loadCode = () => {
+    return localStorage.getItem(storageCodeKey);
+};
+
+export const saveCodeHist = array => {
+    localStorage.setItem(storageCodeHistKey, JSON.stringify(array));
+};
+
+export const loadCodeHist = () => {
+    return JSON.parse(localStorage.getItem(storageCodeHistKey));
 };

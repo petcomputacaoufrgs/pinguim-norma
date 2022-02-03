@@ -1,4 +1,4 @@
-import { init, getStorage } from './common.js';
+import { init, loadCode } from './common.js';
 import * as wasm from "norma-wasm";
 
 init(() => {
@@ -7,7 +7,7 @@ init(() => {
     let compiled = false;
     let stepSpeed = 0;
 
-    const source = () => getStorage();
+    const source = () => loadCode();
     const userInput = document.getElementById('input');
     const registerX = () => document.getElementById('input').value;
 

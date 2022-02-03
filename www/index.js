@@ -1,66 +1,210 @@
-import { init, getStorage, setStorage } from './common.js';
+import {
+    init,
+    loadCode,
+    saveCode,
+    saveCodeHist,
+    loadCodeHist
+} from './common.js';
 import * as wasm from "norma-wasm";
 
-// Upload and download buttons
-const downloadBtn = document.getElementById('download_button');
-const actualBtn = document.getElementById('upload_button');
-const fileChosen = document.getElementById('file-chosen');
-const inputLineSpan = document.getElementById('input-line');
-const inputColumnSpan = document.getElementById('input-column');
+class Editor {
+    constructor(params) {
+        this.targetTextArea = params.targetTextArea;
+        this.targetPre = params.targetPre;
+        this.currLineSpan = params.currLineSpan;
+        this.currColumnSpan = params.currColumnSpan;
+        this.highlighter = params.highlighter;
+        this.saveCode = params.saveCode;
+        this.loadCode = params.loadCode;
+        this.saveCodeHist = params.saveCodeHist;
+        this.loadCodeHist = params.loadCodeHist;
+        this.history = [];
 
-const download = (text, filename) => {
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    element.setAttribute('download', filename);
+        this.targetTextArea.addEventListener('keyup', evt => {
+            this.refreshContent();
+        });
 
-    element.style.display = 'none';
+        this.targetTextArea.addEventListener('keydown', evt => {
+            this.handleKey(evt);
+        });
 
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-}
+        this.targetTextArea.addEventListener('scroll', evt => {
+            this.syncScroll();
+        });
 
-const upload = (file) => {
-    const reader = new FileReader();
+        this.targetTextArea.addEventListener('input', evt => {
+            this.refreshContent();
+        });
 
-    fileChosen.textContent = file.name;
-    reader.readAsText(file, "UTF-8");
+        this.targetTextArea.addEventListener('click', evt => {
+            this.refreshContent();
+        });
+    }
 
-    reader.onload = evt => {
-        textAreaHTML.value = evt.target.result;
-        highlight();
+    updateContent(content) {
+        this.targetTextArea.value = content;
+        this.refreshContent();
+    }
+
+    get content() {
+        return this.targetTextArea.value;
+    }
+
+    addToHistory(...actions) {
+        this.history.push(actions);
+        this.saveHistory();
+    }
+
+    apply(...actions) {
+        for (const action of actions) {
+            const start = this.targetTextArea.selectionStart;
+            const end = this.targetTextArea.selectionStart;
+            switch (action.type) {
+                case 'insert': {
+                    const prev = this.targetTextArea.value.substring(0, start);
+                    const next = this.targetTextArea.value.substring(end);
+                    this.targetTextArea.value = prev + action.data + next;
+                    const newPosition = start + action.data.length;
+                    this.targetTextArea.selectionStart = newPosition;
+                    this.targetTextArea.selectionEnd = newPosition;
+                    break;
+                }
+                case 'delete': {
+                    const prev = this.targetTextArea.value.substring(0, start);
+                    const next = this.targetTextArea.value.substring(end);
+                    this.targetTextArea.value = prev + next;
+                    this.targetTextArea.selectionStart = start;
+                    this.targetTextArea.selectionEnd = start;
+                    break;
+                }
+            }
+        }
+        this.addToHistory(...actions);
+        this.refreshContent();
+    }
+
+    load() {
+        this.targetTextArea.value = this.loadCode();
+        try {
+            this.history = this.loadCodeHist();
+        } catch (error) {
+            if (error instanceof SyntaxError) {
+                this.history = [];
+                this.saveHistory();
+            } else {
+                throw error;
+            }
+        }
+        this.refreshContent();
+    }
+
+    saveContent() {
+        this.saveCode(this.targetTextArea.value);
+    }
+
+    saveHistory() {
+        this.saveCodeHist(this.history);
+    }
+
+    highlight() {
+        this.highlighter.highlight(this.targetTextArea, this.targetPre);
+    }
+
+    syncScroll() {
+        this.targetPre.scrollTop = this.targetTextArea.scrollTop;
+    }
+
+    refreshPosition() {
+        this.syncScroll();
+        this.updateLineColumn();
+    }
+
+    refreshContent() {
+        this.highlight();
+        this.saveContent();
+        this.refreshPosition();
+    }
+
+    updateLineColumn() {
+        const position = this.targetTextArea.selectionStart;
+        const prevText = this.targetTextArea.value.substring(0, position);
+        let line = 1;
+        for (const ch of prevText) {
+            if (ch == '\n') {
+                line++;
+            }
+        }
+        const lineStart = prevText.lastIndexOf('\n') + 1;
+        const column = position - lineStart + 1;
+
+        this.currLineSpan.textContent = line;
+        this.currColumnSpan.textContent = column;
+    }
+
+    isBetweenCurlies() {
+        const start = this.targetTextArea.selectionStart;
+        return (
+            start > 0
+            && this.targetTextArea.value[start - 1] == '{'
+            && this.targetTextArea.value[start] == '}'
+        );
+    }
+
+    isBetweenParens() {
+        const start = this.targetTextArea.selectionStart;
+        return (
+            start > 0
+            && this.targetTextArea.value[start - 1] == '('
+            && this.targetTextArea.value[start] == ')'
+        );
+    }
+
+    handleTab(evt) {
+        evt.preventDefault();
+        this.apply({ type: 'insert', data: '    ' });
+    }
+
+    handleEnter(evt) {
+        if (this.isBetweenCurlies()) {
+            evt.preventDefault();
+            this.apply({ type: 'insert', data: '\n    \n' });
+        }
+    }
+
+    handleBackspace(evt) {
+        if (this.isBetweenCurlies() || this.isBetweenParens()) {
+            evt.preventDefault();
+            this.textAreaHTML.selectionStart--;
+            this.textAreaHTML.selectionEnd++;
+            this.apply({ type: 'delete' });
+        }
+    }
+
+
+    handleParens(evt) {
+        evt.preventDefault();
+        this.apply({ type: 'insert', data: '()' });
+    }
+
+    handleCurly(evt) {
+        evt.preventDefault();
+        this.apply({ type: 'insert', data: '{}' });
+    }
+
+    handleKey(evt) {
+        const keyMap = {
+            'Tab': evt => this.handleTab(evt),
+            'Enter': evt => this.handleEnter(evt),
+            'Backspace': evt => this.handleBackspace(evt),
+            '(': evt => this.handleParens(evt),
+            '{': evt => this.handleCurly(evt)
+        };
+
+        if (evt.key in keyMap) {
+            keyMap[evt.key](evt);
+        }
     }
 }
-
-actualBtn.addEventListener('change', () => upload(actualBtn.files[actualBtn.files.length - 1]));
-downloadBtn.addEventListener('click', evt => {
-    evt.preventDefault();
-    download(textAreaHTML.value, "maqnorma.mn");
-});
-
-// Log area
-const logAreaText = document.getElementById('log-area__text');
-
-const toggleLogColor = (correct) => {
-	if (correct) {
-		logAreaText.classList.remove("log-area__errors");
-		logAreaText.classList.add("log-area__corrects");
-	} else {
-		logAreaText.classList.add("log-area__errors");
-		logAreaText.classList.remove("log-area__corrects");
-	}
-}
-
-// Local Storage
-const getLastCode = () => {
-    textAreaHTML.value = getStorage();
-    highlight();
-    syncScroll();
-};
-
-// Highlight
-const textAreaHTML = document.getElementById('userinput');
-const preAreaHTML = document.getElementById('codeediting');
 
 class Highlighter {
     constructor(...types) {
@@ -103,7 +247,7 @@ class Highlighter {
                 child.textContent = piece;
 
                 if (type.bracket !== undefined) {
-                    this.handleBracket(
+                    this.handleParens(
                         inputElement,
                         piece,
                         type,
@@ -121,7 +265,7 @@ class Highlighter {
         targetElement.appendChild(document.createElement('br'));
     }
 
-    handleBracket(inputElement, piece, type, brackets, index, child) {
+    handleParens(inputElement, piece, type, brackets, index, child) {
         let isSelected = (
             inputElement.selectionStart == index
             && inputElement.selectionEnd <= index + piece.length
@@ -150,174 +294,120 @@ class Highlighter {
     }
 }
 
-
-const highlighter = new Highlighter(
-    { className: 'comment', regex: /\/\/.*\n/ },
-    { className: 'reserved', regex: /\bmain\b|\bif\b|\bthen\b|\belse\b|\bdo\b|\bgoto\b|\boperation\b|\btest\b/ },
-    { className: 'label', regex: /[a-zA-z0-9_-]*[:]/ },
-    { className: 'builtin', regex: /\binc\b|\bdec\b|\bzero\b|\badd\b|\bsub\b|\bcmp\b/ },
-    {
-        className: 'punctuation',
-        bracket: { name: 'parens', direction: 'opening' },
-        regex: /\(/,
-    },
-    {
-        className: 'punctuation',
-        bracket: { name: 'parens', direction: 'closing' },
-        regex: /\)/,
-    },
-    {
-        className: 'punctuation',
-        bracket: { name: 'curly-brackets', direction: 'opening' },
-        regex: /\{/,
-    },
-    {
-        className: 'punctuation',
-        bracket: { name: 'curly-brackets', direction: 'closing' },
-        regex: /\}/,
-    },
-);
-
-const highlight = () => {
-    highlighter.highlight(textAreaHTML, preAreaHTML);
-    setStorage(textAreaHTML.value);
-    syncScroll();
-};
-
-const handleKeys = {
-    'Tab': evt => handleTab(evt),
-    'Enter': evt => handleEnter(evt),
-    'Backspace': evt => handleBackspace(evt),
-    '(': evt => handleBracket(evt),
-    '{': evt => handleCurly(evt)
-};
-
-textAreaHTML.addEventListener('keyup', evt => highlight());
-
-textAreaHTML.addEventListener('keydown', evt => {
-    if (evt.key in handleKeys) {
-        handleKeys[evt.key](evt);
-    }
+const editor = new Editor({
+    targetTextArea: document.getElementById('userinput'),
+    targetPre: document.getElementById('codeediting'),
+    currLineSpan: document.getElementById('input-line'),
+    currColumnSpan: document.getElementById('input-column'),
+    saveCode,
+    loadCode,
+    saveCodeHist,
+    loadCodeHist,
+    highlighter: new Highlighter(
+        {
+            className: 'comment',
+            regex: /\/\/.*\n/
+        },
+        {
+            className: 'reserved',
+            regex: /\bmain\b|\bif\b|\bthen\b|\belse\b|\bdo\b|\bgoto\b|\boperation\b|\btest\b/
+        },
+        {
+            className: 'label',
+            regex: /[a-zA-z0-9_-]*[:]/
+        },
+        {
+            className: 'builtin',
+            regex: /\binc\b|\bdec\b|\bzero\b|\badd\b|\bsub\b|\bcmp\b/
+        },
+        {
+            className: 'punctuation',
+            bracket: { name: 'parens', direction: 'opening' },
+            regex: /\(/,
+        },
+        {
+            className: 'punctuation',
+            bracket: { name: 'parens', direction: 'closing' },
+            regex: /\)/,
+        },
+        {
+            className: 'punctuation',
+            bracket: { name: 'curly-brackets', direction: 'opening' },
+            regex: /\{/,
+        },
+        {
+            className: 'punctuation',
+            bracket: { name: 'curly-brackets', direction: 'closing' },
+            regex: /\}/,
+        },
+    ),
 });
 
-textAreaHTML.addEventListener('scroll', evt => syncScroll());
+// Upload and download buttons
+const downloadBtn = document.getElementById('download_button');
+const actualBtn = document.getElementById('upload_button');
+const fileChosen = document.getElementById('file-chosen');
 
-textAreaHTML.addEventListener('input', evt => highlight());
+const download = (text, filename) => {
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
 
-textAreaHTML.addEventListener('click', evt => highlight());
+    element.style.display = 'none';
 
-const updateLineColumn = () => {
-    const position = textAreaHTML.selectionStart;
-    const prevText = textAreaHTML.value.substring(0, position);
-    let line = 1;
-    for (const ch of prevText) {
-        if (ch == '\n') {
-            line++;
-        }
-    }
-    const lineStart = prevText.lastIndexOf('\n') + 1;
-    const column = position - lineStart + 1;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
 
-    inputLineSpan.textContent = line;
-    inputColumnSpan.textContent = column;
-};
+const upload = (file) => {
+    const reader = new FileReader();
 
-const syncScroll = () => {
-    preAreaHTML.scrollTop = textAreaHTML.scrollTop;
-    updateLineColumn();
-};
+    fileChosen.textContent = file.name;
+    reader.readAsText(file, "UTF-8");
 
-const handleTab = evt => {
+    reader.onload = evt => {
+        editor.updateContent(evt.target.result);
+    };
+}
+
+actualBtn.addEventListener('change', () => upload(actualBtn.files[actualBtn.files.length - 1]));
+downloadBtn.addEventListener('click', evt => {
     evt.preventDefault();
-    const start = textAreaHTML.selectionStart;
-    const end = textAreaHTML.selectionEnd;
+    download(editor.content, "maqnorma.mn");
+});
 
-    textAreaHTML.value = textAreaHTML.value.substring(0, start) +
-        `    ` + textAreaHTML.value.substring(end);
+// Log area
+const logAreaText = document.getElementById('log-area__text');
 
-    textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 4;
-};
+const toggleLogColor = (correct) => {
+	if (correct) {
+		logAreaText.classList.remove("log-area__errors");
+		logAreaText.classList.add("log-area__corrects");
+	} else {
+		logAreaText.classList.add("log-area__errors");
+		logAreaText.classList.remove("log-area__corrects");
+	}
+}
 
-const handleEnter = evt => {
-    const start = textAreaHTML.selectionStart;
-    const end = textAreaHTML.selectionEnd;
-
-    if((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') &&
-        (textAreaHTML.value[textAreaHTML.selectionStart] == '}')) {
-        evt.preventDefault();
-        const start = textAreaHTML.selectionStart;
-        const end = textAreaHTML.selectionEnd;
-
-        textAreaHTML.value = textAreaHTML.value.substring(0, start) +
-            "\n" + `    ` + "\n" + textAreaHTML.value.substring(end);
-
-        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start + 5;
-    }
-};
-
-const handleBackspace = evt => {
-    const start = textAreaHTML.selectionStart;
-    const end = textAreaHTML.selectionEnd;
-
-    if(((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '(') &&
-        (textAreaHTML.value[textAreaHTML.selectionStart] == ')'))
-        ||
-        ((textAreaHTML.value[textAreaHTML.selectionStart - 1] == '{') &&
-        (textAreaHTML.value[textAreaHTML.selectionStart] == '}'))) {
-
-        evt.preventDefault();
-
-        textAreaHTML.value = textAreaHTML.value.substring(0, start - 1)
-            + textAreaHTML.value.substring(end + 1);
-
-        textAreaHTML.selectionStart = textAreaHTML.selectionEnd = start - 1;
-    }
-};
-
-
-const handleBracket = evt => {
-    evt.preventDefault();
-    const start = textAreaHTML.selectionStart;
-    const end = textAreaHTML.selectionEnd;
-
-    textAreaHTML.value = textAreaHTML.value.substring(0, start) +
-        "()" + textAreaHTML.value.substring(end);
-
-    textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
-};
-
-const handleCurly = evt => {
-    evt.preventDefault();
-    const start = textAreaHTML.selectionStart;
-    const end = textAreaHTML.selectionEnd;
-
-    textAreaHTML.value = textAreaHTML.value.substring(0, start) +
-        "{}" + textAreaHTML.value.substring(end);
-
-    textAreaHTML.selectionStart = textAreaHTML.selectionEnd = end + 1;
-};
-
-// Init
 init(() => {
-    getLastCode();
+    editor.load();
 });
 
 //---------- WASM ==========
 init(() => {
     let interpreter = null;
 
-    const source = () => document.getElementById('userinput').value;
-
     //---------- VERIFICAR CÓDIGO  ==========
     document.getElementById('verify').onclick = () => {
         interpreter = null;
 
-        if (textAreaHTML.value == '') {
+        if (editor.content == '') {
             logAreaText.textContent = 'Entrada vazia!';
             toggleLogColor(false);
         } else {
             try {
-                wasm.check(source());
+                wasm.check(editor.content);
                 logAreaText.textContent = 'Código OK!';
                 toggleLogColor(true);
             } catch (errors) {
