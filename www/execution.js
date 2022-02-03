@@ -204,12 +204,17 @@ init(() => {
     compileTest()
 
     //---------- HIGHLIGHT LINHA ATUAL ==========
-    let lastLine = tableCode.firstElementChild.firstChild;
-    lastLine.classList.add('line_selected');
+    let lastLine;
+    if (tableCode.firstElementChild != undefined) {
+        lastLine = tableCode.firstElementChild.firstChild;
+    }
+    if (lastLine) {
+        lastLine.classList.add('line_selected');
+    }
     let firstLine = lastLine;
     const lineHighlight = (lineId) => {
         try {
-            if(lastLine) {
+            if (lastLine) {
                 lastLine.classList.remove('line_selected')
             }
 
@@ -240,11 +245,13 @@ init(() => {
     const cleanHTML = () => {
         numPassos.innerHTML = '0';
         outputSpan.innerHTML = '';
-        lastLine.classList.remove('line_selected');
-        firstLine.classList.add('line_selected');
-        lastLine = firstLine;
+        if (lastLine) {
+            lastLine.classList.remove('line_selected');
+            firstLine.classList.add('line_selected');
+            lastLine = firstLine;
+        }
 
-        for(let i in regSection.children) {
+        for (let i in regSection.children) {
             try {
                 regSection.children[i].lastChild.innerHTML = 0
             } catch(e) {}
