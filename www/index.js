@@ -18,9 +18,13 @@ class Editor {
         this.loadCode = params.loadCode;
         this.saveCodeHist = params.saveCodeHist;
         this.loadCodeHist = params.loadCodeHist;
-        this.history = [];
+        this.prevState = { selectionStart: 0, selectionEnd: 0, content: ''};
+        this.history = { cursor: 0, entries: [] };
+        this.historyLimit = params.historyLimit || 5000;
 
-        this.targetTextArea.addEventListener('keyup', evt => {
+        this.refreshPrevState();
+
+        this.targetTextArea.addEventListener('selectionchange', evt => {
             this.refreshContent();
         });
 
@@ -29,16 +33,22 @@ class Editor {
         });
 
         this.targetTextArea.addEventListener('scroll', evt => {
-            this.syncScroll();
+            this.refreshPosition();
         });
 
         this.targetTextArea.addEventListener('input', evt => {
-            this.refreshContent();
+            this.handleUserEdit(evt);
         });
 
         this.targetTextArea.addEventListener('click', evt => {
             this.refreshContent();
         });
+    }
+
+    refreshPrevState() {
+        this.prevState.selectionStart = this.targetTextArea.selectionStart;
+        this.prevState.selectionEnd = this.targetTextArea.selectionEnd;
+        this.prevState.content = this.targetTextArea.value;
     }
 
     updateContent(content) {
@@ -50,36 +60,89 @@ class Editor {
         return this.targetTextArea.value;
     }
 
-    addToHistory(...actions) {
-        this.history.push(actions);
+    redo() {
+        if (this.history.cursor < this.history.entries.length) {
+            this.apply(this.history.entries[this.history.cursor]);
+            this.history.cursor++;
+        }
+    }
+
+    undo() {
+        if (this.history.cursor > 0) {
+            this.history.cursor--;
+            this.applyRev(this.history.entries[this.history.cursor]);
+        }
+    }
+
+    isHistoryValid() {
+        if (typeof this.history != 'object' || this.history == null) {
+            return false;
+        }
+        if (typeof this.history.cursor != 'number') {
+            return false;
+        }
+        if (!(this.history.entries instanceof Array)) {
+            return false;
+        }
+        for (const entry of this.history.entries) {
+            if (typeof entry != 'object' || entry == null) {
+                return false;
+            }
+            if (typeof entry.start != 'number') {
+                return false;
+            }
+            if (typeof entry.oldText != 'string') {
+                return false;
+            }
+            if (typeof entry.newText != 'string') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    addToHistory(action) {
+        this.history.entries.splice(this.history.cursor);
+        if (this.history.entries.length >= this.historyLimit) {
+            const newStart = this.history.entries.length - this.historyLimit;
+            this.history.entries.splice(0, newStart);
+            this.history.cursor -= this.historyLimit;
+        }
+        this.history.entries.push(action);
+        this.history.cursor++;
         this.saveHistory();
     }
 
-    apply(...actions) {
-        for (const action of actions) {
-            const start = this.targetTextArea.selectionStart;
-            const end = this.targetTextArea.selectionStart;
-            switch (action.type) {
-                case 'insert': {
-                    const prev = this.targetTextArea.value.substring(0, start);
-                    const next = this.targetTextArea.value.substring(end);
-                    this.targetTextArea.value = prev + action.data + next;
-                    const newPosition = start + action.data.length;
-                    this.targetTextArea.selectionStart = newPosition;
-                    this.targetTextArea.selectionEnd = newPosition;
-                    break;
-                }
-                case 'delete': {
-                    const prev = this.targetTextArea.value.substring(0, start);
-                    const next = this.targetTextArea.value.substring(end);
-                    this.targetTextArea.value = prev + next;
-                    this.targetTextArea.selectionStart = start;
-                    this.targetTextArea.selectionEnd = start;
-                    break;
-                }
-            }
-        }
-        this.addToHistory(...actions);
+    apply(action) {
+        const end = action.start + action.oldText.length;
+        const prev = this.targetTextArea.value.substring(0, action.start);
+        const next = this.targetTextArea.value.substring(end);
+        this.targetTextArea.value = prev + action.newText + next;
+
+        const newPosition = action.start + action.newText.length;
+        this.targetTextArea.selectionStart = newPosition;
+        this.targetTextArea.selectionEnd = newPosition;
+    }
+
+    applyRev(action) {
+        const end = action.start + action.newText.length;
+        const prev = this.targetTextArea.value.substring(0, action.start);
+        const next = this.targetTextArea.value.substring(end);
+        this.targetTextArea.value = prev + action.oldText + next;
+
+        const newPosition = action.start + action.oldText.length;
+        this.targetTextArea.selectionStart = newPosition;
+        this.targetTextArea.selectionEnd = newPosition;
+    }
+
+    edit(newText) {
+        const start = this.targetTextArea.selectionStart;
+        const end = this.targetTextArea.selectionEnd;
+        const oldText = this.targetTextArea.value.substring(start, end);
+        const action = { start, oldText, newText };
+
+        this.apply(action);
+        this.addToHistory(action);
         this.refreshContent();
     }
 
@@ -87,15 +150,22 @@ class Editor {
         this.targetTextArea.value = this.loadCode();
         try {
             this.history = this.loadCodeHist();
+            if (!this.isHistoryValid()) {
+                this.resetHistory();
+            }
         } catch (error) {
             if (error instanceof SyntaxError) {
-                this.history = [];
-                this.saveHistory();
+                this.resetHistory();
             } else {
                 throw error;
             }
         }
         this.refreshContent();
+    }
+
+    resetHistory() {
+        this.history = { cursor: 0, entries: [] };
+        this.saveHistory();
     }
 
     saveContent() {
@@ -120,9 +190,10 @@ class Editor {
     }
 
     refreshContent() {
+        this.refreshPrevState();
         this.highlight();
-        this.saveContent();
         this.refreshPosition();
+        this.saveContent();
     }
 
     updateLineColumn() {
@@ -159,40 +230,73 @@ class Editor {
         );
     }
 
+    handleUserEdit(evt) {
+        evt.preventDefault();
+        const start = this.prevState.selectionStart;
+        const end = this.prevState.selectionEnd;
+        const newEnd = this.targetTextArea.selectionEnd;
+        const oldText = this.prevState.content.substring(start, end);
+        const newText = this.targetTextArea.value.substring(start, newEnd);
+        const action = { start, oldText, newText };
+
+        this.addToHistory(action);
+        this.refreshContent();
+    }
+
     handleTab(evt) {
         evt.preventDefault();
-        this.apply({ type: 'insert', data: '    ' });
+        this.edit('    ');
     }
 
     handleEnter(evt) {
         if (this.isBetweenCurlies()) {
             evt.preventDefault();
-            this.apply({ type: 'insert', data: '\n    \n' });
+            this.edit('\n    \n');
+            this.targetTextArea.selectionStart--;
+            this.targetTextArea.selectionEnd--;
         }
     }
 
     handleBackspace(evt) {
         if (this.isBetweenCurlies() || this.isBetweenParens()) {
             evt.preventDefault();
-            this.textAreaHTML.selectionStart--;
-            this.textAreaHTML.selectionEnd++;
-            this.apply({ type: 'delete' });
+            this.targetTextArea.selectionStart--;
+            this.targetTextArea.selectionEnd++;
+            this.edit('');
         }
     }
 
-
     handleParens(evt) {
         evt.preventDefault();
-        this.apply({ type: 'insert', data: '()' });
+        this.edit('()');
+        this.targetTextArea.selectionStart--;
+        this.targetTextArea.selectionEnd--;
     }
 
     handleCurly(evt) {
         evt.preventDefault();
-        this.apply({ type: 'insert', data: '{}' });
+        this.edit('{}');
+        this.targetTextArea.selectionStart--;
+        this.targetTextArea.selectionEnd--;
+    }
+
+    handleCtrlZ(evt) {
+        evt.preventDefault();
+        this.undo();
+    }
+
+    handleCtrlShiftZ(evt) {
+        evt.preventDefault();
+        this.redo();
+    }
+
+    handleCtrlY(evt) {
+        evt.preventDefault();
+        this.redo();
     }
 
     handleKey(evt) {
-        const keyMap = {
+        const singleKeyMap = {
             'Tab': evt => this.handleTab(evt),
             'Enter': evt => this.handleEnter(evt),
             'Backspace': evt => this.handleBackspace(evt),
@@ -200,8 +304,25 @@ class Editor {
             '{': evt => this.handleCurly(evt)
         };
 
-        if (evt.key in keyMap) {
-            keyMap[evt.key](evt);
+        const ctrlKeyMap = {
+            'z': evt => this.handleCtrlZ(evt),
+            'y': evt => this.handleCtrlY(evt),
+        };
+
+        const ctrlShiftKeyMap = {
+            'Z': evt => this.handleCtrlShiftZ(evt),
+        };
+
+        if (evt.ctrlKey || evt.cmdKey) {
+            if (evt.shiftKey) {
+                if (evt.key in ctrlShiftKeyMap) {
+                    ctrlShiftKeyMap[evt.key](evt);
+                }
+            } else if (evt.key in ctrlKeyMap) {
+                ctrlKeyMap[evt.key](evt);
+            }
+        } else if (evt.key in singleKeyMap) {
+            singleKeyMap[evt.key](evt);
         }
     }
 }
