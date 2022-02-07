@@ -77,7 +77,7 @@ impl<'src> Lexer<'src> {
                     self.next_char();
                     self.raise(diagnostics, InvalidChar { character });
                     Err(Failure::TryAgain)
-                },
+                }
                 None => Err(Failure::EndOfInput),
             }
         }

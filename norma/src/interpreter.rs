@@ -6,12 +6,7 @@ mod test;
 pub mod program;
 
 use program::{
-    Instruction,
-    InstructionKind,
-    Operation,
-    OperationKind,
-    Program,
-    Test,
+    Instruction, InstructionKind, Operation, OperationKind, Program, Test,
     TestKind,
 };
 
@@ -116,7 +111,7 @@ impl Interpreter {
             Some(instruction) => {
                 self.run_instruction(instruction);
                 true
-            },
+            }
             None => false,
         }
     }
@@ -126,7 +121,7 @@ impl Interpreter {
     /// de `max_steps`, a execução para. Retorna `true` se ainda restam
     /// instruções para serem executadas.
     pub fn run_steps(&mut self, max_steps: u32) -> bool {
-        for _ in 0 .. max_steps {
+        for _ in 0..max_steps {
             if !self.run_step() {
                 return false;
             }
@@ -162,7 +157,7 @@ impl Interpreter {
             InstructionKind::Test(test) => self.run_test(test),
             InstructionKind::Operation(operation) => {
                 self.run_operation(operation)
-            },
+            }
         }
     }
 
@@ -175,19 +170,19 @@ impl Interpreter {
             OperationKind::Clear(register) => self.run_clear(&register),
             OperationKind::Load(register, constant) => {
                 self.run_load(&register, &constant)
-            },
+            }
             OperationKind::AddConst(register, constant) => {
                 self.run_add_const(&register, &constant)
-            },
+            }
             OperationKind::Add(reg_dest, reg_src, reg_tmp) => {
                 self.run_add(&reg_dest, &reg_src, &reg_tmp)
-            },
+            }
             OperationKind::SubConst(register, constant) => {
                 self.run_sub_const(&register, &constant)
-            },
+            }
             OperationKind::Sub(reg_dest, reg_src, reg_tmp) => {
                 self.run_sub(&reg_dest, &reg_src, &reg_tmp)
-            },
+            }
         }
         self.current = operation.next;
     }
@@ -200,16 +195,16 @@ impl Interpreter {
             TestKind::Zero(register) => self.test_zero(&register),
             TestKind::EqualsConst(register, constant) => {
                 self.test_equals_const(&register, &constant)
-            },
+            }
             TestKind::Equals(reg_left, reg_right, reg_tmp) => {
                 self.test_equals(&reg_left, &reg_right, &reg_tmp)
-            },
+            }
             TestKind::LessThanConst(register, constant) => {
                 self.test_less_than_const(&register, &constant)
-            },
+            }
             TestKind::LessThan(reg_left, reg_right, reg_tmp) => {
                 self.test_less_than(&reg_left, &reg_right, &reg_tmp)
-            },
+            }
         };
         self.current = if success { test.next_then } else { test.next_else };
     }

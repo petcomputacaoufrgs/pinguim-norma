@@ -14,28 +14,18 @@ use crate::{
         parser::ast,
     },
     interpreter::program::{
-        Instruction,
-        InstructionKind,
-        Operation,
-        OperationKind,
-        Program,
-        Test,
+        Instruction, InstructionKind, Operation, OperationKind, Program, Test,
         TestKind,
     },
 };
 use artifacts::{ExpansionRequired, PreCompiled, WorkingCode, WorkingMacro};
 use error::{
-    IncompatibleMacroType,
-    MismatchedArgType,
-    MismatchedArgsNumber,
-    RecursiveMacro,
-    UndefinedMacro,
+    IncompatibleMacroType, MismatchedArgType, MismatchedArgsNumber,
+    RecursiveMacro, UndefinedMacro,
 };
 use indexmap::{IndexMap, IndexSet};
 use macro_call::{
-    MacroCallExpansor,
-    OperMacroCallExpansor,
-    TestMacroCallExpansor,
+    MacroCallExpansor, OperMacroCallExpansor, TestMacroCallExpansor,
 };
 use std::collections::HashMap;
 
@@ -198,7 +188,7 @@ impl<'ast> Expansor<'ast> {
                         self.push_working_macro(working_macro);
                         self.push_working_macro(request.working_macro);
                         break;
-                    },
+                    }
                 }
             } else {
                 self.finish_working_macro(working_macro);
@@ -265,7 +255,7 @@ impl<'ast> Expansor<'ast> {
                     diagnostics,
                     validate_label,
                 )?;
-            },
+            }
 
             ast::InstructionType::Test(test) => {
                 self.precompile_test(
@@ -276,7 +266,7 @@ impl<'ast> Expansor<'ast> {
                     diagnostics,
                     validate_label,
                 )?;
-            },
+            }
         }
 
         Ok(())
@@ -325,7 +315,7 @@ impl<'ast> Expansor<'ast> {
                 working_code.insert_instr(instruction);
 
                 Ok(())
-            },
+            }
             ast::OperationType::Macro(macro_name, params) => self
                 .precompile_macro_call(
                     label,
@@ -399,7 +389,7 @@ impl<'ast> Expansor<'ast> {
                 working_code.insert_instr(instruction);
 
                 Ok(())
-            },
+            }
             ast::TestType::Macro(macro_name, params) => self
                 .precompile_macro_call(
                     label,
@@ -593,7 +583,7 @@ impl<'ast> Expansor<'ast> {
                 );
 
                 InstructionKind::Operation(expanded_operation)
-            },
+            }
 
             InstructionKind::Test(test) => {
                 let expanded_test = self.expand_test_instr(
@@ -606,7 +596,7 @@ impl<'ast> Expansor<'ast> {
                 );
 
                 InstructionKind::Test(expanded_test)
-            },
+            }
         };
 
         Instruction::new(
@@ -622,7 +612,7 @@ impl<'ast> Expansor<'ast> {
     }
 
     /// Expande uma instrução do tipo operação
-    /// 
+    ///
     /// - `params_map`: mapeia parâmetros formais do macro pré-compilado para os
     ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
     /// - `operation`: é a operação da instrução a ser compilada.
@@ -659,7 +649,7 @@ impl<'ast> Expansor<'ast> {
     }
 
     /// Expande uma instrução do tipo teste
-    /// 
+    ///
     /// - `params_map`: mapeia parâmetros formais do macro pré-compilado para os
     ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
     /// - `teste`: é o teste da instrução a ser compilada.
@@ -703,7 +693,7 @@ impl<'ast> Expansor<'ast> {
     }
 
     /// Expande um dado rótulo
-    /// 
+    ///
     /// - `inner_precomp`: é a precompilação da macro interna.
     /// - `inner_next_label`: o próximo label da instrução atual da macro chamada
     /// - `outer_label`: é o label da instrução que chama a macro de dentro. Será
@@ -743,7 +733,7 @@ impl<'ast> Expansor<'ast> {
     /// Renomeia registradores que são parâmetros na definição da macro chamada,
     /// trocando-os pelos argumentos da chamada. Referente a isntrução do
     /// tipo operação
-    /// 
+    ///
     /// - `operation_kind`: o tipo de operação executado pela instrução
     /// - `params_map`: mapeia parâmetros formais do macro pré-compilado para os
     ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
@@ -760,7 +750,7 @@ impl<'ast> Expansor<'ast> {
     /// Renomeia registradores que são parâmetros na definição da macro chamada,
     /// trocando-os pelos argumentos da chamada. Referente a isntrução do
     /// tipo teste
-    /// 
+    ///
     /// - `test_kind`: o tipo de teste executado pela instrução
     /// - `params_map`: mapeia parâmetros formais do macro pré-compilado para os
     ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
@@ -777,7 +767,7 @@ impl<'ast> Expansor<'ast> {
     /// Renomeia um registrador. Caso o registrador seja um parâmetro, será
     /// substituido pelo argumento correspondente na chamada. Caso não seja
     /// um parâmetro, o registrador é inalterado.
-    /// 
+    ///
     /// - `params_map`: mapeia parâmetros formais do macro pré-compilado para os
     ///   argumentos passados. Os Argumentos se encontram na chamada de fora.
     /// - `register`: registrador dos parâmetros formais a ser mapeado
@@ -863,7 +853,7 @@ impl<'ast> Expansor<'ast> {
                 diagnostics
                     .raise(Error::new(error_cause, call_macro_name.span));
                 "?"
-            },
+            }
         }
     }
 }

@@ -9,36 +9,22 @@ use crate::compiler::{
     lexer::token::{BuiltInOperation, BuiltInTest, Token, TokenType},
 };
 use ast::{
-    Instruction,
-    InstructionType,
-    Macro,
-    MacroArgument,
-    MacroType,
-    Main,
-    Operation,
-    OperationType,
-    Program,
-    Symbol,
-    Test,
-    TestType,
+    Instruction, InstructionType, Macro, MacroArgument, MacroType, Main,
+    Operation, OperationType, Program, Symbol, Test, TestType,
 };
 use error::{
-    LabelAlreadyDeclared,
-    MacroAlreadyDeclared,
-    MainAlreadyDeclared,
-    MainNotDeclared,
-    UnexpectedEndOfInput,
+    InvalidLabel, LabelAlreadyDeclared, MacroAlreadyDeclared,
+    MainAlreadyDeclared, MainNotDeclared, UnexpectedEndOfInput,
     UnexpectedToken,
-    InvalidLabel,
 };
 use indexmap::IndexMap;
 use num_bigint::BigUint;
 use std::str::FromStr;
 
 /// Cria uma estrutura Parser e parsa a lista de tokens para um programa
-/// 
+///
 /// - `tokens`: vetor de tokens
-/// - `diagnostics`: vetor que armazena erros coletados durante a compilação 
+/// - `diagnostics`: vetor que armazena erros coletados durante a compilação
 pub fn parse(
     tokens: Vec<Token>,
     diagnostics: &mut Diagnostics,
@@ -62,7 +48,7 @@ struct Parser {
 
 impl Parser {
     /// Cria uma nova estrutura de Parser
-    /// 
+    ///
     /// - `tokens`: vetor de tokens
     fn new(tokens: Vec<Token>) -> Self {
         Parser { tokens, curr_token: 0 }
@@ -74,7 +60,7 @@ impl Parser {
     }
 
     /// Pega o token o qual está sendo parsado no momento e garante que ele exista
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn require_current(
         &self,
@@ -85,7 +71,7 @@ impl Parser {
             None => {
                 diagnostics.raise(Error::with_no_span(UnexpectedEndOfInput));
                 Err(Abort)
-            },
+            }
         }
     }
 
@@ -95,7 +81,7 @@ impl Parser {
     }
 
     /// Confere se o próximo token é do tipo esperado, adicionando erro no diagnóstico quando não for
-    /// 
+    ///
     /// - `expected_type`: tipo de token que é esperado encontrar
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn expect(
@@ -119,7 +105,7 @@ impl Parser {
     }
 
     /// Confere se o próximo token é do tipo esperado, retornando true se for, false se não for
-    /// 
+    ///
     /// - `expected_type`: tipo de token esperado
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn check_expect(
@@ -138,7 +124,7 @@ impl Parser {
     }
 
     /// Faz o parse do vetor de tokens em um programa
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_program(
         &mut self,
@@ -163,7 +149,7 @@ impl Parser {
                         diagnostics
                             .raise(Error::new(MainAlreadyDeclared, token_span));
                     }
-                },
+                }
 
                 TokenType::Operation => {
                     if let Some(macro_aux) =
@@ -175,7 +161,7 @@ impl Parser {
                             diagnostics,
                         );
                     }
-                },
+                }
 
                 TokenType::Test => {
                     if let Some(macro_aux) =
@@ -187,7 +173,7 @@ impl Parser {
                             diagnostics,
                         );
                     }
-                },
+                }
 
                 _ => {
                     let expected_types = vec![
@@ -199,7 +185,7 @@ impl Parser {
                         UnexpectedToken { expected_types },
                         token.span,
                     ));
-                },
+                }
             }
         }
 
@@ -212,7 +198,7 @@ impl Parser {
     }
 
     /// Insere definição de macro na estrutura que armazena todas as definições de macros
-    /// 
+    ///
     /// - `macros`: estrutura <nome da macro, definição da macro>
     /// - `macro_def`: definição de uma macro
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
@@ -238,7 +224,7 @@ impl Parser {
     }
 
     /// Faz o parse do vetor de tokens no programa da main
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_main(
         &mut self,
@@ -251,7 +237,7 @@ impl Parser {
     }
 
     /// Faz o parse do código de qualquer função
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_func_body(
         &mut self,
@@ -289,7 +275,7 @@ impl Parser {
     }
 
     /// Faz o parse da definição de uma macro
-    /// 
+    ///
     /// - `macro_type`: tipo da macro
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_macro_def(
@@ -311,7 +297,7 @@ impl Parser {
     }
 
     /// Faz o parse do nome de uma macro
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_macro_name(
         &mut self,
@@ -336,7 +322,7 @@ impl Parser {
     }
 
     /// Faz o parse dos parametros formais de uma macro
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_macro_def_params(
         &mut self,
@@ -346,7 +332,7 @@ impl Parser {
     }
 
     /// Faz o parse uma instrução do corpo (código) da macro
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_instr(
         &mut self,
@@ -362,17 +348,14 @@ impl Parser {
             if label.content == "true" || label.content == "false" {
                 diagnostics.raise(Error::new(InvalidLabel, label.span));
             }
-            Instruction {
-                label,
-                instruction_type,
-            }
-        } );
+            Instruction { label, instruction_type }
+        });
 
         Ok(instr)
     }
 
     /// Faz o parse o tipo de uma instrução
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_instr_type(
         &mut self,
@@ -397,7 +380,7 @@ impl Parser {
     }
 
     /// Faz o parse uma instrução do tipo operação
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_instr_op(
         &mut self,
@@ -419,7 +402,7 @@ impl Parser {
     }
 
     /// Faz o parse o tipo de operação de uma instrução do tipo operação
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_operation_type(
         &mut self,
@@ -436,14 +419,14 @@ impl Parser {
 
                 let arguments = self.parse_macro_args(diagnostics)?;
                 Ok(Some(OperationType::Macro(macro_name, arguments)))
-            },
+            }
 
             TokenType::BuiltInOper(oper) => {
                 self.next();
                 let argument_option = self.parse_builtin_arg(diagnostics)?;
                 Ok(argument_option
                     .map(|argument| OperationType::BuiltIn(oper, argument)))
-            },
+            }
 
             _ => {
                 let expected_types = vec![
@@ -456,12 +439,12 @@ impl Parser {
                     token.span,
                 ));
                 Ok(None)
-            },
+            }
         }
     }
 
     /// Faz o parse uma instrução do tipo teste
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_instr_test(
         &mut self,
@@ -489,7 +472,7 @@ impl Parser {
     }
 
     /// Faz o parse do tipo de teste de uma instrução do tipo teste
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_test_type(
         &mut self,
@@ -506,14 +489,14 @@ impl Parser {
 
                 let argument = self.parse_macro_args(diagnostics)?;
                 Ok(Some(TestType::Macro(macro_name, argument)))
-            },
+            }
 
             TokenType::BuiltInTest(test) => {
                 self.next();
                 let argument_option = self.parse_builtin_arg(diagnostics)?;
                 Ok(argument_option
                     .map(|argument| TestType::BuiltIn(test, argument)))
-            },
+            }
 
             _ => {
                 let expected_types = vec![
@@ -525,12 +508,12 @@ impl Parser {
                     token.span,
                 ));
                 Ok(None)
-            },
+            }
         }
     }
 
     /// Faz o parse de argumentos de testes ou operações builtin
-    /// 
+    ///
     ///  - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_builtin_arg(
         &mut self,
@@ -546,7 +529,7 @@ impl Parser {
     }
 
     /// Faz o parse de qualquer lista de parâmetros/argumentos
-    /// 
+    ///
     /// - `parse_param`: função genérica que faz o parse de parâmetros
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_param_list<F, T>(
@@ -584,7 +567,7 @@ impl Parser {
     }
 
     /// Faz o parse dos argumentos da macro
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_macro_args(
         &mut self,
@@ -594,7 +577,7 @@ impl Parser {
     }
 
     /// Faz o parse de um argumento por vez
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_macro_arg(
         &mut self,
@@ -608,7 +591,7 @@ impl Parser {
                     Symbol { content: token.content.clone(), span: token.span };
                 self.next();
                 Ok(Some(MacroArgument::Register(symbol)))
-            },
+            }
 
             TokenType::Number => {
                 let constant = BigUint::from_str(&token.content).expect(
@@ -616,7 +599,7 @@ impl Parser {
                 );
                 self.next();
                 Ok(Some(MacroArgument::Number(constant)))
-            },
+            }
 
             _ => {
                 let expected_types =
@@ -626,12 +609,12 @@ impl Parser {
                     token.span,
                 ));
                 Ok(None)
-            },
+            }
         }
     }
 
     /// Faz o parse de registradores
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_register(
         &mut self,
@@ -655,7 +638,7 @@ impl Parser {
     }
 
     /// Faz o parse do rótulo de uma instrução
-    /// 
+    ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn parse_label(
         &mut self,
@@ -670,7 +653,7 @@ impl Parser {
 
                 self.next();
                 Ok(Some(label))
-            },
+            }
 
             _ => {
                 let expected_types =
@@ -680,7 +663,7 @@ impl Parser {
                     token.span,
                 ));
                 Ok(None)
-            },
+            }
         }
     }
 }

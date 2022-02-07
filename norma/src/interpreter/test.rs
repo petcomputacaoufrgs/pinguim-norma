@@ -1,11 +1,6 @@
 use super::{
     program::{
-        Instruction,
-        InstructionKind,
-        Operation,
-        OperationKind,
-        Program,
-        Test,
+        Instruction, InstructionKind, Operation, OperationKind, Program, Test,
         TestKind,
     },
     Interpreter,

@@ -23,7 +23,7 @@ pub struct PreCompiled<'ast> {
 
 impl<'ast> PreCompiled<'ast> {
     /// Cria uma nova estrutura PreCompiled
-    /// 
+    ///
     /// - `macro_data`: informações originais da macro
     pub fn new(macro_data: &'ast ast::Macro) -> Self {
         PreCompiled { macro_data, program: Program::empty() }
@@ -57,14 +57,14 @@ impl WorkingCode {
     }
 
     /// Insere uma nova instrução precompilada no programa
-    /// 
+    ///
     /// - `instruction`: instrução precompilada
     pub fn insert_instr(&mut self, instruction: Instruction) {
         self.program.insert(instruction)
     }
 
     /// Insere novo conjunto chave-valor de label expandida
-    /// 
+    ///
     /// - `old_label`: label antigo
     /// - `new_label`: label expandido
     pub fn insert_expansion(&mut self, old_label: String, new_label: String) {
@@ -103,7 +103,7 @@ pub struct WorkingMacro<'ast> {
 
 impl<'ast> WorkingMacro<'ast> {
     /// Cria uma nova estrutura WorkingCode
-    /// 
+    ///
     /// - `macro_data`: informações originais da macro
     pub fn new(macro_data: &'ast ast::Macro) -> Self {
         WorkingMacro { code: WorkingCode::new(), macro_data, instr_index: 0 }
