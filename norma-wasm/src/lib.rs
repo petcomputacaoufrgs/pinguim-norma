@@ -150,10 +150,10 @@ impl InterpreterHandle {
 
         registers.sort_by(|left, right| {
             match (left.name.as_str(), right.name.as_str()) {
-                ("X", "Y") => Ordering::Less,
-                ("Y", "X") => Ordering::Greater,
-                ("X", _) | ("Y", _) => Ordering::Less,
-                (_, "X") | (_, "Y") => Ordering::Greater,
+                ("X", _) => Ordering::Less,
+                (_, "X") => Ordering::Greater,
+                ("Y", _) => Ordering::Less,
+                (_, "Y") => Ordering::Greater,
                 _ => left.name.cmp(&right.name),
             }
         });
