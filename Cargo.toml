@@ -1,0 +1,6 @@
+[workspace]
+members = ["./norma", "./norma-wasm"]
+
+[profile.release]
+# Link-Time Optimization
+lto = true

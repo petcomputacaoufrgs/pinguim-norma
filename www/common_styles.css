@@ -20,8 +20,11 @@
     --code-built-in-funcs: #F9BC41;
     --code-label-color: #8FBF7F;
     --code-background-color: #282828;
-    --error-font-color: #FF7676;
-    --highlight-color: #D2C656;
+    --code-punctuation: #8FBF7F;
+    --code-comment-color: #a0a0a0;
+    --error-font-color: #F84B3C;
+    --correct-font-color: #8FBF7F;
+    --highlight-color: #C19898;
 
     /* General colors */
     --dark-color: #121212;
@@ -47,7 +50,10 @@
     --code-built-in-funcs: #B47523;
     --code-label-color: #447A59;
     --code-background-color: #FBF2D1;
-    --error-font-color: #FF5977;
+    --code-punctuation: #447A59;
+    --code-comment-color: #585858;
+    --error-font-color: #9B0511;
+    --correct-font-color: #447A59;
     --highlight-color: #B9A1D8;
 }
 
@@ -79,7 +85,6 @@ body {
     background-color: var(--header-background-color);
     color: var(--header-font-color);
 }
-
 
 /* THEME SWITCH */
 .theme-switch {
@@ -129,6 +134,14 @@ input:checked + .slider > span {
     border-radius: 2.125rem;
 }
 
+.selected-bracket {
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.punctuation {
+    color: var(--code-punctuation);
+}
 
 /* ======> INDEX PAGE <====== */
 /* DOWNLOAD AND UPLOAD BUTTONS */
@@ -172,6 +185,7 @@ input:checked + .slider > span {
     padding: 10px;
     width: 56vw;
     min-height: 40vh;
+    overflow-y: scroll;
     box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.25);
     color: var(--code-font-color);
     background: var(--textarea-background);
@@ -189,13 +203,16 @@ input:checked + .slider > span {
 }
 
 .highlighting {
+    font-size: 1.06rem;
     width: 56vw;
     height: 40vh;
     max-height: 40vh;
     margin: 0;
+    padding: 10px;
     white-space: pre-wrap; 
     word-wrap: break-word;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
 
 .front {
@@ -206,7 +223,6 @@ input:checked + .slider > span {
 .behind {
     position: absolute;
     margin: 0 2vw;
-    padding: 10px;
     background-clip: padding-box;
     background-color: var(--code-background-color);
     z-index: 0;
@@ -224,6 +240,11 @@ input:checked + .slider > span {
     color: var(--code-built-in-funcs);
 }
 
+.comment {
+    color: var(--code-comment-color);
+}
+
+
 /* LOG AND EXECUTION AREA */
 /* Log area */
 .log-and-execution-area h2 {
@@ -234,17 +255,23 @@ input:checked + .slider > span {
 
 .log-area div {
     padding: 0.4rem;
-    color: var(--error-font-color);
+    white-space: pre-line;
     box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.25);
 }
 
-.log-area__errors {
+.log-area__errors, .log-area__corrects {
     background-color: var(--code-background-color);
     padding: 0.6rem;
     font-size: 1rem;
     color: var(--error-font-color);
     min-width: 30vw;
     min-height: 10vh;
+    max-height: 16vh;
+    overflow-y: scroll;
+}
+
+.log-area__corrects {
+    color: var(--correct-font-color);
 }
 
 /* Verify and execute code buttons */
@@ -266,6 +293,7 @@ input:checked + .slider > span {
     padding: 1rem 1.5rem;
     background-color: var(--execution-button-background);
     color: var(--main-font-color);
+    cursor: pointer;
 }
 
 
@@ -296,7 +324,6 @@ input:checked + .slider > span {
     padding: 0 2vmax;
 }
 
-
 /* INPUT WORD */
 .input-code {
     margin: 1rem 0;
@@ -307,12 +334,13 @@ input:checked + .slider > span {
 }
 
 .input_box {
-    background: var(--textarea-background);
+    background: var(--code-background-color);
     color:var(--main-font-color);
     border: none;
     box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.25);
     border-radius: 5px;
     padding: 0.3rem;
+    font-size: 1.1rem;
 }
 
 
@@ -333,9 +361,14 @@ input:checked + .slider > span {
 }
 
 
-/* COMPILED PROGRAM AND TREE VISUALIZATION */
+/* COMPILED PROGRAM */
 .compiled-program {
     width: 50vw;
+    padding: 0 2vmax;
+}
+
+.table-compiled-program {
+    font-size: 3rem;
 }
 
 
@@ -389,5 +422,6 @@ input:checked + .slider > span {
 
     .compiled-program {
         width: 92vw;
+        margin-bottom: 1rem;
     }
 }

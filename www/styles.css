@@ -11,8 +11,25 @@ body {
 
 /* TEXTAREA FOR CODE */
 .code-textarea {
-    margin: 0 2vw;
     background: transparent;
+}
+
+.line-column-area, .code-textarea {
+    margin: 0 2vw;
+}
+
+.line-column-area {
+    margin-top: 1vw;
+    font-size: 1.06rem;
+}
+
+.line-column {
+    font-weight: bold;
+}
+
+/* STEP CONTROL */
+.step-control {
+    width: 60%;
 }
 
 /* REGISTERS */
@@ -22,19 +39,19 @@ body {
 
 .register_section__registers {
     display: flex;
+    flex-wrap: wrap;
 }
 
 .register {
     text-align: center;
     min-height: 4rem;
     min-width: 3.5rem;
-    width: 6.5vmin;
-    height: 8vmin;
     background-color: var(--register-lighter-background);
     color: var(--dark-color);
     border-radius: 0.6rem;
     font-size: 2rem;
     margin-right: 1rem;
+    margin-bottom: 1rem;
 }
 
 .register_name {
@@ -54,6 +71,7 @@ body {
 
 /* COMPILED CODE */
 table, tr, td {
+    font-family: monospace;
     background-color: var(--textarea-background);
     color: var(--main-font-color);
     border-collapse: collapse;
@@ -63,14 +81,21 @@ table, tr, td {
     background-color: var(--highlight-color);
 }
 
-.pointer_column {
-    width: 2rem;
-}
-
 .step_column {
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 6px;
+    padding-bottom: 6px;
     width: 4.5rem;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
 }
 
 .program_column {
-    min-width: 20rem;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
 }

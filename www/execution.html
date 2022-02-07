@@ -7,8 +7,6 @@
 		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <title>Máquina Norma</title>
-        <link rel= "stylesheet" href= "styles.css">
-        <link rel= "stylesheet" href= "common_styles.css">
     </head>
     <body>
         <h1 class="simulator-title">Simulador de Máquina Norma</h1>
@@ -32,34 +30,31 @@
                 <!-- Code input -->
                 <div class="input-code">
                     <label for="input" class='input_label'>Entrada</label>
-                    <input type="text" id="input" name="norma_input" class='input_box'>
+                    <input type="text" id="input" name="norma_input" class='input_box' value='0'>
+                </div>
+                <div class="input_label">
+                    <label>Passos: <span id="num-passos">0</span></label>
+                </div>
+                <div class="input_label">
+                    <label>Saída: <span id="saida"></span></label>
                 </div>
 
                 <!-- Control buttons -->
                 <div class='control_buttons'>
-                    <button class='button'>Resetar</button>
-                    <button class='button'>Passo</button>
-                    <button class='button'>Rodar</button>
-                    <button class='button'>Parar</button>
+                    <button class='button' id='reset'>Resetar</button>
+                    <button class='button' id='step'>Passo</button>
+                    <button class='button' id='run'>Rodar</button>
+                    <button class='button' id='abort'>Parar</button>
                 </div>
-            
+
                 <!-- Steps control -->
-                <h2>Espera entre passos (em ms): 0</h2> 
-                <input type="range" min="0" max="500" step="10">
-                <b>Passo: 0</b>
-            
+                <h2>Espera entre passos: <span id="step-header"></span></h2>
+                <input id="step-control" class="step-control" type="range" min="0" max="5000" step="1" value="1000">
+
                 <!-- Registers -->
                 <div class='register_section'>
                     <h2>Registradores</h2>
-                    <div class='register_section__registers'>
-                        <div class='register'>
-                            <h3 class='register_name'> X</h3>
-                            <div class='register_value'> 0</div>
-                        </div>
-                        <div class='register'>
-                            <h3 class='register_name'> Y</h3>
-                            <div class='register_value'> 0</div>
-                        </div>
+                    <div id='registers-section' class='register_section__registers'>
                     </div>
                 </div>
             </div>
@@ -67,20 +62,10 @@
             <!-- Compiled code -->
             <div class="compiled-program">
                 <h2>Programa compilado</h2>
-                <table>
-                    <tr class='line_selected'>
-                        <td class='pointer_column'>→</td>
-                        <td class='step_column'>1.1.1</td>
-                        <td class='program_column'>if A = 0 then goto 1.2.1 else goto 1.1.2</td>
-                    </tr>
-                    <tr>
-                        <td class='pointer_column'></td>
-                        <td class='step_column'>1.1.2</td>
-                        <td class='program_column'>do A := A - 1 goto 1.1.1</td>
-                    </tr>
+                <table id="table-compiled-program">
                 </table>
             </div>
         </div>
-        <script src = "script.js"></script>
+        <script src="./execution.js"></script>
     </body>
 </html>

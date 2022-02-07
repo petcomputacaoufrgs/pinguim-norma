@@ -125,7 +125,7 @@ impl Interpreter {
     /// redefinido após cada instrução). Se chegarmos ao final do programa antes
     /// de `max_steps`, a execução para. Retorna `true` se ainda restam
     /// instruções para serem executadas.
-    pub fn run_steps(&mut self, max_steps: u64) -> bool {
+    pub fn run_steps(&mut self, max_steps: u32) -> bool {
         for _ in 0 .. max_steps {
             if !self.run_step() {
                 return false;

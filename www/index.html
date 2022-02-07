@@ -7,8 +7,6 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com">
 		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-		<link rel= "stylesheet" href= "styles.css">
-		<link rel= "stylesheet" href= "common_styles.css">
 		<title> Máquina Norma </title>
 	</head>
 
@@ -46,25 +44,31 @@
 		<div class="flex-box">
 			<!-- Original code -->
 			<div class="front">
-				<textarea id="userinput" class="code-textarea" onkeyup="highlight()" spellcheck="false"></textarea>
+				<textarea id="userinput" class="code-textarea" spellcheck="false"></textarea>
+                <div class="line-column-area">
+                    Linha: <span class="line-column" id="input-line"></span>,
+                    Coluna: <span class="line-column" id="input-column"></span>
+                </div>
 			</div>
 			<!-- Highlighted code -->
 			<div class="behind">
-				<pre id="codeediting" class="highlighting"><code id="codeholder" class="code-highlight"></code></pre>
+				<pre id="codeediting" class="highlighting"></pre>
 			</div>
 			
 			<div class="log-and-execution-area">
 				<div class="log-area">
 					<h2>Log</h2>
-					<div class='log-area__errors'>
+					<div id="log-area__text" class='log-area__errors'>
 					</div>
 				</div>
 				<div class="button-area execution_buttons">
-					<a class="button" onclick=""> Verificar código </a>
-					<a class="button" href="./execution.html"> Executar o código</a>
+					<a class="button" id="verify" onclick=""> Verificar código </a>
+					<a class="button" id="execute" href="./execution.html"> Executar o código</a>
 				</div>
 			</div>
 		</div>
-		<script src = "script.js"></script>
+		<script src="./index.js" ></script>
+		<script type="text/javascript">
+		</script>
 	</body>
 </html>
