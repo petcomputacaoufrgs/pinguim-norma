@@ -1,4 +1,4 @@
-use std::{fmt, str::FromStr};
+use std::{cmp::Ordering, fmt, str::FromStr};
 
 use norma::{
     compiler::{
@@ -147,6 +147,17 @@ impl InterpreterHandle {
                 value: self.interpreter.machine().get_value(name).to_string(),
             });
         }
+
+        registers.sort_by(|left, right| {
+            match (left.name.as_str(), right.name.as_str()) {
+                ("X", "Y") => Ordering::Less,
+                ("Y", "X") => Ordering::Greater,
+                ("X", _) | ("Y", _) => Ordering::Less,
+                (_, "X") | (_, "Y") => Ordering::Greater,
+                _ => left.name.cmp(&right.name),
+            }
+        });
+
         registers
     }
 
