@@ -33,17 +33,6 @@ pub fn start() {
 // - Resetar interpretador.
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NumberParseError {
-    pub message: String,
-}
-
-impl fmt::Display for NumberParseError {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "{}", self.message)
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportableSpan {
     pub rendered: String,
     pub start: usize,
@@ -197,11 +186,7 @@ impl InterpreterHandle {
                 Ok(())
             },
 
-            Err(error) => {
-                let message = error.to_string();
-                let exported_error = NumberParseError { message };
-                Err(JsValue::from_serde(&exported_error).unwrap())
-            },
+            Err(_) => Err(JsValue::from_str("Número de entrada inválido")),
         }
     }
 
@@ -218,13 +203,15 @@ impl InterpreterHandle {
 
     #[wasm_bindgen(js_name = "runStep")]
     pub fn js_run_step(&mut self) -> JsValue {
-        let running = self.interpreter.run_step();
+        self.interpreter.run_step();
+        let running = self.running();
         JsValue::from_serde(&self.export_status(running)).unwrap()
     }
 
     #[wasm_bindgen(js_name = "runSteps")]
     pub fn js_run_steps(&mut self, max_steps: u32) -> JsValue {
-        let running = self.interpreter.run_steps(max_steps);
+        self.interpreter.run_steps(max_steps);
+        let running = self.running();
         JsValue::from_serde(&self.export_status(running)).unwrap()
     }
 }
