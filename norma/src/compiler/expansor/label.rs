@@ -1,7 +1,5 @@
 use super::error::{
-    InvalidLabelForMain,
-    InvalidLabelForOperMacro,
-    InvalidLabelForTestMacro,
+    InvalidLabelForMain, InvalidLabelForOperMacro, InvalidLabelForTestMacro,
 };
 use crate::compiler::{
     error::{Diagnostics, Error},

@@ -4,7 +4,7 @@ pub trait MacroCallExpansor<'ast> {
     type InstructionKind;
 
     /// Expande o label "true"
-    /// 
+    ///
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_true_label(
         &self,
@@ -12,7 +12,7 @@ pub trait MacroCallExpansor<'ast> {
     ) -> String;
 
     /// Expande o label "false"
-    /// 
+    ///
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_false_label(
         &self,
@@ -20,7 +20,7 @@ pub trait MacroCallExpansor<'ast> {
     ) -> String;
 
     /// Expande labels inválidos
-    /// 
+    ///
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_invalid_label(
         &self,
@@ -37,7 +37,7 @@ impl<'ast> MacroCallExpansor<'ast> for OperMacroCallExpansor {
     type InstructionKind = ast::Operation;
 
     /// Expande o label "true" para operações
-    /// 
+    ///
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_true_label(
         &self,
@@ -47,7 +47,7 @@ impl<'ast> MacroCallExpansor<'ast> for OperMacroCallExpansor {
     }
 
     /// Expande o label "false" para operações
-    /// 
+    ///
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_false_label(
         &self,
@@ -57,7 +57,7 @@ impl<'ast> MacroCallExpansor<'ast> for OperMacroCallExpansor {
     }
 
     /// Expande labels inválidos para fora do programa
-    /// 
+    ///
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_invalid_label(
         &self,
@@ -79,7 +79,7 @@ impl<'ast> MacroCallExpansor<'ast> for TestMacroCallExpansor {
     type InstructionKind = ast::Test;
 
     /// Expande o label "true" para testes
-    /// 
+    ///
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_true_label(
         &self,
@@ -89,7 +89,7 @@ impl<'ast> MacroCallExpansor<'ast> for TestMacroCallExpansor {
     }
 
     /// Expande o label "false" para testes
-    /// 
+    ///
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_false_label(
         &self,
@@ -99,7 +99,7 @@ impl<'ast> MacroCallExpansor<'ast> for TestMacroCallExpansor {
     }
 
     /// Expande labels inválidos para testes
-    /// 
+    ///
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_invalid_label(
         &self,
@@ -113,4 +113,3 @@ impl<'ast> MacroCallExpansor<'ast> for TestMacroCallExpansor {
         ast::MacroType::Test
     }
 }
-

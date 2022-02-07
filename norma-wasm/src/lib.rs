@@ -184,7 +184,7 @@ impl InterpreterHandle {
             Ok(value) => {
                 self.interpreter.input(value);
                 Ok(())
-            },
+            }
 
             Err(_) => Err(JsValue::from_str("Número de entrada inválido")),
         }

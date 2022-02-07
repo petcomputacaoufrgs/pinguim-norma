@@ -1,7 +1,5 @@
 use crate::compiler::{
-    error::Diagnostics,
-    lexer::generate_tokens,
-    parser::parse,
+    error::Diagnostics, lexer::generate_tokens, parser::parse,
     test::greater_than_one,
 };
 

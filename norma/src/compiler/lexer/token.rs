@@ -37,10 +37,10 @@ impl fmt::Display for TokenType {
             TokenType::Then => write!(formatter, "then"),
             TokenType::BuiltInOper(builtin_oper) => {
                 write!(formatter, "{}", builtin_oper)
-            },
+            }
             TokenType::BuiltInTest(builtin_test) => {
                 write!(formatter, "{}", builtin_test)
-            },
+            }
             TokenType::Number => write!(formatter, "<número>"),
             TokenType::Identifier => write!(formatter, "<identificador>"),
             TokenType::Colon => write!(formatter, ":"),

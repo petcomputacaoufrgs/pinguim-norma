@@ -80,7 +80,7 @@ impl fmt::Display for UnexpectedToken {
         let count = self.expected_types.len();
 
         if count > 1 {
-            for expected_type in &self.expected_types[.. count - 2] {
+            for expected_type in &self.expected_types[..count - 2] {
                 write!(formatter, "\"{}\", ", expected_type)?;
             }
 

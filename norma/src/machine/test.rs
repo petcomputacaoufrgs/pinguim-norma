@@ -103,7 +103,7 @@ fn is_zero() {
     assert!(!machine.is_zero("B"));
     assert!(machine.is_zero("Y"));
 
-    for _ in 0 .. 10 {
+    for _ in 0..10 {
         machine.dec("X");
     }
     assert!(machine.is_zero("X"));

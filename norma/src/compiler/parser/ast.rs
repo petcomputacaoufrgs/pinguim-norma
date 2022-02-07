@@ -8,7 +8,7 @@ use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Instruction {
-    /// 
+    ///
     /// - `label`: rótulo da instrução
     pub label: Symbol,
     ///
@@ -106,7 +106,7 @@ impl fmt::Display for MacroType {
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol {
-    /// 
+    ///
     /// - `content`: palavra do código, mas que não é necessariamente código em si
     pub content: String,
     ///
@@ -144,7 +144,7 @@ pub struct Main {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Program {
     ///
-    /// - `main`: código da função principal do programa 
+    /// - `main`: código da função principal do programa
     pub main: Main,
     ///
     /// - `macros`: mapeamento dos nomes das macros declaradas para suas informações e código

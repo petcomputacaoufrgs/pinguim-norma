@@ -5,12 +5,7 @@ use crate::{
         position::{Position, Span},
     },
     interpreter::program::{
-        Instruction,
-        InstructionKind,
-        Operation,
-        OperationKind,
-        Program,
-        Test,
+        Instruction, InstructionKind, Operation, OperationKind, Program, Test,
         TestKind,
     },
 };

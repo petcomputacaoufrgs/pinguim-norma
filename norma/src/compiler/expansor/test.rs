@@ -1,7 +1,5 @@
 use crate::compiler::{
-    error::Diagnostics,
-    expansor::expand,
-    test::greater_than_one,
+    error::Diagnostics, expansor::expand, test::greater_than_one,
 };
 
 #[test]
