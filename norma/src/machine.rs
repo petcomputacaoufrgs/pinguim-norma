@@ -1,9 +1,13 @@
 #[cfg(test)]
 mod test;
 
+use indexmap::{map, IndexMap};
 use num_bigint::BigUint;
 use num_traits::identities::Zero;
-use std::{cmp::Ordering, collections::HashMap};
+use std::{
+    cmp::Ordering,
+    collections::{hash_map, HashMap},
+};
 
 /// Um registrador da norma (sendo um  número natural arbitrário).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -103,6 +107,18 @@ impl Machine {
         this
     }
 
+    /// Cria um iterador sobre nomes de registradores.
+    ///
+    /// # Exemplo:
+    /// ```ignore
+    /// for reg_name in machine.register_names() {
+    ///     println!("{}", reg_name);
+    /// }
+    /// ```
+    pub fn register_names(&self) -> RegisterNames {
+        RegisterNames { inner: self.registers.keys() }
+    }
+
     /// Define o valor de entrada (AKA valor do registrador X).
     pub fn input(&mut self, data: BigUint) {
         self.get_register_mut("X").set_value(data);
@@ -111,6 +127,18 @@ impl Machine {
     /// Pega o valor de saída (AKA valor do registrador Y).
     pub fn output(&self) -> BigUint {
         self.get_value("Y")
+    }
+
+    /// Cria um registrador com valor zerado SOMENTE se não existir.
+    ///
+    /// Retorna se o registrador foi criado.
+    pub fn create(&mut self, reg_name: &str) -> bool {
+        if self.register_exists(reg_name) {
+            false
+        } else {
+            self.insert(reg_name);
+            true
+        }
     }
 
     /// Insere um novo registrador no banco de nome `reg_name`.
@@ -123,6 +151,11 @@ impl Machine {
     /// `value` é o valor inicial do registrador.
     pub fn insert_with_value(&mut self, reg_name: &str, value: BigUint) {
         self.registers.insert(reg_name.to_string(), Register::new(value));
+    }
+
+    /// Retorna se o registrador de dado nome já existe.
+    pub fn register_exists(&self, reg_name: &str) -> bool {
+        self.registers.contains_key(reg_name)
     }
 
     /// Limpa todos registradores (define-os para zero).
@@ -288,5 +321,22 @@ impl Machine {
             Some(register) => register,
             None => panic!("Register {} does not exist", reg_name),
         }
+    }
+}
+
+/// Iterador sobre nomes de registradores de uma máquina.
+///
+/// Criado pelo método [`Machine::register_names`].
+#[derive(Debug, Clone)]
+pub struct RegisterNames<'machine> {
+    /// Iterador sobre as chaves do mapa de registradores.
+    inner: hash_map::Keys<'machine, String, Register>,
+}
+
+impl<'machine> Iterator for RegisterNames<'machine> {
+    type Item = &'machine str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next().map(String::as_ref)
     }
 }

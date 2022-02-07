@@ -23,18 +23,10 @@ use std::{cmp::Ordering, ops::AddAssign};
 // ("1.add.2", "do inc X goto 1.add.3")
 
 /// Executa um dado programa uma única vez, a partir da entrada (AKA registrador
-/// X), programa com as instruções, e iterável (e.g. lista) de nomes de
-/// registradores usados no programa (não precisa passar os nomes "X" nem "Y").
-/// Retorna a saída do programa (AKA registrador Y).
-pub fn run_once<'regs, I>(
-    input: BigUint,
-    program: Program,
-    aux_registers: I,
-) -> BigUint
-where
-    I: IntoIterator<Item = &'regs str>,
-{
-    let mut interpreter = Interpreter::new(program, aux_registers);
+/// X), programa com as instruções.  Retorna a saída do programa (AKA
+/// registrador Y).
+pub fn run_once<'regs>(input: BigUint, program: Program) -> BigUint {
+    let mut interpreter = Interpreter::new(program);
     interpreter.input(input);
     interpreter.run_all();
     interpreter.output()
@@ -55,19 +47,14 @@ pub struct Interpreter {
 
 impl Interpreter {
     /// Inicia o interpretador com o estado inicial do programa, a partir do
-    /// programa com as instruções, e de um iterável (e.g. lista) de nomes de
-    /// registradores usados (não precisa passar os nomes "X" nem "Y").
-    pub fn new<'regs, I>(program: Program, aux_registers: I) -> Self
-    where
-        I: IntoIterator<Item = &'regs str>,
-    {
-        let start =
-            program.first_label().expect("No mínimo uma instrução esperada");
+    /// programa com as instruções.
+    pub fn new<'regs>(program: Program) -> Self {
+        let start = program.first_label().to_string();
 
         let mut machine = Machine::default();
-        for register in aux_registers {
-            machine.insert(register);
-        }
+        program.collect_registers(|reg_name| {
+            machine.create(reg_name);
+        });
 
         Self::from_state(start, program, machine, BigUint::zero())
     }
@@ -82,6 +69,21 @@ impl Interpreter {
         steps: BigUint,
     ) -> Self {
         Self { current, program, machine, steps }
+    }
+
+    /// Retorna o rótulo da instrução sendo atualmente executada.
+    pub fn current_label(&self) -> &str {
+        &self.current
+    }
+
+    /// Retorna uma referência imutável para o programa sendo executado.
+    pub fn program(&self) -> &Program {
+        &self.program
+    }
+
+    /// Retorna uma referência imutável para a máquina sendo operada.
+    pub fn machine(&self) -> &Machine {
+        &self.machine
     }
 
     /// Define o valor de entrada (AKA valor do registrador X).
@@ -99,10 +101,7 @@ impl Interpreter {
     /// instrução do mapa de instruções.
     pub fn reset(&mut self) {
         self.machine.clear_all();
-        self.current = self
-            .program
-            .first_label()
-            .expect("No mínimo uma instrução esperada");
+        self.current = self.program.first_label().to_string();
         self.steps.set_zero();
     }
 
@@ -112,7 +111,7 @@ impl Interpreter {
     /// específica. Retorna `true` se o rótulo é válido e a instrução foi de
     /// fato executada.
     pub fn run_step(&mut self) -> bool {
-        let entry = self.program.get_instruction(&self.current);
+        let entry = self.program.instruction(&self.current).cloned();
         match entry {
             Some(instruction) => {
                 self.run_instruction(instruction);
@@ -126,7 +125,7 @@ impl Interpreter {
     /// redefinido após cada instrução). Se chegarmos ao final do programa antes
     /// de `max_steps`, a execução para. Retorna `true` se ainda restam
     /// instruções para serem executadas.
-    pub fn run_steps(&mut self, max_steps: u64) -> bool {
+    pub fn run_steps(&mut self, max_steps: u32) -> bool {
         for _ in 0 .. max_steps {
             if !self.run_step() {
                 return false;
