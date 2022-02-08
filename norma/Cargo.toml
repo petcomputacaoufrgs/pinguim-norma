@@ -1,7 +1,6 @@
 [package]
 name = "norma"
 version = "0.1.0"
-authors = ["Jordi Pujol Ricarte <jpricarte@inf.ufrgs.br>"]
 edition = "2018"
 workspace = "../"
 

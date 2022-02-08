@@ -61,7 +61,7 @@ impl<'ast> Expansor<'ast> {
     ///
     /// - `ast`: árvore sintática abstrata, programa oriundo do parser
     fn new(ast: &'ast ast::Program) -> Self {
-        let target_macros = ast.macros.keys().cloned().collect();
+        let target_macros = ast.macros.keys().rev().cloned().collect();
 
         Expansor {
             precompileds: HashMap::new(),
@@ -97,6 +97,7 @@ impl<'ast> Expansor<'ast> {
         let mut code = WorkingCode::new();
         for instruction in self.ast.main.code.values() {
             let result = self.precompile_instruction(
+                "main",
                 instruction,
                 &mut code,
                 &self.ast.main.code,
@@ -175,6 +176,7 @@ impl<'ast> Expansor<'ast> {
                 };
 
                 let precomp_result = self.precompile_instruction(
+                    &macro_data.name.content,
                     instr,
                     working_macro.code_mut(),
                     &macro_data.instr,
@@ -223,8 +225,27 @@ impl<'ast> Expansor<'ast> {
         self.working_macros.pop()
     }
 
+    /// Coleta todas as macros chamadas atualmente por uma macro cujo nome
+    /// é passado por parâmetro, incluindo ela mesma.
+    /// - `macro_name`: nome da macro de onde a pilha de chamadas começa
+    fn stack_of(&self, macro_name: &str) -> Option<Vec<String>> {
+        let index = self.working_macros.iter().rposition(|working_macro| {
+            working_macro.macro_data().name.content == macro_name
+        })?;
+
+        let macro_names = self.working_macros[index..]
+            .iter()
+            .map(|working_macro| {
+                working_macro.macro_data().name.content.clone()
+            })
+            .collect();
+
+        Some(macro_names)
+    }
+
     /// Expande uma instrução conforme se ela for teste ou operação
     ///
+    /// - `caller_name`: nome da macro (ou main) sendo atualmente processada, que causa a chamada desse método
     /// - `instr`: instrução a ser expandida
     /// - `working_code`: macro em precompilação
     /// - `ast_code`: programa da macro, estrutura com todas as instruções
@@ -232,6 +253,7 @@ impl<'ast> Expansor<'ast> {
     /// - `validate_label`: função genérica que valida próximo label da instrução
     fn precompile_instruction<F>(
         &mut self,
+        caller_name: &str,
         instr: &'ast ast::Instruction,
         working_code: &mut WorkingCode,
         ast_code: &'ast IndexMap<String, ast::Instruction>,
@@ -248,6 +270,7 @@ impl<'ast> Expansor<'ast> {
         match &instr.instruction_type {
             ast::InstructionType::Operation(operation) => {
                 self.precompile_operation(
+                    caller_name,
                     &instr.label,
                     operation,
                     working_code,
@@ -259,6 +282,7 @@ impl<'ast> Expansor<'ast> {
 
             ast::InstructionType::Test(test) => {
                 self.precompile_test(
+                    caller_name,
                     &instr.label,
                     test,
                     working_code,
@@ -274,6 +298,7 @@ impl<'ast> Expansor<'ast> {
 
     /// Expande uma instrução do tipo operação
     ///
+    /// - `caller_name`: nome da macro (ou main) sendo atualmente processada, que causa a chamada desse método
     /// - `label`: rótulo da instrução
     /// - `operation`: operação que a instrução executa
     /// - `working_code`: macro a qual a instrução pertence
@@ -282,6 +307,7 @@ impl<'ast> Expansor<'ast> {
     /// - `validate_label`: função genérica que valida próximo label da instrução
     fn precompile_operation<F>(
         &mut self,
+        caller_name: &str,
         label: &'ast ast::Symbol,
         operation: &'ast ast::Operation,
         working_code: &mut WorkingCode,
@@ -318,6 +344,7 @@ impl<'ast> Expansor<'ast> {
             }
             ast::OperationType::Macro(macro_name, params) => self
                 .precompile_macro_call(
+                    caller_name,
                     label,
                     operation,
                     &OperMacroCallExpansor,
@@ -346,6 +373,7 @@ impl<'ast> Expansor<'ast> {
 
     /// Expande uma instrução do tipo teste
     ///
+    /// - `caller_name`: nome da macro (ou main) sendo atualmente processada, que causa a chamada desse método
     /// - `label`: rótulo da instrução
     /// - `test`: teste que a instrução executa
     /// - `working_code`: macro a qual a instrução pertence
@@ -354,6 +382,7 @@ impl<'ast> Expansor<'ast> {
     /// - `validate_label`: função genérica que valida próximo label da instrução
     fn precompile_test<F>(
         &mut self,
+        caller_name: &str,
         label: &'ast ast::Symbol,
         test: &'ast ast::Test,
         working_code: &mut WorkingCode,
@@ -392,6 +421,7 @@ impl<'ast> Expansor<'ast> {
             }
             ast::TestType::Macro(macro_name, params) => self
                 .precompile_macro_call(
+                    caller_name,
                     label,
                     test,
                     &TestMacroCallExpansor,
@@ -423,6 +453,8 @@ impl<'ast> Expansor<'ast> {
     /// Recomenda-se empilhar a macro atual e em seguida empilhar a macro
     /// requisitada.
     ///
+    /// - `caller_name`: nome da macro (ou main) sendo atualmente processada, que
+    /// causa a chamada desse método e que chama a macro dessa instrução
     /// - `label`: rótulo da instrução
     /// - `instr_kind`: tipo da instrução que está chamando a macro
     /// - `call_expansor`: estrutura que lida com a expansão de uma chamada de
@@ -433,6 +465,7 @@ impl<'ast> Expansor<'ast> {
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
     fn precompile_macro_call<E>(
         &mut self,
+        caller_name: &str,
         label: &'ast ast::Symbol,
         instr_kind: &'ast E::InstructionKind,
         call_expansor: &E,
@@ -475,8 +508,10 @@ impl<'ast> Expansor<'ast> {
             let working_macro = self.make_working_macro(&macro_name.content);
             Err(ExpansionRequired { working_macro })
         } else if self.ast.macros.contains_key(&macro_name.content) {
-            let error_cause =
-                RecursiveMacro { macro_name: macro_name.content.clone() };
+            let mut macro_names =
+                self.stack_of(&macro_name.content).unwrap_or_default();
+            macro_names.push(String::from(caller_name));
+            let error_cause = RecursiveMacro { macro_names };
             diagnostics.raise(Error::new(error_cause, macro_name.span));
             Ok(())
         } else {
