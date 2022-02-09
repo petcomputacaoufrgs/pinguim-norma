@@ -181,10 +181,13 @@ impl Parser {
                         TokenType::Operation,
                         TokenType::Test,
                     ];
+
                     diagnostics.raise(Error::new(
                         UnexpectedToken { expected_types },
                         token.span,
                     ));
+
+                    self.next();
                 }
             }
         }
@@ -438,6 +441,8 @@ impl Parser {
                     UnexpectedToken { expected_types },
                     token.span,
                 ));
+
+                self.next();
                 Ok(None)
             }
         }
@@ -503,10 +508,13 @@ impl Parser {
                     TokenType::BuiltInTest(BuiltInTest::Zero),
                     TokenType::Identifier,
                 ];
+
                 diagnostics.raise(Error::new(
                     UnexpectedToken { expected_types },
                     token.span,
                 ));
+
+                self.next();
                 Ok(None)
             }
         }
