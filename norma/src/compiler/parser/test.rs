@@ -52,7 +52,7 @@ fn do_keyword_calls_builtin_test() {
 
     assert_eq!(
         errors,
-        &["Token inesperado encontrado, esperava-se um \"inc\", \"dec\" ou \"<identificador>\", da linha 2 e coluna 11, até coluna 14"],
+        &["Token inesperado encontrado, esperava-se um \"inc\", \"dec\" ou \"<identificador>\", da linha 2 e coluna 11, até a coluna 14"],
     );
 }
 
@@ -72,7 +72,7 @@ fn if_keyword_calls_builtin_operation_inc() {
 
     assert_eq!(
         errors,
-        &["Token inesperado encontrado, esperava-se um \"zero\" ou \"<identificador>\", da linha 2 e coluna 11, até coluna 13"]
+        &["Token inesperado encontrado, esperava-se um \"zero\" ou \"<identificador>\", da linha 2 e coluna 11, até a coluna 13"]
     );
 }
 
@@ -92,7 +92,7 @@ fn if_keyword_calls_builtin_operation_dec() {
 
     assert_eq!(
         errors,
-        &["Token inesperado encontrado, esperava-se um \"zero\" ou \"<identificador>\", da linha 2 e coluna 11, até coluna 13"]
+        &["Token inesperado encontrado, esperava-se um \"zero\" ou \"<identificador>\", da linha 2 e coluna 11, até a coluna 13"]
     );
 }
 
@@ -111,7 +111,7 @@ fn builtin_operation_without_arg() {
 
     assert_eq!(
         errors, 
-        &["Token inesperado encontrado, esperava-se um \"<identificador>\", da linha 2 e coluna 15, até coluna 18"]
+        &["Token inesperado encontrado, esperava-se um \"<identificador>\", da linha 2 e coluna 15, até a coluna 18"]
     )
 }
 
@@ -131,8 +131,8 @@ fn if_calls_builtin_operation_without_arg() {
     assert_eq!(
         errors, 
         &[
-            "Token inesperado encontrado, esperava-se um \"zero\" ou \"<identificador>\", da linha 2 e coluna 11, até coluna 13",
-            "Token inesperado encontrado, esperava-se um \"<identificador>\", da linha 2 e coluna 15, até coluna 18",
+            "Token inesperado encontrado, esperava-se um \"zero\" ou \"<identificador>\", da linha 2 e coluna 11, até a coluna 13",
+            "Token inesperado encontrado, esperava-se um \"<identificador>\", da linha 2 e coluna 15, até a coluna 18",
         ]
     )
 }
@@ -151,7 +151,7 @@ fn normal_label_as_true() {
 
     assert_eq!(
         errors, 
-        &["Nome de label não pode ser \"true\" nem \"false\", da linha 2 e coluna 5, até coluna 8"]
+        &["Nome de label não pode ser \"true\" nem \"false\", da linha 2 e coluna 5, até a coluna 8"]
     )
 }
 
@@ -169,7 +169,7 @@ fn normal_label_as_false() {
 
     assert_eq!(
         errors, 
-        &["Nome de label não pode ser \"true\" nem \"false\", da linha 2 e coluna 5, até coluna 9"]
+        &["Nome de label não pode ser \"true\" nem \"false\", da linha 2 e coluna 5, até a coluna 9"]
     )
 }
 
