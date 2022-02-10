@@ -24,6 +24,10 @@ export const init = (() => {
         }
     }
 
+    window.addEventListener('load', () => {
+        callAllHandlers();
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
         callAllHandlers();
     });
