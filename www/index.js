@@ -232,7 +232,11 @@ class Editor {
 
     handleUserEdit(evt) {
         evt.preventDefault();
-        const start = this.prevState.selectionStart;
+        const start = (
+            (this.prevState.selectionStart > this.targetTextArea.selectionStart)
+            ? this.targetTextArea.selectionStart
+            : this.prevState.selectionStart
+        );
         const end = this.prevState.selectionEnd;
         const newEnd = this.targetTextArea.selectionEnd;
         const oldText = this.prevState.content.substring(start, end);
