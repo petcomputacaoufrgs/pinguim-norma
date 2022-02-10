@@ -6,7 +6,6 @@ use crate::compiler::{
     parser::ast,
 };
 use indexmap::IndexMap;
-use std::fmt;
 
 /*
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -67,7 +66,7 @@ pub fn is_false(label: &str) -> bool {
 /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
 pub fn validate_for_main(
     label: &ast::Symbol,
-    code: &IndexMap<String, ast::Instruction>,
+    _code: &IndexMap<String, ast::Instruction>,
     diagnostics: &mut Diagnostics,
 ) {
     if is_false(&label.content) || is_true(&label.content) {

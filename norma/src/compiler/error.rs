@@ -1,4 +1,4 @@
-use crate::compiler::{lexer::token::TokenType, position::Span};
+use crate::compiler::position::Span;
 use std::{error::Error as StdError, fmt, slice, vec};
 
 #[derive(Debug)]

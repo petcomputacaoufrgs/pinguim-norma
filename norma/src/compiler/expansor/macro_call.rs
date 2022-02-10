@@ -41,7 +41,7 @@ impl<'ast> MacroCallExpansor<'ast> for OperMacroCallExpansor {
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_true_label(
         &self,
-        outer_instr_kind: &'ast Self::InstructionKind,
+        _outer_instr_kind: &'ast Self::InstructionKind,
     ) -> String {
         String::from("true")
     }
@@ -51,7 +51,7 @@ impl<'ast> MacroCallExpansor<'ast> for OperMacroCallExpansor {
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_false_label(
         &self,
-        outer_instr_kind: &'ast Self::InstructionKind,
+        _outer_instr_kind: &'ast Self::InstructionKind,
     ) -> String {
         String::from("false")
     }
@@ -103,7 +103,7 @@ impl<'ast> MacroCallExpansor<'ast> for TestMacroCallExpansor {
     /// - `outer_instr_kind`: tipo de instrução que chamou uma outra macro
     fn expand_invalid_label(
         &self,
-        outer_instr_kind: &'ast Self::InstructionKind,
+        _outer_instr_kind: &'ast Self::InstructionKind,
     ) -> String {
         String::from("?")
     }

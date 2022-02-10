@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod test;
 
-use indexmap::{map, IndexMap};
 use num_bigint::BigUint;
 use num_traits::identities::Zero;
 use std::{
