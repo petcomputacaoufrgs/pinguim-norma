@@ -105,13 +105,12 @@ impl Span {
 impl fmt::Display for Span {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         let end = Position { column: self.end.column - 1, ..self.end };
-
         if self.start.line != self.end.line {
-            write!(formatter, "de {}, até {}", self.start, end)
+            write!(formatter, "da {}, até a {}", self.start, end)
         } else if self.start.column + 1 == self.end.column {
             write!(formatter, "na {}", self.start)
         } else {
-            write!(formatter, "de {}, até coluna {}", self.start, end.column)
+            write!(formatter, "da {}, até a coluna {}", self.start, end.column)
         }
     }
 }

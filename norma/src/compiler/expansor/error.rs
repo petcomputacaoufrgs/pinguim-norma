@@ -22,17 +22,29 @@ impl Error for UndefinedMacro {}
 pub struct RecursiveMacro {
     ///
     /// - `macro_name`: nome da macro que executa chamadas recursivas
-    pub macro_name: String,
+    pub macro_names: Vec<String>,
 }
 
 /// Implementa a trait Display para mensagens de erro
 impl fmt::Display for RecursiveMacro {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            formatter,
-            "Macro \"{}\" contém chamada recursiva",
-            self.macro_name
-        )
+        write!(formatter, "Recursão detectada entre as macros: ")?;
+
+        let count = self.macro_names.len();
+
+        if count > 1 {
+            for expected_type in &self.macro_names[..count - 2] {
+                write!(formatter, "\"{}\", ", expected_type)?;
+            }
+
+            write!(formatter, "\"{}\" e ", self.macro_names[count - 2])?;
+        }
+
+        if count > 0 {
+            write!(formatter, "\"{}\"", self.macro_names[count - 1])?;
+        }
+
+        Ok(())
     }
 }
 
