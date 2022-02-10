@@ -1,5 +1,4 @@
 use std::{cmp::Ordering, fmt, str::FromStr};
-
 use norma::{
     compiler::{
         self,

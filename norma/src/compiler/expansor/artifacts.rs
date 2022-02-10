@@ -2,7 +2,7 @@ use crate::{
     compiler::parser::ast,
     interpreter::program::{Instruction, Program},
 };
-use std::{collections::HashMap, fmt};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct ExpansionRequired<'ast> {
@@ -25,6 +25,7 @@ impl<'ast> PreCompiled<'ast> {
     /// Cria uma nova estrutura PreCompiled
     ///
     /// - `macro_data`: informações originais da macro
+    #[allow(dead_code)]
     pub fn new(macro_data: &'ast ast::Macro) -> Self {
         PreCompiled { macro_data, program: Program::empty() }
     }
@@ -110,6 +111,7 @@ impl<'ast> WorkingMacro<'ast> {
     }
 
     /// Retorna uma instância imutável do código da WorkingMacro
+    #[allow(dead_code)]
     pub fn code(&self) -> &WorkingCode {
         &self.code
     }

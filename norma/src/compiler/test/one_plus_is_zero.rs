@@ -1,15 +1,7 @@
-use crate::{
-    compiler::{
-        lexer::token::{BuiltInOperation, BuiltInTest},
-        parser::ast,
-        position::{Position, Span},
-    },
-    interpreter::program::{
-        Instruction, InstructionKind, Operation, OperationKind, Program, Test,
-        TestKind,
-    },
+use crate::interpreter::program::{
+    Instruction, InstructionKind, Operation, OperationKind, Program, Test,
+    TestKind,
 };
-use indexmap::IndexMap;
 
 pub fn source_code() -> &'static str {
     "operation clear (A) {

@@ -19,10 +19,9 @@ use error::{
 };
 use indexmap::IndexMap;
 use num_bigint::BigUint;
+use std::error::Error as StdError;
 use std::str::FromStr;
 
-/// Cria uma estrutura Parser e parsa a lista de tokens para um programa
-///
 /// - `tokens`: vetor de tokens
 /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
 pub fn parse(
@@ -44,6 +43,9 @@ struct Parser {
     ///
     /// - `curr_token`: índice do token que está sendo parsado
     curr_token: usize,
+    ///
+    /// - `is_current_error`: sinaliza se o token atual é válido
+    is_current_error: bool,
 }
 
 impl Parser {
@@ -51,12 +53,36 @@ impl Parser {
     ///
     /// - `tokens`: vetor de tokens
     fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, curr_token: 0 }
+        Parser { tokens, curr_token: 0, is_current_error: false }
+    }
+
+    fn current_index(&self) -> usize {
+        self.curr_token
     }
 
     /// Pega o token o qual está sendo parsado no momento dado seu índice
     fn current(&self) -> Option<&Token> {
-        self.tokens.get(self.curr_token)
+        self.tokens.get(self.current_index())
+    }
+
+    /// Registra um erro sobre o token atual, mas somente se não já não foi registrado erro
+    /// sobre ele. Isso serve para prevenir que o usuário seja bombardeado de erros repetidamente
+    /// sobre o mesmo token. Erros do tipo "token inesperado" devem usar esse método.
+    fn raise_error_on_current<E>(
+        &mut self,
+        cause: E,
+        diagnostics: &mut Diagnostics,
+    ) where
+        E: StdError + Send + Sync + 'static,
+    {
+        if !self.is_current_error {
+            let error = match self.current() {
+                Some(token) => Error::new(cause, token.span),
+                None => Error::with_no_span(cause),
+            };
+            diagnostics.raise(error);
+            self.is_current_error = true;
+        }
     }
 
     /// Pega o token o qual está sendo parsado no momento e garante que ele exista
@@ -77,6 +103,7 @@ impl Parser {
 
     /// Incrementa o índice para o próximo token
     fn next(&mut self) {
+        self.is_current_error = false;
         self.curr_token += 1;
     }
 
@@ -95,10 +122,11 @@ impl Parser {
             self.next();
         } else {
             let expected_types = vec![expected_type];
-            diagnostics.raise(Error::new(
+
+            self.raise_error_on_current(
                 UnexpectedToken { expected_types },
-                token.span,
-            ));
+                diagnostics,
+            );
         }
 
         Ok(())
@@ -123,6 +151,28 @@ impl Parser {
         }
     }
 
+    fn loop_parser<F>(&mut self, mut iteration: F) -> Result<(), Abort>
+    where
+        F: FnMut(&mut Self) -> Result<bool, Abort>,
+    {
+        let mut previous_index = None;
+
+        loop {
+            let is_stuck = previous_index
+                .map_or(false, |index| index == self.current_index());
+            if is_stuck {
+                self.next();
+            }
+            previous_index = Some(self.current_index());
+
+            if !iteration(self)? {
+                break;
+            }
+        }
+
+        Ok(())
+    }
+
     /// Faz o parse do vetor de tokens em um programa
     ///
     /// - `diagnostics`: vetor que armazena erros coletados durante a compilação
@@ -133,61 +183,65 @@ impl Parser {
         let mut macros = IndexMap::<String, Macro>::new();
         let mut main_option: Option<Main> = None;
         let mut main_declared = false;
+        // Índice do token do início da iteração anterior
 
-        while let Some(token) = self.current() {
+        self.loop_parser(|parser| {
+            let token = match parser.current() {
+                Some(token) => token,
+                None => return Ok(false),
+            };
+
             let token_span = token.span;
-
             match token.token_type {
                 TokenType::Main => {
                     // se main não declarada ainda, fazer parse
                     if !main_declared {
-                        main_option = self.parse_main(diagnostics)?;
+                        main_option = parser.parse_main(diagnostics)?;
                         main_declared = true;
-
                     // se main já declarada, jogar erro
                     } else {
                         diagnostics
                             .raise(Error::new(MainAlreadyDeclared, token_span));
                     }
                 }
-
                 TokenType::Operation => {
-                    if let Some(macro_aux) =
-                        self.parse_macro_def(MacroType::Operation, diagnostics)?
+                    if let Some(macro_aux) = parser
+                        .parse_macro_def(MacroType::Operation, diagnostics)?
                     {
-                        self.insert_macro_def(
+                        parser.insert_macro_def(
                             &mut macros,
                             macro_aux,
                             diagnostics,
                         );
                     }
                 }
-
                 TokenType::Test => {
                     if let Some(macro_aux) =
-                        self.parse_macro_def(MacroType::Test, diagnostics)?
+                        parser.parse_macro_def(MacroType::Test, diagnostics)?
                     {
-                        self.insert_macro_def(
+                        parser.insert_macro_def(
                             &mut macros,
                             macro_aux,
                             diagnostics,
                         );
                     }
                 }
-
                 _ => {
                     let expected_types = vec![
                         TokenType::Main,
                         TokenType::Operation,
                         TokenType::Test,
                     ];
-                    diagnostics.raise(Error::new(
+
+                    parser.raise_error_on_current(
                         UnexpectedToken { expected_types },
-                        token.span,
-                    ));
+                        diagnostics,
+                    );
                 }
             }
-        }
+
+            Ok(true)
+        })?;
 
         // se depois de parsar todas as macros, não foi declarada nenhuma main
         if !main_declared {
@@ -246,14 +300,15 @@ impl Parser {
         self.expect(TokenType::OpenCurly, diagnostics)?;
         let mut code = IndexMap::<String, Instruction>::new();
 
-        loop {
-            let token = self.require_current(diagnostics)?;
+        self.loop_parser(|parser| {
+            let token = parser.require_current(diagnostics)?;
             let token_span = token.span;
 
             if token.token_type == TokenType::CloseCurly {
-                self.next();
-                break;
-            } else if let Some(instr) = self.parse_instr(diagnostics)? {
+                parser.next();
+                return Ok(false);
+            }
+            if let Some(instr) = parser.parse_instr(diagnostics)? {
                 let label_name = instr.label.content.clone();
 
                 // se ainda não existe uma instrução com tal label, insere no
@@ -269,7 +324,9 @@ impl Parser {
                     ));
                 }
             }
-        }
+
+            Ok(true)
+        })?;
 
         Ok(code)
     }
@@ -313,10 +370,12 @@ impl Parser {
             Ok(Some(macro_name))
         } else {
             let expected_types = vec![TokenType::Identifier];
-            diagnostics.raise(Error::new(
+
+            self.raise_error_on_current(
                 UnexpectedToken { expected_types },
-                token.span,
-            ));
+                diagnostics,
+            );
+
             Ok(None)
         }
     }
@@ -371,10 +430,10 @@ impl Parser {
             Ok(test_option.map(|test| InstructionType::Test(test)))
         } else {
             let expected_types = vec![TokenType::Do, TokenType::If];
-            diagnostics.raise(Error::new(
+            self.raise_error_on_current(
                 UnexpectedToken { expected_types },
-                token.span,
-            ));
+                diagnostics,
+            );
             Ok(None)
         }
     }
@@ -428,16 +487,33 @@ impl Parser {
                     .map(|argument| OperationType::BuiltIn(oper, argument)))
             }
 
+            TokenType::BuiltInTest(_) => {
+                let expected_types = vec![
+                    TokenType::BuiltInOper(BuiltInOperation::Inc),
+                    TokenType::BuiltInOper(BuiltInOperation::Dec),
+                    TokenType::Identifier,
+                ];
+
+                self.raise_error_on_current(
+                    UnexpectedToken { expected_types },
+                    diagnostics,
+                );
+
+                self.next();
+                self.parse_builtin_arg(diagnostics)?;
+                Ok(None)
+            }
+
             _ => {
                 let expected_types = vec![
                     TokenType::BuiltInOper(BuiltInOperation::Inc),
                     TokenType::BuiltInOper(BuiltInOperation::Dec),
                     TokenType::Identifier,
                 ];
-                diagnostics.raise(Error::new(
+                self.raise_error_on_current(
                     UnexpectedToken { expected_types },
-                    token.span,
-                ));
+                    diagnostics,
+                );
                 Ok(None)
             }
         }
@@ -498,15 +574,33 @@ impl Parser {
                     .map(|argument| TestType::BuiltIn(test, argument)))
             }
 
+            TokenType::BuiltInOper(_) => {
+                let expected_types = vec![
+                    TokenType::BuiltInTest(BuiltInTest::Zero),
+                    TokenType::Identifier,
+                ];
+
+                diagnostics.raise(Error::new(
+                    UnexpectedToken { expected_types },
+                    token.span,
+                ));
+
+                self.next();
+                self.parse_builtin_arg(diagnostics)?;
+                Ok(None)
+            }
+
             _ => {
                 let expected_types = vec![
                     TokenType::BuiltInTest(BuiltInTest::Zero),
                     TokenType::Identifier,
                 ];
+
                 diagnostics.raise(Error::new(
                     UnexpectedToken { expected_types },
                     token.span,
                 ));
+
                 Ok(None)
             }
         }
@@ -545,23 +639,29 @@ impl Parser {
         let mut parameters = Vec::new();
         let mut needs_comma = false;
 
-        while !self.check_expect(TokenType::CloseParen, diagnostics)? {
+        self.loop_parser(|parser| {
+            if parser.check_expect(TokenType::CloseParen, diagnostics)? {
+                return Ok(false);
+            }
+
             if needs_comma {
                 let expected_types =
                     vec![TokenType::Comma, TokenType::CloseParen];
-                let span = self.require_current(diagnostics)?.span;
-                diagnostics.raise(Error::new(
+
+                parser.raise_error_on_current(
                     UnexpectedToken { expected_types },
-                    span,
-                ));
+                    diagnostics,
+                );
             }
 
-            if let Some(parameter) = parse_param(self, diagnostics)? {
+            if let Some(parameter) = parse_param(parser, diagnostics)? {
                 parameters.push(parameter);
                 needs_comma =
-                    !self.check_expect(TokenType::Comma, diagnostics)?;
+                    !parser.check_expect(TokenType::Comma, diagnostics)?;
             }
-        }
+
+            Ok(true)
+        })?;
 
         Ok(parameters)
     }
@@ -604,10 +704,10 @@ impl Parser {
             _ => {
                 let expected_types =
                     vec![TokenType::Identifier, TokenType::Number];
-                diagnostics.raise(Error::new(
+                self.raise_error_on_current(
                     UnexpectedToken { expected_types },
-                    token.span,
-                ));
+                    diagnostics,
+                );
                 Ok(None)
             }
         }
@@ -629,10 +729,10 @@ impl Parser {
             Ok(Some(symbol))
         } else {
             let expected_types = vec![TokenType::Identifier];
-            diagnostics.raise(Error::new(
+            self.raise_error_on_current(
                 UnexpectedToken { expected_types },
-                token.span,
-            ));
+                diagnostics,
+            );
             Ok(None)
         }
     }
@@ -658,10 +758,10 @@ impl Parser {
             _ => {
                 let expected_types =
                     vec![TokenType::Identifier, TokenType::Number];
-                diagnostics.raise(Error::new(
+                self.raise_error_on_current(
                     UnexpectedToken { expected_types },
-                    token.span,
-                ));
+                    diagnostics,
+                );
                 Ok(None)
             }
         }
