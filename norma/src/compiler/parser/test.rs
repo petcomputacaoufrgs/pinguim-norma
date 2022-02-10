@@ -16,6 +16,26 @@ fn parse_greater_than_one() {
     assert!(diagnostics.is_ok());
 }
 
+
+#[test]
+fn code_starting_with_unexpected_token_type() {
+    let code = "a";
+    let mut diagnostics = Diagnostics::new();
+
+    let tokens = generate_tokens(code, &mut diagnostics);
+    let result = parse(tokens, &mut diagnostics);
+    let errors =
+        diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
+
+    assert_eq!(
+        errors, 
+        &[
+            "Token inesperado encontrado, esperava-se um \"main\", \"operation\" ou \"test\", na linha 1 e coluna 1", 
+            "Main não foi declarada neste programa"
+        ]
+    )
+}
+
 #[test]
 fn do_keyword_calls_builtin_test() {
     let code = "main {
@@ -40,14 +60,14 @@ fn if_keyword_calls_builtin_operation_inc() {
     2: do inc X then goto 0
 }";
     
-        let mut diagnostics = Diagnostics::new();
-    
-        let tokens = generate_tokens(code, &mut diagnostics);
-        let result = parse(tokens, &mut diagnostics);
-        let errors =
-            diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
-    
-        eprintln!("{:#?}", errors);
+    let mut diagnostics = Diagnostics::new();
+
+    let tokens = generate_tokens(code, &mut diagnostics);
+    let result = parse(tokens, &mut diagnostics);
+    let errors =
+        diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
+
+    eprintln!("{:#?}", errors);
 }
 
 #[test]
@@ -57,19 +77,22 @@ fn if_keyword_calls_builtin_operation_dec() {
     2: do dec X then goto 0
 }";
     
-        let mut diagnostics = Diagnostics::new();
-    
-        let tokens = generate_tokens(code, &mut diagnostics);
-        let result = parse(tokens, &mut diagnostics);
-        let errors =
-            diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
-    
-        eprintln!("{:#?}", errors);
+    let mut diagnostics = Diagnostics::new();
+
+    let tokens = generate_tokens(code, &mut diagnostics);
+    let result = parse(tokens, &mut diagnostics);
+    let errors =
+        diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
+
+    eprintln!("{:#?}", errors);
 }
 
 #[test]
-fn code_starting_with_unexpected_token_type() {
-    let code = "a";
+fn builtin_operation_without_arg() {
+    let code = "main {
+    1: do dec goto 0
+}";
+
     let mut diagnostics = Diagnostics::new();
 
     let tokens = generate_tokens(code, &mut diagnostics);
@@ -79,13 +102,30 @@ fn code_starting_with_unexpected_token_type() {
 
     assert_eq!(
         errors, 
-        &[
-            "Token inesperado encontrado, esperava-se um \"main\", \"operation\" ou \"test\", na linha 1 e coluna 1", 
-            "Main não foi declarada neste programa"
-        ]
+        &["Token inesperado encontrado, esperava-se um \"<identificador>\", na linha 2 e coluna 15"]
     )
 }
 
+#[test]
+fn if_calls_builtin_operation_without_arg() {
+    let code = "main {
+    1: if dec then goto 2 else goto 0
+}";
+
+    let mut diagnostics = Diagnostics::new();
+
+    let tokens = generate_tokens(code, &mut diagnostics);
+    let result = parse(tokens, &mut diagnostics);
+    let errors =
+        diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
+
+    assert_eq!(
+        errors, 
+        &["Token inesperado encontrado, esperava-se um \"zero\" ou \"<identificador>\", na linha 2 e coluna 15"]
+    )
+}
+
+/* 
 #[test]
 fn normal_label_as_true() {
     let code = "main {
@@ -121,5 +161,5 @@ fn normal_label_as_false() {
         &["Nome de label não pode ser \"true\" nem \"false\", na linha 2 e coluna 5"]
     )
 }
-
+*/
 

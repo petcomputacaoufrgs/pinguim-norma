@@ -19,6 +19,7 @@ use error::{
 };
 use indexmap::IndexMap;
 use num_bigint::BigUint;
+use std::error::Error as StdError;
 use std::str::FromStr;
 
 /// Cria uma estrutura Parser e parsa a lista de tokens para um programa
@@ -44,6 +45,9 @@ struct Parser {
     ///
     /// - `curr_token`: índice do token que está sendo parsado
     curr_token: usize,
+    ///
+    /// - `is_current_error`: sinaliza se o token atual é válido
+    is_current_error: bool,
 }
 
 impl Parser {
@@ -51,12 +55,30 @@ impl Parser {
     ///
     /// - `tokens`: vetor de tokens
     fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, curr_token: 0 }
+        Parser { tokens, curr_token: 0, is_current_error: false }
     }
 
     /// Pega o token o qual está sendo parsado no momento dado seu índice
     fn current(&self) -> Option<&Token> {
         self.tokens.get(self.curr_token)
+    }
+
+    /// Retorna `is_current_error`
+    fn is_current_error(&self) -> bool {
+        self.is_current_error
+    }
+
+    fn raise_error_on_current<E>(
+        &mut self,
+        cause: E,
+        diagnostics: &mut Diagnostics,
+    ) where
+        E: StdError + Send + Sync + 'static,
+    {
+        if !self.is_current_error() {
+            diagnostics.raise(Error::new(cause, self.current().unwrap().span));
+            self.is_current_error = true;
+        }
     }
 
     /// Pega o token o qual está sendo parsado no momento e garante que ele exista
@@ -77,6 +99,7 @@ impl Parser {
 
     /// Incrementa o índice para o próximo token
     fn next(&mut self) {
+        self.is_current_error = false;
         self.curr_token += 1;
     }
 
@@ -133,63 +156,76 @@ impl Parser {
         let mut macros = IndexMap::<String, Macro>::new();
         let mut main_option: Option<Main> = None;
         let mut main_declared = false;
+        let mut was_current_error = self.is_current_error();
 
         while let Some(token) = self.current() {
             let token_span = token.span;
 
-            match token.token_type {
-                TokenType::Main => {
-                    // se main não declarada ainda, fazer parse
-                    if !main_declared {
-                        main_option = self.parse_main(diagnostics)?;
-                        main_declared = true;
-
-                    // se main já declarada, jogar erro
-                    } else {
-                        diagnostics
-                            .raise(Error::new(MainAlreadyDeclared, token_span));
+            if was_current_error && self.is_current_error() {
+                self.next();
+            } else {
+                match token.token_type {
+                    TokenType::Main => {
+                        // se main não declarada ainda, fazer parse
+                        if !main_declared {
+                            main_option = self.parse_main(diagnostics)?;
+                            main_declared = true;
+                        // se main já declarada, jogar erro
+                        } else {
+                            diagnostics.raise(Error::new(
+                                MainAlreadyDeclared,
+                                token_span,
+                            ));
+                        }
                     }
-                }
-
-                TokenType::Operation => {
-                    if let Some(macro_aux) =
-                        self.parse_macro_def(MacroType::Operation, diagnostics)?
-                    {
-                        self.insert_macro_def(
-                            &mut macros,
-                            macro_aux,
+                    TokenType::Operation => {
+                        if let Some(macro_aux) = self.parse_macro_def(
+                            MacroType::Operation,
                             diagnostics,
-                        );
+                        )? {
+                            self.insert_macro_def(
+                                &mut macros,
+                                macro_aux,
+                                diagnostics,
+                            );
+                        }
                     }
-                }
-
-                TokenType::Test => {
-                    if let Some(macro_aux) =
-                        self.parse_macro_def(MacroType::Test, diagnostics)?
-                    {
-                        self.insert_macro_def(
-                            &mut macros,
-                            macro_aux,
-                            diagnostics,
-                        );
+                    TokenType::Test => {
+                        if let Some(macro_aux) =
+                            self.parse_macro_def(MacroType::Test, diagnostics)?
+                        {
+                            self.insert_macro_def(
+                                &mut macros,
+                                macro_aux,
+                                diagnostics,
+                            );
+                        }
                     }
-                }
+                    _ => {
+                        let expected_types = vec![
+                            TokenType::Main,
+                            TokenType::Operation,
+                            TokenType::Test,
+                        ];
+                        diagnostics.raise(Error::new(
+                            UnexpectedToken { expected_types },
+                            token.span,
+                        ));
 
-                _ => {
-                    let expected_types = vec![
-                        TokenType::Main,
-                        TokenType::Operation,
-                        TokenType::Test,
-                    ];
+                        /* TROCAR POR: (???) - erro de mut/immut borrow of self
+                        let expected_types = vec![expected_type];
 
-                    diagnostics.raise(Error::new(
-                        UnexpectedToken { expected_types },
-                        token.span,
-                    ));
-
-                    self.next();
+                        self.raise_error_on_current(Error::new(
+                            UnexpectedToken { expected_types },
+                            token.span),
+                            diagnostics
+                        );
+                        */
+                    }
                 }
             }
+
+            was_current_error = self.is_current_error();
         }
 
         // se depois de parsar todas as macros, não foi declarada nenhuma main
@@ -431,6 +467,22 @@ impl Parser {
                     .map(|argument| OperationType::BuiltIn(oper, argument)))
             }
 
+            TokenType::BuiltInTest(test) => {
+                let expected_types = vec![
+                    TokenType::BuiltInOper(BuiltInOperation::Inc),
+                    TokenType::BuiltInOper(BuiltInOperation::Dec),
+                    TokenType::Identifier,
+                ];
+
+                diagnostics.raise(Error::new(
+                    UnexpectedToken { expected_types },
+                    token.span,
+                ));
+
+                self.parse_builtin_arg(diagnostics)?;
+                Ok(None)
+            }
+
             _ => {
                 let expected_types = vec![
                     TokenType::BuiltInOper(BuiltInOperation::Inc),
@@ -441,8 +493,6 @@ impl Parser {
                     UnexpectedToken { expected_types },
                     token.span,
                 ));
-
-                self.next();
                 Ok(None)
             }
         }
@@ -503,6 +553,21 @@ impl Parser {
                     .map(|argument| TestType::BuiltIn(test, argument)))
             }
 
+            TokenType::BuiltInOper(_oper) => {
+                let expected_types = vec![
+                    TokenType::BuiltInTest(BuiltInTest::Zero),
+                    TokenType::Identifier,
+                ];
+
+                diagnostics.raise(Error::new(
+                    UnexpectedToken { expected_types },
+                    token.span,
+                ));
+
+                self.parse_builtin_arg(diagnostics)?;
+                Ok(None)
+            }
+
             _ => {
                 let expected_types = vec![
                     TokenType::BuiltInTest(BuiltInTest::Zero),
@@ -514,7 +579,6 @@ impl Parser {
                     token.span,
                 ));
 
-                self.next();
                 Ok(None)
             }
         }
