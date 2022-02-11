@@ -2,7 +2,6 @@ use crate::{
     compiler::{
         lexer::token::{BuiltInOperation, BuiltInTest},
         parser::ast,
-        position::{Position, Span},
     },
     interpreter::program::{
         Instruction, InstructionKind, Operation, OperationKind, Program, Test,
@@ -10,6 +9,7 @@ use crate::{
     },
 };
 use indexmap::IndexMap;
+use pinguim_language::position::{Position, Span};
 
 pub fn source_code() -> &'static str {
     "test notZero (A) {

@@ -1,5 +1,6 @@
+use pinguim_language::error::Diagnostics;
 use crate::compiler::{
-    error::Diagnostics, lexer::generate_tokens, parser::parse,
+    lexer::generate_tokens, parser::parse,
     test::greater_than_one,
 };
 

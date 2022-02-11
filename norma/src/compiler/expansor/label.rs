@@ -1,11 +1,9 @@
 use super::error::{
     InvalidLabelForMain, InvalidLabelForOperMacro, InvalidLabelForTestMacro,
 };
-use crate::compiler::{
-    error::{Diagnostics, Error},
-    parser::ast,
-};
+use crate::compiler::parser::ast;
 use indexmap::IndexMap;
+use pinguim_language::error::{Diagnostics, Error};
 
 /*
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]

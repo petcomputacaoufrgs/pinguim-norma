@@ -1,21 +1,22 @@
 [package]
-name = "norma-wasm"
-version = "0.1.0"
 authors = ["brunoczim <brunoczim@gmail.com>"]
 edition = "2018"
+name = "norma-wasm"
+version = "0.1.0"
 workspace = "../"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-norma = { path = "../norma/" }
+console_error_panic_hook = "0.1.6"
 indexmap = "1.7.0"
-serde = { version = "1.0", features = ["derive"] }
-wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+norma = {path = "../norma/"}
 num-bigint = "0.4"
 num-traits = "0.2"
-console_error_panic_hook = "0.1.6"
+pinguim-language = {git = "https://github.com/petcomputacaoufrgs/pinguim-language"}
+serde = {version = "1.0", features = ["derive"]}
+wasm-bindgen = {version = "0.2", features = ["serde-serialize"]}
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"

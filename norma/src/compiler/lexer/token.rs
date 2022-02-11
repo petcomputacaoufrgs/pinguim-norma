@@ -1,4 +1,4 @@
-use crate::compiler::position::Span;
+use pinguim_language::position::Span;
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

@@ -9,7 +9,6 @@ mod macro_call;
 
 use crate::{
     compiler::{
-        error::{Diagnostics, Error},
         lexer::token::{BuiltInOperation, BuiltInTest},
         parser::ast,
     },
@@ -27,6 +26,7 @@ use indexmap::{IndexMap, IndexSet};
 use macro_call::{
     MacroCallExpansor, OperMacroCallExpansor, TestMacroCallExpansor,
 };
+use pinguim_language::error::{Diagnostics, Error};
 use std::collections::HashMap;
 
 /// Cria um Expansor e expande o programa a partir da `ast` fornecida

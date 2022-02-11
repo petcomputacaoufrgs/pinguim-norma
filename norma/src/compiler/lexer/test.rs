@@ -1,10 +1,10 @@
 use super::{
-    super::{
-        error::Diagnostics,
-        position::{Position, Span},
-    },
     generate_tokens,
     token::{BuiltInOperation, BuiltInTest, Token, TokenType},
+};
+use pinguim_language::{
+    error::Diagnostics,
+    position::{Position, Span},
 };
 
 #[test]

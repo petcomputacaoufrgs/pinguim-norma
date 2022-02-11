@@ -1,5 +1,3 @@
-pub mod position;
-pub mod error;
 pub mod lexer;
 pub mod parser;
 pub mod expansor;
@@ -8,10 +6,10 @@ pub mod expansor;
 mod test;
 
 use crate::interpreter::program::Program;
-use error::Diagnostics;
 use expansor::expand;
 use lexer::generate_tokens;
 use parser::parse;
+use pinguim_language::error::Diagnostics;
 
 pub fn compile(source: &str) -> Result<Program, Diagnostics> {
     let mut diagnostics = Diagnostics::new();
