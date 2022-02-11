@@ -1,11 +1,12 @@
 [package]
+edition = "2018"
 name = "norma"
 version = "0.1.0"
-edition = "2018"
 workspace = "../"
 
 [dependencies]
 indexmap = "1.7.0"
-serde = { version = "1.0", features = ["derive"] }
 num-bigint = "0.4"
 num-traits = "0.2"
+pinguim-language = {git = "https://github.com/petcomputacaoufrgs/pinguim-language"}
+serde = {version = "1.0", features = ["derive"]}

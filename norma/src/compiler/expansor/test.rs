@@ -1,7 +1,8 @@
 use crate::compiler::{
-    error::Diagnostics, expansor::expand, lexer::generate_tokens,
-    parser::parse, test::greater_than_one,
+    expansor::expand, lexer::generate_tokens, parser::parse,
+    test::greater_than_one,
 };
+use pinguim_language::error::Diagnostics;
 
 #[test]
 fn expand_greater_than_one() {

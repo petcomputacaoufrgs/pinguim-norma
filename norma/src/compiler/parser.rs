@@ -4,9 +4,8 @@ mod test;
 pub mod error;
 pub mod ast;
 
-use crate::compiler::{
-    error::{Diagnostics, Error},
-    lexer::token::{BuiltInOperation, BuiltInTest, Token, TokenType},
+use crate::compiler::lexer::token::{
+    BuiltInOperation, BuiltInTest, Token, TokenType,
 };
 use ast::{
     Instruction, InstructionType, Macro, MacroArgument, MacroType, Main,
@@ -19,6 +18,7 @@ use error::{
 };
 use indexmap::IndexMap;
 use num_bigint::BigUint;
+use pinguim_language::error::{Diagnostics, Error};
 use std::error::Error as StdError;
 use std::str::FromStr;
 

@@ -4,9 +4,11 @@ mod test;
 pub mod error;
 pub mod token;
 
-use super::error::{Diagnostics, Error};
-use crate::compiler::position::Span;
 use error::{BadCommentStart, InvalidChar};
+use pinguim_language::{
+    error::{Diagnostics, Error},
+    position::Span,
+};
 use std::{error::Error as StdError, iter::Peekable, str};
 use token::{BuiltInOperation, BuiltInTest, Token, TokenType};
 

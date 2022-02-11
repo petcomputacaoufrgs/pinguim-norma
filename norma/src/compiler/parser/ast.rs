@@ -1,9 +1,7 @@
-use crate::compiler::{
-    lexer::token::{BuiltInOperation, BuiltInTest},
-    position::Span,
-};
+use crate::compiler::lexer::token::{BuiltInOperation, BuiltInTest};
 use indexmap::IndexMap;
 use num_bigint::BigUint;
+use pinguim_language::position::Span;
 use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]

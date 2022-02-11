@@ -1,14 +1,14 @@
-use std::{cmp::Ordering, fmt, str::FromStr};
 use norma::{
-    compiler::{
-        self,
-        error::{Diagnostics, Error},
-        position::Span,
-    },
+    compiler::{self},
     interpreter::{program::Program, Interpreter},
 };
 use num_bigint::BigUint;
+use pinguim_language::{
+    error::{Diagnostics, Error},
+    position::Span,
+};
 use serde::{Deserialize, Serialize};
+use std::{cmp::Ordering, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
