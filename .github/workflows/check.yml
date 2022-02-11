@@ -84,8 +84,5 @@ jobs:
         with:
           version: 'latest'
       
-      - run:
-          wasm-pack build norma-wasm
-          cd www
-          npm install
-          run build
+      - run: wasm-pack build norma-wasm
+      - run: cd www && npm install && npm run build
