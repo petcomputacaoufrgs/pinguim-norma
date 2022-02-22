@@ -14,7 +14,7 @@
     --control-button-font-color: #121212;
     --title-font-color: #EBEBE3;
     --details: #2B2B28;
-    --textarea-scrollbar: #4A4A48;
+    --textarea-scrollbar: #a3a39e;
     --code-font-color: rgba(0, 0, 0, 0);
     --code-reserved-words: #F84B3C;
     --code-built-in-funcs: #F9BC41;
@@ -176,6 +176,7 @@ input:checked + .slider > span {
 /* TEXTAREA FOR CODE*/
 .code-highlight {
     font-size: 1.06rem;
+    font-family: monospace;
 }
 
 .code-textarea {
@@ -192,14 +193,12 @@ input:checked + .slider > span {
     caret-color: var(--main-font-color);
 }
 
-.code-textarea::-webkit-scrollbar {
-    width: 0.5rem;
-    background-color: var(--textarea-background);
-}
-
-.code-textarea::-webkit-scrollbar-thumb {
-    border-radius: 1rem;
-    background-color: var(--textarea-scrollbar);
+.code-textarea, .highlighting {
+    line-height: 1.5 !important;
+    font-family: monospace !important;
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
+    white-space: pre-wrap !important; 
 }
 
 .highlighting {
@@ -209,8 +208,6 @@ input:checked + .slider > span {
     max-height: 40vh;
     margin: 0;
     padding: 10px;
-    white-space: pre-wrap; 
-    word-wrap: break-word;
     overflow-x: hidden;
     overflow-y: scroll;
 }
