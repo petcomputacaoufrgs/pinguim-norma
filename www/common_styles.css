@@ -389,7 +389,7 @@ input:checked + .slider > span {
         width: 86vw;
     }
 
-    .behind {
+    .front {
         transform: translate(0, -102%);
     }
 
