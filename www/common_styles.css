@@ -174,13 +174,16 @@ input:checked + .slider > span {
 
 
 /* TEXTAREA FOR CODE*/
-.code-highlight {
-    font-size: 1.06rem;
-    font-family: monospace;
+.code-textarea, .highlighting {
+    font-size: 1.06rem !important;
+    line-height: 1.5 !important;
+    font-family: monospace !important;
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
+    white-space: pre-wrap !important; 
 }
 
 .code-textarea {
-    font-size: 1.06rem;
     resize: none;
     border: none;
     padding: 10px;
@@ -193,16 +196,7 @@ input:checked + .slider > span {
     caret-color: var(--main-font-color);
 }
 
-.code-textarea, .highlighting {
-    line-height: 1.5 !important;
-    font-family: monospace !important;
-    word-break: break-all !important;
-    overflow-wrap: break-word !important;
-    white-space: pre-wrap !important; 
-}
-
 .highlighting {
-    font-size: 1.06rem;
     width: 56vw;
     height: 40vh;
     max-height: 40vh;
