@@ -14,7 +14,7 @@
     --control-button-font-color: #121212;
     --title-font-color: #EBEBE3;
     --details: #2B2B28;
-    --textarea-scrollbar: #4A4A48;
+    --textarea-scrollbar: #a3a39e;
     --code-font-color: rgba(0, 0, 0, 0);
     --code-reserved-words: #F84B3C;
     --code-built-in-funcs: #F9BC41;
@@ -174,53 +174,43 @@ input:checked + .slider > span {
 
 
 /* TEXTAREA FOR CODE*/
-.code-highlight {
-    font-size: 1.06rem;
+.code-textarea, .highlighting {
+    font-size: 1.06rem !important;
+    line-height: 1.5 !important;
+    font-family: monospace !important;
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
+    white-space: pre-wrap !important; 
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
 
 .code-textarea {
-    font-size: 1.06rem;
     resize: none;
     border: none;
     padding: 10px;
     width: 56vw;
     min-height: 40vh;
-    overflow-y: scroll;
     box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.25);
     color: var(--code-font-color);
     background: var(--textarea-background);
     caret-color: var(--main-font-color);
 }
 
-.code-textarea::-webkit-scrollbar {
-    width: 0.5rem;
-    background-color: var(--textarea-background);
-}
-
-.code-textarea::-webkit-scrollbar-thumb {
-    border-radius: 1rem;
-    background-color: var(--textarea-scrollbar);
-}
-
 .highlighting {
-    font-size: 1.06rem;
     width: 56vw;
     height: 40vh;
     max-height: 40vh;
     margin: 0;
     padding: 10px;
-    white-space: pre-wrap; 
-    word-wrap: break-word;
-    overflow-x: hidden;
-    overflow-y: scroll;
 }
 
-.front {
+.behind {
     position: relative;
     z-index: 1;
 }
 
-.behind {
+.front {
     position: absolute;
     margin: 0 2vw;
     background-clip: padding-box;
@@ -399,7 +389,7 @@ input:checked + .slider > span {
         width: 86vw;
     }
 
-    .behind {
+    .front {
         transform: translate(0, -102%);
     }
 

@@ -1,8 +1,7 @@
-use pinguim_language::error::Diagnostics;
 use crate::compiler::{
-    lexer::generate_tokens, parser::parse,
-    test::greater_than_one,
+    lexer::generate_tokens, parser::parse, test::greater_than_one,
 };
+use pinguim_language::error::Diagnostics;
 
 #[test]
 fn parse_greater_than_one() {
@@ -17,7 +16,6 @@ fn parse_greater_than_one() {
     assert!(diagnostics.is_ok());
 }
 
-
 #[test]
 fn code_starting_with_unexpected_token_type() {
     let code = "a";
@@ -29,9 +27,9 @@ fn code_starting_with_unexpected_token_type() {
         diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
 
     assert_eq!(
-        errors, 
+        errors,
         &[
-            "Token inesperado encontrado, esperava-se um \"main\", \"operation\" ou \"test\", na linha 1 e coluna 1", 
+            "Token inesperado encontrado, esperava-se um \"main\", \"operation\" ou \"test\", na linha 1 e coluna 1",
             "Main não foi declarada neste programa"
         ]
     )
@@ -63,7 +61,7 @@ fn if_keyword_calls_builtin_operation_inc() {
     1: if inc X then goto 2 else goto 0
     2: do inc X goto 0
 }";
-    
+
     let mut diagnostics = Diagnostics::new();
 
     let tokens = generate_tokens(code, &mut diagnostics);
@@ -83,7 +81,7 @@ fn if_keyword_calls_builtin_operation_dec() {
     1: if dec X then goto 2 else goto 0
     2: do dec X goto 0
 }";
-    
+
     let mut diagnostics = Diagnostics::new();
 
     let tokens = generate_tokens(code, &mut diagnostics);
@@ -111,7 +109,7 @@ fn builtin_operation_without_arg() {
         diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
 
     assert_eq!(
-        errors, 
+        errors,
         &["Token inesperado encontrado, esperava-se um \"<identificador>\", da linha 2 e coluna 15, até a coluna 18"]
     )
 }
@@ -130,7 +128,7 @@ fn if_calls_builtin_operation_without_arg() {
         diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
 
     assert_eq!(
-        errors, 
+        errors,
         &[
             "Token inesperado encontrado, esperava-se um \"zero\" ou \"<identificador>\", da linha 2 e coluna 11, até a coluna 13",
             "Token inesperado encontrado, esperava-se um \"<identificador>\", da linha 2 e coluna 15, até a coluna 18",
@@ -151,7 +149,7 @@ fn normal_label_as_true() {
         diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
 
     assert_eq!(
-        errors, 
+        errors,
         &["Nome de label não pode ser \"true\" nem \"false\", da linha 2 e coluna 5, até a coluna 8"]
     )
 }
@@ -169,9 +167,7 @@ fn normal_label_as_false() {
         diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>();
 
     assert_eq!(
-        errors, 
+        errors,
         &["Nome de label não pode ser \"true\" nem \"false\", da linha 2 e coluna 5, até a coluna 9"]
     )
 }
-
-
