@@ -10,7 +10,10 @@ use pinguim_language::{
     position::Span,
 };
 use std::{error::Error as StdError, iter::Peekable, str};
-use token::{BuiltInOperation, BuiltInTest, Token, TokenType};
+use token::{
+    BuiltInOperation, BuiltInTest, ShortCutOperation, ShortCutTest, Token,
+    TokenType,
+};
 
 pub fn generate_tokens(
     source: &str,
@@ -143,6 +146,10 @@ impl<'src> Lexer<'src> {
             TokenType::BuiltInOper(builtin_oper)
         } else if let Some(builtin_test) = self.match_builtin_test() {
             TokenType::BuiltInTest(builtin_test)
+        } else if let Some(shortcut_oper) = self.match_shortcut_oper() {
+            TokenType::ShortCutOper(shortcut_oper)
+        } else if let Some(shortcut_test) = self.match_shortcut_test() {
+            TokenType::ShortCutTest(shortcut_test)
         } else {
             TokenType::Identifier
         };
@@ -243,9 +250,31 @@ impl<'src> Lexer<'src> {
         }
     }
 
+    fn match_shortcut_oper(&self) -> Option<ShortCutOperation> {
+        match self.token_content.as_str() {
+            "clear" => Some(ShortCutOperation::Clear),
+            "load" => Some(ShortCutOperation::Load),
+            "addc" => Some(ShortCutOperation::AddConst),
+            "add" => Some(ShortCutOperation::Add),
+            "subc" => Some(ShortCutOperation::SubConst),
+            "sub" => Some(ShortCutOperation::Sub),
+            _ => None,
+        }
+    }
+
     fn match_builtin_test(&self) -> Option<BuiltInTest> {
         match self.token_content.as_str() {
             "zero" => Some(BuiltInTest::Zero),
+            _ => None,
+        }
+    }
+
+    fn match_shortcut_test(&self) -> Option<ShortCutTest> {
+        match self.token_content.as_str() {
+            "cmpc" => Some(ShortCutTest::EqualsConst),
+            "cmp" => Some(ShortCutTest::Equals),
+            "lessthanc" => Some(ShortCutTest::LessThanConst),
+            "lessthan" => Some(ShortCutTest::LessThan),
             _ => None,
         }
     }

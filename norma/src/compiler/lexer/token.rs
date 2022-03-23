@@ -14,6 +14,8 @@ pub enum TokenType {
     Then,
     BuiltInOper(BuiltInOperation),
     BuiltInTest(BuiltInTest),
+    ShortCutOper(ShortCutOperation),
+    ShortCutTest(ShortCutTest),
     Number,
     Identifier,
     Colon,
@@ -40,6 +42,12 @@ impl fmt::Display for TokenType {
             }
             TokenType::BuiltInTest(builtin_test) => {
                 write!(formatter, "{}", builtin_test)
+            }
+            TokenType::ShortCutOper(shortcut_oper) => {
+                write!(formatter, "{}", shortcut_oper)
+            }
+            TokenType::ShortCutTest(shortcut_test) => {
+                write!(formatter, "{}", shortcut_test)
             }
             TokenType::Number => write!(formatter, "<número>"),
             TokenType::Identifier => write!(formatter, "<identificador>"),
@@ -84,6 +92,48 @@ impl fmt::Display for BuiltInTest {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self {
             BuiltInTest::Zero => write!(formatter, "zero"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum ShortCutOperation {
+    Clear,
+    Load,
+    AddConst,
+    Add,
+    SubConst,
+    Sub,
+}
+
+impl fmt::Display for ShortCutOperation {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ShortCutOperation::Clear => write!(formatter, "clear"),
+            ShortCutOperation::Load => write!(formatter, "load"),
+            ShortCutOperation::AddConst => write!(formatter, "addc"),
+            ShortCutOperation::Add => write!(formatter, "add"),
+            ShortCutOperation::SubConst => write!(formatter, "subc"),
+            ShortCutOperation::Sub => write!(formatter, "sub"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum ShortCutTest {
+    EqualsConst,
+    Equals,
+    LessThanConst,
+    LessThan,
+}
+
+impl fmt::Display for ShortCutTest {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ShortCutTest::EqualsConst => write!(formatter, "cmpc"),
+            ShortCutTest::Equals => write!(formatter, "cmp"),
+            ShortCutTest::LessThanConst => write!(formatter, "lessthanc"),
+            ShortCutTest::LessThan => write!(formatter, "lessthan"),
         }
     }
 }
