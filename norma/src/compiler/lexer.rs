@@ -11,7 +11,7 @@ use pinguim_language::{
 };
 use std::{error::Error as StdError, iter::Peekable, str};
 use token::{
-    BuiltInOperation, BuiltInTest, ShortCutOperation, ShortCutTest, Token,
+    BuiltInOperation, BuiltInTest, ShortcutOperation, ShortcutTest, Token,
     TokenType,
 };
 
@@ -147,9 +147,9 @@ impl<'src> Lexer<'src> {
         } else if let Some(builtin_test) = self.match_builtin_test() {
             TokenType::BuiltInTest(builtin_test)
         } else if let Some(shortcut_oper) = self.match_shortcut_oper() {
-            TokenType::ShortCutOper(shortcut_oper)
+            TokenType::ShortcutOper(shortcut_oper)
         } else if let Some(shortcut_test) = self.match_shortcut_test() {
-            TokenType::ShortCutTest(shortcut_test)
+            TokenType::ShortcutTest(shortcut_test)
         } else {
             TokenType::Identifier
         };
@@ -250,14 +250,14 @@ impl<'src> Lexer<'src> {
         }
     }
 
-    fn match_shortcut_oper(&self) -> Option<ShortCutOperation> {
+    fn match_shortcut_oper(&self) -> Option<ShortcutOperation> {
         match self.token_content.as_str() {
-            "clear" => Some(ShortCutOperation::Clear),
-            "load" => Some(ShortCutOperation::Load),
-            "addc" => Some(ShortCutOperation::AddConst),
-            "add" => Some(ShortCutOperation::Add),
-            "subc" => Some(ShortCutOperation::SubConst),
-            "sub" => Some(ShortCutOperation::Sub),
+            "clear" => Some(ShortcutOperation::Clear),
+            "load" => Some(ShortcutOperation::Load),
+            "addc" => Some(ShortcutOperation::AddConst),
+            "add" => Some(ShortcutOperation::Add),
+            "subc" => Some(ShortcutOperation::SubConst),
+            "sub" => Some(ShortcutOperation::Sub),
             _ => None,
         }
     }
@@ -269,12 +269,12 @@ impl<'src> Lexer<'src> {
         }
     }
 
-    fn match_shortcut_test(&self) -> Option<ShortCutTest> {
+    fn match_shortcut_test(&self) -> Option<ShortcutTest> {
         match self.token_content.as_str() {
-            "cmpc" => Some(ShortCutTest::EqualsConst),
-            "cmp" => Some(ShortCutTest::Equals),
-            "lessthanc" => Some(ShortCutTest::LessThanConst),
-            "lessthan" => Some(ShortCutTest::LessThan),
+            "cmpc" => Some(ShortcutTest::EqualsConst),
+            "cmp" => Some(ShortcutTest::Equals),
+            "lessthanc" => Some(ShortcutTest::LessThanConst),
+            "lessthan" => Some(ShortcutTest::LessThan),
             _ => None,
         }
     }

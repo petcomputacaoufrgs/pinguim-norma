@@ -1,4 +1,6 @@
-use crate::compiler::lexer::token::{BuiltInOperation, BuiltInTest};
+use crate::compiler::lexer::token::{
+    BuiltInOperation, BuiltInTest, ShortcutOperation, ShortcutTest,
+};
 use indexmap::IndexMap;
 use num_bigint::BigUint;
 use pinguim_language::position::Span;
@@ -22,6 +24,9 @@ pub enum OperationType {
     ///
     /// - `Macro`: operações escritas pelo usuário
     Macro(Symbol, Vec<MacroArgument>),
+    ///
+    /// - `Shortcut`: operações não builtin e não escritas pelo usuário
+    Shortcut(ShortcutOperation, Vec<MacroArgument>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -32,6 +37,9 @@ pub enum TestType {
     ///
     /// - `Macro`: testes escritas pelo usuário
     Macro(Symbol, Vec<MacroArgument>),
+    ///
+    /// - `Shortcut`: operações não builtin e não escritas pelo usuário
+    Shortcut(ShortcutTest, Vec<MacroArgument>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]

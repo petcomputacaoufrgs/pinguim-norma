@@ -2,7 +2,6 @@ use pinguim_language::position::Span;
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[allow(dead_code)]
 pub enum TokenType {
     Do,
     Else,
@@ -14,8 +13,8 @@ pub enum TokenType {
     Then,
     BuiltInOper(BuiltInOperation),
     BuiltInTest(BuiltInTest),
-    ShortCutOper(ShortCutOperation),
-    ShortCutTest(ShortCutTest),
+    ShortcutOper(ShortcutOperation),
+    ShortcutTest(ShortcutTest),
     Number,
     Identifier,
     Colon,
@@ -43,10 +42,10 @@ impl fmt::Display for TokenType {
             TokenType::BuiltInTest(builtin_test) => {
                 write!(formatter, "{}", builtin_test)
             }
-            TokenType::ShortCutOper(shortcut_oper) => {
+            TokenType::ShortcutOper(shortcut_oper) => {
                 write!(formatter, "{}", shortcut_oper)
             }
-            TokenType::ShortCutTest(shortcut_test) => {
+            TokenType::ShortcutTest(shortcut_test) => {
                 write!(formatter, "{}", shortcut_test)
             }
             TokenType::Number => write!(formatter, "<número>"),
@@ -97,7 +96,7 @@ impl fmt::Display for BuiltInTest {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum ShortCutOperation {
+pub enum ShortcutOperation {
     Clear,
     Load,
     AddConst,
@@ -106,34 +105,34 @@ pub enum ShortCutOperation {
     Sub,
 }
 
-impl fmt::Display for ShortCutOperation {
+impl fmt::Display for ShortcutOperation {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ShortCutOperation::Clear => write!(formatter, "clear"),
-            ShortCutOperation::Load => write!(formatter, "load"),
-            ShortCutOperation::AddConst => write!(formatter, "addc"),
-            ShortCutOperation::Add => write!(formatter, "add"),
-            ShortCutOperation::SubConst => write!(formatter, "subc"),
-            ShortCutOperation::Sub => write!(formatter, "sub"),
+            ShortcutOperation::Clear => write!(formatter, "clear"),
+            ShortcutOperation::Load => write!(formatter, "load"),
+            ShortcutOperation::AddConst => write!(formatter, "addc"),
+            ShortcutOperation::Add => write!(formatter, "add"),
+            ShortcutOperation::SubConst => write!(formatter, "subc"),
+            ShortcutOperation::Sub => write!(formatter, "sub"),
         }
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum ShortCutTest {
+pub enum ShortcutTest {
     EqualsConst,
     Equals,
     LessThanConst,
     LessThan,
 }
 
-impl fmt::Display for ShortCutTest {
+impl fmt::Display for ShortcutTest {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ShortCutTest::EqualsConst => write!(formatter, "cmpc"),
-            ShortCutTest::Equals => write!(formatter, "cmp"),
-            ShortCutTest::LessThanConst => write!(formatter, "lessthanc"),
-            ShortCutTest::LessThan => write!(formatter, "lessthan"),
+            ShortcutTest::EqualsConst => write!(formatter, "cmpc"),
+            ShortcutTest::Equals => write!(formatter, "cmp"),
+            ShortcutTest::LessThanConst => write!(formatter, "lessthanc"),
+            ShortcutTest::LessThan => write!(formatter, "lessthan"),
         }
     }
 }

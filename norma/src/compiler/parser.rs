@@ -5,7 +5,8 @@ pub mod error;
 pub mod ast;
 
 use crate::compiler::lexer::token::{
-    BuiltInOperation, BuiltInTest, Token, TokenType,
+    BuiltInOperation, BuiltInTest, ShortcutOperation, ShortcutTest, Token,
+    TokenType,
 };
 use ast::{
     Instruction, InstructionType, Macro, MacroArgument, MacroType, Main,
@@ -504,10 +505,46 @@ impl Parser {
                 Ok(None)
             }
 
+            TokenType::ShortcutOper(oper) => {
+                self.next();
+
+                let arguments = self.parse_macro_args(diagnostics)?;
+                Ok(Some(OperationType::Shortcut(oper, arguments)))
+            }
+
+            TokenType::ShortcutTest(_) => {
+                let expected_types = vec![
+                    TokenType::BuiltInOper(BuiltInOperation::Inc),
+                    TokenType::BuiltInOper(BuiltInOperation::Dec),
+                    TokenType::ShortcutOper(ShortcutOperation::Clear),
+                    TokenType::ShortcutOper(ShortcutOperation::Load),
+                    TokenType::ShortcutOper(ShortcutOperation::AddConst),
+                    TokenType::ShortcutOper(ShortcutOperation::Add),
+                    TokenType::ShortcutOper(ShortcutOperation::SubConst),
+                    TokenType::ShortcutOper(ShortcutOperation::Sub),
+                    TokenType::Identifier,
+                ];
+
+                self.raise_error_on_current(
+                    UnexpectedToken { expected_types },
+                    diagnostics,
+                );
+
+                self.next();
+                self.parse_builtin_arg(diagnostics)?;
+                Ok(None)
+            }
+
             _ => {
                 let expected_types = vec![
                     TokenType::BuiltInOper(BuiltInOperation::Inc),
                     TokenType::BuiltInOper(BuiltInOperation::Dec),
+                    TokenType::ShortcutOper(ShortcutOperation::Clear),
+                    TokenType::ShortcutOper(ShortcutOperation::Load),
+                    TokenType::ShortcutOper(ShortcutOperation::AddConst),
+                    TokenType::ShortcutOper(ShortcutOperation::Add),
+                    TokenType::ShortcutOper(ShortcutOperation::SubConst),
+                    TokenType::ShortcutOper(ShortcutOperation::Sub),
                     TokenType::Identifier,
                 ];
                 self.raise_error_on_current(
@@ -590,9 +627,40 @@ impl Parser {
                 Ok(None)
             }
 
+            TokenType::ShortcutTest(test) => {
+                self.next();
+
+                let arguments = self.parse_macro_args(diagnostics)?;
+                Ok(Some(TestType::Shortcut(test, arguments)))
+            }
+
+            TokenType::ShortcutOper(_) => {
+                let expected_types = vec![
+                    TokenType::BuiltInTest(BuiltInTest::Zero),
+                    TokenType::ShortcutTest(ShortcutTest::EqualsConst),
+                    TokenType::ShortcutTest(ShortcutTest::Equals),
+                    TokenType::ShortcutTest(ShortcutTest::LessThanConst),
+                    TokenType::ShortcutTest(ShortcutTest::LessThan),
+                    TokenType::Identifier,
+                ];
+
+                self.raise_error_on_current(
+                    UnexpectedToken { expected_types },
+                    diagnostics,
+                );
+
+                self.next();
+                self.parse_builtin_arg(diagnostics)?;
+                Ok(None)
+            }
+
             _ => {
                 let expected_types = vec![
                     TokenType::BuiltInTest(BuiltInTest::Zero),
+                    TokenType::ShortcutTest(ShortcutTest::EqualsConst),
+                    TokenType::ShortcutTest(ShortcutTest::Equals),
+                    TokenType::ShortcutTest(ShortcutTest::LessThanConst),
+                    TokenType::ShortcutTest(ShortcutTest::LessThan),
                     TokenType::Identifier,
                 ];
 

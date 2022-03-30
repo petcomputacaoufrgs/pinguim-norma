@@ -9,7 +9,7 @@ mod macro_call;
 
 use crate::{
     compiler::{
-        lexer::token::{BuiltInOperation, BuiltInTest},
+        lexer::token::{BuiltInOperation, BuiltInTest, ShortcutOperation, ShortcutTest},
         parser::ast,
     },
     interpreter::program::{
@@ -353,6 +353,7 @@ impl<'ast> Expansor<'ast> {
                     working_code,
                     diagnostics,
                 ),
+            ast::OperationType::Shortcut(shortcut_oper, arguments) 
         }
     }
 
@@ -369,6 +370,16 @@ impl<'ast> Expansor<'ast> {
             BuiltInOperation::Inc => OperationKind::Inc(arg.content.clone()),
             BuiltInOperation::Dec => OperationKind::Dec(arg.content.clone()),
         }
+    }
+
+    fn check_shortcut_args(args: Vec<&'ast ast::MacroArgument>, num_args: i32, diagnostics: &mut Diagnostics) -> Result<(), ()> {
+        if args.len() != num_args:
+            let error_cause = MismatchedArgsNumber {
+                macro_name: call_macro_name.content.clone(),
+                expected_num: def_params.len(),
+                found_num: args.len(),
+            };
+            diagnostics.raise(Error::new(error_cause, call_macro_name.span));
     }
 
     /// Expande uma instrução do tipo teste
